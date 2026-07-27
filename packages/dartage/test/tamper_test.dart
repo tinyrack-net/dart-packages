@@ -6,13 +6,13 @@ import 'package:dartage/src/stream.dart';
 import 'package:test/test.dart';
 
 void main() {
-  late String identity;
+  late X25519Identity identity;
   late Uint8List plaintext;
   late Uint8List ciphertext;
   late int payloadOffset;
 
   Future<void> expectDecryptFails(Uint8List tampered) async {
-    final decrypter = AgeDecrypter()..addIdentity(identity);
+    final decrypter = AgeDecrypter(identities: [identity]);
     await expectLater(
       decrypter.decrypt(tampered),
       throwsA(isA<AgeException>()),
@@ -20,9 +20,8 @@ void main() {
   }
 
   setUpAll(() async {
-    identity = generateIdentity();
-    final encrypter = AgeEncrypter()
-      ..addRecipient(await identityToRecipient(identity));
+    identity = X25519Identity.generate();
+    final encrypter = AgeEncrypter(recipients: [await identity.recipient()]);
     // Three full chunks so chunk swapping is possible.
     plaintext = Uint8List.fromList(
       List<int>.generate(3 * streamChunkSize, (i) => (i * 7) & 0xff),
@@ -34,7 +33,7 @@ void main() {
   });
 
   test('the untampered ciphertext decrypts (sanity check)', () async {
-    final decrypter = AgeDecrypter()..addIdentity(identity);
+    final decrypter = AgeDecrypter(identities: [identity]);
     expect(await decrypter.decrypt(ciphertext), plaintext);
   });
 
@@ -104,11 +103,12 @@ void main() {
   });
 
   test('a bech32 checksum off-by-one in the identity fails', () {
-    final last = identity[identity.length - 1];
+    final encoded = identity.encoded;
+    final last = encoded[encoded.length - 1];
     final replacement = last == 'Q' ? 'P' : 'Q';
-    final corrupted = identity.substring(0, identity.length - 1) + replacement;
+    final corrupted = encoded.substring(0, encoded.length - 1) + replacement;
     expect(
-      () => AgeDecrypter().addIdentity(corrupted),
+      () => X25519Identity.parse(corrupted),
       throwsA(
         isA<AgeException>().having(
           (e) => e.code,
@@ -120,13 +120,13 @@ void main() {
   });
 
   test('a bech32 checksum off-by-one in the recipient fails', () async {
-    final recipient = await identityToRecipient(identity);
+    final recipient = (await identity.recipient()).encoded;
     final last = recipient[recipient.length - 1];
     final replacement = last == 'q' ? 'p' : 'q';
     final corrupted =
         recipient.substring(0, recipient.length - 1) + replacement;
     expect(
-      () => AgeEncrypter().addRecipient(corrupted),
+      () => X25519Recipient.parse(corrupted),
       throwsA(
         isA<AgeException>().having(
           (e) => e.code,

@@ -12,6 +12,89 @@ import 'stanza.dart';
 const String _beginLine = '-----BEGIN AGE ENCRYPTED FILE-----';
 const String _endLine = '-----END AGE ENCRYPTED FILE-----';
 
+/// ASCII armor encoding and decoding, including bounded streaming variants.
+abstract final class AgeArmor {
+  /// Encodes a complete binary age file as ASCII armor.
+  static String encode(Uint8List file) => armorEncode(file);
+
+  /// Decodes a complete ASCII-armored age file.
+  static Uint8List decode(String armored) => armorDecode(armored);
+
+  /// Encodes a binary age stream as ASCII armor.
+  static Stream<Uint8List> encodeStream(Stream<List<int>> file) async* {
+    yield Uint8List.fromList(ascii.encode('$_beginLine\n'));
+    var pending = Uint8List(0);
+    await for (final chunk in file) {
+      if (chunk.isEmpty) {
+        continue;
+      }
+      pending = Uint8List.fromList([...pending, ...chunk]);
+      while (pending.length >= 48) {
+        final line = base64Encode(pending.sublist(0, 48));
+        yield Uint8List.fromList(ascii.encode('$line\n'));
+        pending = Uint8List.fromList(pending.sublist(48));
+      }
+    }
+    if (pending.isNotEmpty) {
+      yield Uint8List.fromList(ascii.encode('${base64Encode(pending)}\n'));
+    }
+    yield Uint8List.fromList(ascii.encode('$_endLine\n'));
+  }
+
+  /// Decodes an ASCII armor stream into binary age bytes.
+  static Stream<Uint8List> decodeStream(Stream<List<int>> armored) async* {
+    try {
+      final lines = armored
+          .transform(ascii.decoder)
+          .transform(const LineSplitter());
+      var state = 0;
+      String? pending;
+      await for (final line in lines) {
+        if (state == 0) {
+          if (line.trim().isEmpty) {
+            continue;
+          }
+          if (line != _beginLine) {
+            throw const AgeException('invalid armor begin line');
+          }
+          state = 1;
+          continue;
+        }
+        if (state == 1) {
+          if (line == _endLine) {
+            if (pending != null) {
+              if (pending.isEmpty ||
+                  pending.length > 64 ||
+                  pending.length % 4 != 0) {
+                throw const AgeException('invalid armor line length');
+              }
+              yield _decodePaddedBase64(pending);
+            }
+            state = 2;
+            continue;
+          }
+          if (pending != null) {
+            if (pending.length != 64) {
+              throw const AgeException('invalid armor line length');
+            }
+            yield _decodePaddedBase64(pending);
+          }
+          pending = line;
+          continue;
+        }
+        if (line.trim().isNotEmpty) {
+          throw const AgeException('non-whitespace data follows armor');
+        }
+      }
+      if (state != 2) {
+        throw const AgeException('invalid armor end line');
+      }
+    } on FormatException catch (error) {
+      throw AgeException('invalid armor text: ${error.message}');
+    }
+  }
+}
+
 /// Encodes a binary age [file] into ASCII armor (with a final newline).
 String armorEncode(Uint8List file) {
   final encoded = base64Encode(file);

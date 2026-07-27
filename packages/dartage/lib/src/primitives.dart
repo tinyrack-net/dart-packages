@@ -31,7 +31,7 @@ Future<Uint8List> x25519PublicKey(Uint8List scalar) async {
   if (scalar.length != 32) {
     throw const AgeException(
       'X25519 private scalar must be 32 bytes',
-      code: AgeExceptionCode.invalidArgument,
+      code: AgeExceptionCode.invalidConfiguration,
     );
   }
   final keyPair = await _x25519.newKeyPairFromSeed(scalar);
@@ -49,7 +49,7 @@ Future<Uint8List> x25519SharedSecret(
   if (scalar.length != 32 || peerPublicKey.length != 32) {
     throw const AgeException(
       'X25519 keys must be 32 bytes',
-      code: AgeExceptionCode.invalidArgument,
+      code: AgeExceptionCode.invalidConfiguration,
     );
   }
   final keyPair = await _x25519.newKeyPairFromSeed(scalar);
@@ -61,7 +61,7 @@ Future<Uint8List> x25519SharedSecret(
   if (shared.length != 32) {
     throw const AgeException(
       'X25519 shared secret has unexpected length',
-      code: AgeExceptionCode.decryptionFailed,
+      code: AgeExceptionCode.authenticationFailed,
     );
   }
   var accumulator = 0;
@@ -71,7 +71,7 @@ Future<Uint8List> x25519SharedSecret(
   if (accumulator == 0) {
     throw const AgeException(
       'X25519 shared secret is the all-zero value (low-order point)',
-      code: AgeExceptionCode.decryptionFailed,
+      code: AgeExceptionCode.authenticationFailed,
     );
   }
   return shared;
@@ -132,7 +132,7 @@ Future<Uint8List> chacha20Poly1305Open({
   if (ciphertext.length < 16) {
     throw const AgeException(
       'ChaCha20-Poly1305 ciphertext shorter than its tag',
-      code: AgeExceptionCode.decryptionFailed,
+      code: AgeExceptionCode.authenticationFailed,
     );
   }
   final box = SecretBox(
@@ -149,7 +149,7 @@ Future<Uint8List> chacha20Poly1305Open({
   } on SecretBoxAuthenticationError {
     throw const AgeException(
       'ChaCha20-Poly1305 authentication failed',
-      code: AgeExceptionCode.decryptionFailed,
+      code: AgeExceptionCode.authenticationFailed,
     );
   }
 }
@@ -158,13 +158,13 @@ void _checkAeadKeyAndNonce(Uint8List key, Uint8List nonce) {
   if (key.length != 32) {
     throw const AgeException(
       'ChaCha20-Poly1305 key must be 32 bytes',
-      code: AgeExceptionCode.invalidArgument,
+      code: AgeExceptionCode.invalidConfiguration,
     );
   }
   if (nonce.length != 12) {
     throw const AgeException(
       'ChaCha20-Poly1305 nonce must be 12 bytes',
-      code: AgeExceptionCode.invalidArgument,
+      code: AgeExceptionCode.invalidConfiguration,
     );
   }
 }

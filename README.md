@@ -5,7 +5,7 @@ Reusable Dart libraries maintained by Tinyrack.
 | Package | Description |
 | --- | --- |
 | [`cliweave`](packages/cliweave) | Typed command routing, help, completion, and terminal output for Dart CLIs. |
-| [`dartage`](packages/dartage) | Pure-Dart age v1 encryption with X25519 recipients. |
+| [`dartage`](packages/dartage) | Pure-Dart age v1 encryption with native, passphrase, post-quantum, tag, and streaming support. |
 
 Each package has an independent version and changelog. Releases are published
 to [pub.dev](https://pub.dev/publishers/tinyrack.net/packages) by the verified

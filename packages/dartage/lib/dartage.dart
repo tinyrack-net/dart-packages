@@ -1,8 +1,7 @@
-/// Pure-Dart age v1 file encryption (X25519 recipients only).
+/// Pure-Dart age v1 file encryption with native and extensible recipients.
 ///
-/// The wire-format internals (header, stanza, STREAM, bech32, primitives) stay
-/// under `src/` so no dotweave type can leak into them and no consumer can
-/// depend on them: the boundary is what keeps this module publishable.
+/// Supports X25519, scrypt, ML-KEM-768 hybrid, and tag recipients together
+/// with bounded binary and ASCII-armor streams.
 library;
 
 export 'src/age.dart';

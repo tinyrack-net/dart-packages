@@ -36,7 +36,9 @@ Future<Stanza> x25519Wrap(
     nonce: Uint8List(12),
     plaintext: fileKey,
   );
-  return Stanza(x25519StanzaType, [encodeBase64NoPad(ephemeralPublic)], body);
+  return AgeStanza(x25519StanzaType, [
+    encodeBase64NoPad(ephemeralPublic),
+  ], body);
 }
 
 /// Attempts to unwrap the file key from an `X25519` [stanza] using an identity
@@ -52,7 +54,7 @@ Future<Uint8List?> x25519Unwrap(
   if (stanza.type != x25519StanzaType) {
     throw const AgeException(
       'not an X25519 stanza',
-      code: AgeExceptionCode.invalidArgument,
+      code: AgeExceptionCode.invalidConfiguration,
     );
   }
   if (stanza.args.length != 1) {
@@ -91,7 +93,7 @@ Future<Uint8List?> x25519Unwrap(
     }
     return fileKey;
   } on AgeException catch (error) {
-    if (error.code == AgeExceptionCode.decryptionFailed) {
+    if (error.code == AgeExceptionCode.authenticationFailed) {
       // Wrong identity for this stanza; the caller should try the next one.
       return null;
     }

@@ -74,38 +74,30 @@ void main() {
       .map(_loadVector)
       .toList();
 
-  test('the vendored testkit subset is present', () {
-    expect(vectors.length, greaterThanOrEqualTo(20));
+  test('the complete pinned testkit corpus is present', () {
+    expect(vectors.length, 143);
     expect(vectors.map((v) => v.name), contains('x25519'));
     expect(vectors.map((v) => v.name), contains('scrypt'));
+    expect(vectors.map((v) => v.name), contains('hybrid'));
+    expect(vectors.map((v) => v.name), contains('stream_258_chunks'));
   });
 
   for (final vector in vectors) {
     test('testkit: ${vector.name} (expect: ${vector.expectValue})', () async {
       Future<Uint8List> decode() async {
         final raw = vector.armored
-            ? armorDecode(latin1.decode(vector.file))
+            ? AgeArmor.decode(latin1.decode(vector.file))
             : vector.file;
-        final decrypter = AgeDecrypter()
-          // Vectors without an identity still need one added so failures come
-          // from the file itself rather than the empty-decrypter guard.
-          ..addIdentity(vector.identity ?? generateIdentity());
+        final identities = <AgeIdentity>[
+          if (vector.passphrase != null)
+            ScryptIdentity(vector.passphrase!)
+          else if (vector.identity != null)
+            parseAgeIdentity(vector.identity!)
+          else
+            X25519Identity.generate(),
+        ];
+        final decrypter = AgeDecrypter(identities: identities);
         return decrypter.decrypt(raw);
-      }
-
-      if (vector.passphrase != null) {
-        // Passphrase (scrypt) files are intentionally unsupported: they must
-        // fail, and files that a full implementation would decrypt (expect:
-        // success) must fail with the dedicated passphrase error code.
-        try {
-          await decode();
-          fail('expected an AgeException for scrypt vector ${vector.name}');
-        } on AgeException catch (error) {
-          if (vector.expectValue == 'success') {
-            expect(error.code, AgeExceptionCode.passphraseUnsupported);
-          }
-        }
-        return;
       }
 
       if (vector.expectValue == 'success') {

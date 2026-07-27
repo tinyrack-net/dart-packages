@@ -8,6 +8,21 @@ importers:
 
   .:
     dependencies:
+      '@noble/ciphers':
+        specifier: 2.2.0
+        version: 2.2.0
+      '@noble/curves':
+        specifier: 2.2.0
+        version: 2.2.0
+      '@noble/hashes':
+        specifier: 2.2.0
+        version: 2.2.0
+      '@noble/post-quantum':
+        specifier: 0.5.4
+        version: 0.5.4
+      '@scure/base':
+        specifier: 2.2.0
+        version: 2.2.0
       age-encryption:
         specifier: ^0.3.0
         version: 0.3.0
