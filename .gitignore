@@ -1,4 +1,5 @@
 .dart_tool/
 **/doc/api/
+coverage/
 node_modules/
 pubspec.lock

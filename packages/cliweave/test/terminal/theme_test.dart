@@ -102,5 +102,116 @@ void main() {
         expect(color.action.delete('-'), 'red(-)');
       });
     });
+
+    group('real picocolors behavior', () {
+      test('resolves every supported environment and argument path', () {
+        String? none(String name) => null;
+        String? force(String name) => name == 'FORCE_COLOR' ? '1' : null;
+        String? noColor(String name) => name == 'NO_COLOR' ? '1' : null;
+        String? ci(String name) => name == 'CI' ? 'true' : null;
+        String? dumb(String name) => name == 'TERM' ? 'dumb' : null;
+
+        expect(
+          resolveIsColorSupported(
+            readEnv: none,
+            platform: 'linux',
+            stdoutIsTTY: false,
+          ),
+          isFalse,
+        );
+        expect(
+          resolveIsColorSupported(
+            readEnv: force,
+            platform: 'linux',
+            stdoutIsTTY: false,
+          ),
+          isTrue,
+        );
+        expect(
+          resolveIsColorSupported(
+            readEnv: ci,
+            platform: 'linux',
+            stdoutIsTTY: false,
+          ),
+          isTrue,
+        );
+        expect(
+          resolveIsColorSupported(
+            readEnv: none,
+            argv: const ['--color'],
+            platform: 'linux',
+            stdoutIsTTY: false,
+          ),
+          isTrue,
+        );
+        expect(
+          resolveIsColorSupported(
+            readEnv: none,
+            platform: 'win32',
+            stdoutIsTTY: false,
+          ),
+          isTrue,
+        );
+        expect(
+          resolveIsColorSupported(
+            readEnv: none,
+            platform: 'linux',
+            stdoutIsTTY: true,
+          ),
+          isTrue,
+        );
+        expect(
+          resolveIsColorSupported(
+            readEnv: dumb,
+            platform: 'linux',
+            stdoutIsTTY: true,
+          ),
+          isFalse,
+        );
+        expect(
+          resolveIsColorSupported(
+            readEnv: noColor,
+            argv: const ['--color'],
+            platform: 'win32',
+            stdoutIsTTY: true,
+          ),
+          isFalse,
+        );
+        expect(
+          resolveIsColorSupported(
+            readEnv: none,
+            argv: const ['--no-color'],
+            platform: 'win32',
+            stdoutIsTTY: true,
+          ),
+          isFalse,
+        );
+      });
+
+      test('emits exact ANSI styles and reopens nested styles', () {
+        final colors = createColors(enabled: true);
+
+        expect(colors.isColorSupported, isTrue);
+        expect(colors.bold('x'), '\x1B[1mx\x1B[22m');
+        expect(colors.dim('x'), '\x1B[2mx\x1B[22m');
+        expect(colors.red('x'), '\x1B[31mx\x1B[39m');
+        expect(colors.green('x'), '\x1B[32mx\x1B[39m');
+        expect(colors.yellow('x'), '\x1B[33mx\x1B[39m');
+        expect(colors.cyan('x'), '\x1B[36mx\x1B[39m');
+        expect(
+          colors.bold('outer \x1B[22m inner'),
+          '\x1B[1mouter \x1B[22m\x1B[1m inner\x1B[22m',
+        );
+        expect(colors.bold(''), '\x1B[1m\x1B[22m');
+      });
+
+      test('disabled colors are identity functions', () {
+        final colors = createColors(enabled: false);
+
+        expect(colors.isColorSupported, isFalse);
+        expect(colors.bold('plain'), 'plain');
+        expect(ColorTheme(pc: colors).action.add('plain'), 'plain');
+      });
+    });
   });
 }

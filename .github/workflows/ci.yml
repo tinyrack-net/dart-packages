@@ -19,7 +19,7 @@ jobs:
         with:
           sdk: 3.12.2
       - run: dart pub get
-      - run: dart format --output=none --set-exit-if-changed packages
+      - run: dart format --output=none --set-exit-if-changed .
       - run: dart analyze --fatal-infos
 
   cliweave:
@@ -40,6 +40,32 @@ jobs:
       - run: dart pub get
       - run: dart test
         working-directory: packages/cliweave
+
+  cliweave-shell-e2e:
+    name: cliweave completion e2e (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: bash-zsh-fish
+            os: ubuntu-latest
+            shells: bash,zsh,fish
+          - name: powershell
+            os: windows-2025
+            shells: powershell
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes fish zsh
+      - run: dart pub get
+      - run: dart test -t e2e
+        working-directory: packages/cliweave
+        env:
+          CLIWEAVE_E2E_SHELLS: ${{ matrix.shells }}
 
   dartage:
     name: dartage (${{ matrix.os }})
@@ -87,6 +113,24 @@ jobs:
         working-directory: packages/dartage/test/interop
       - run: dart test -t interop
         working-directory: packages/dartage
+
+  coverage:
+    name: Package coverage (95% minimum)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - run: dart pub get
+      - run: dart test test/lcov_test.dart
+      - run: dart run tool/verify_coverage.dart
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-coverage
+          path: coverage
+          if-no-files-found: error
 
   package-quality:
     name: Package quality

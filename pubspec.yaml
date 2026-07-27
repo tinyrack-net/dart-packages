@@ -7,3 +7,6 @@ environment:
 workspace:
   - packages/cliweave
   - packages/dartage
+
+dev_dependencies:
+  test: ^1.26.0
