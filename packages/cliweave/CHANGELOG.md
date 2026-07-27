@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Patch release to verify automated pub.dev publishing from GitHub Actions
+  using OIDC. There are no API or runtime behavior changes.
+
 ## 0.1.0
 
 - Initial extraction from the dotweave CLI, where this code has been in

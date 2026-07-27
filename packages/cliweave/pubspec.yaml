@@ -3,7 +3,7 @@ description: >-
   A typed CLI framework: command routing, argument scanning with kebab/camel
   aliasing, did-you-mean suggestions, rendered help, structured exit codes,
   shell-completion proposals, and a terminal logger, spinner, and colour theme.
-version: 0.1.0
+version: 0.1.1
 resolution: workspace
 repository: https://github.com/tinyrack-net/dart-packages
 issue_tracker: https://github.com/tinyrack-net/dart-packages/issues
