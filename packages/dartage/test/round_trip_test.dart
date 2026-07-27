@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dotweave_age/src/age.dart';
-import 'package:dotweave_age/src/header.dart';
-import 'package:dotweave_age/src/keys.dart';
-import 'package:dotweave_age/src/primitives.dart';
-import 'package:dotweave_age/src/stanza.dart';
-import 'package:dotweave_age/src/stream.dart';
-import 'package:dotweave_age/src/x25519_stanza.dart';
+import 'package:dartage/src/age.dart';
+import 'package:dartage/src/header.dart';
+import 'package:dartage/src/keys.dart';
+import 'package:dartage/src/primitives.dart';
+import 'package:dartage/src/stanza.dart';
+import 'package:dartage/src/stream.dart';
+import 'package:dartage/src/x25519_stanza.dart';
 import 'package:test/test.dart';
 
 void main() {

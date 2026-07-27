@@ -1,4 +1,4 @@
-import 'package:tinyrack_cli/src/env.dart';
+import 'package:cliweave/src/env.dart';
 
 // Shell-side half of the completion story. The framework computes candidates
 // (`proposeCompletions`); these scripts are what a shell sources so that

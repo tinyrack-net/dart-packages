@@ -1,5 +1,5 @@
+import 'package:cliweave/terminal.dart';
 import 'package:test/test.dart';
-import 'package:tinyrack_cli/terminal.dart';
 
 import 'mock_factories.dart';
 

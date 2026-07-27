@@ -8,8 +8,8 @@
 
 import 'dart:async';
 
+import 'package:cliweave/cliweave.dart';
 import 'package:test/test.dart';
-import 'package:tinyrack_cli/tinyrack_cli.dart';
 
 import 'helpers/capture_stream.dart';
 

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:dotweave_age/src/age.dart';
+import 'package:dartage/src/age.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

@@ -1,5 +1,5 @@
+import 'package:cliweave/cliweave.dart';
 import 'package:test/test.dart';
-import 'package:tinyrack_cli/tinyrack_cli.dart';
 
 // The scripts are consumed by real shells, so these pin the invariants a shell
 // would break on, plus the substitution of the executable name into every

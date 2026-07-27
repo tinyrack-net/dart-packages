@@ -1,15 +1,12 @@
-name: dotweave_age
+name: dartage
 description: >-
   Pure Dart implementation of the age v1 file encryption format with X25519
   recipients: encrypt, decrypt, ASCII armor, and identity/recipient key
   handling, verified against the reference implementation.
 version: 0.1.0
-# Not published yet. Everything else about this package is publish-ready, so
-# releasing is a matter of deleting this line and running `dart pub publish`.
-publish_to: none
 resolution: workspace
-repository: https://github.com/tinyrack/dotweave
-issue_tracker: https://github.com/tinyrack/dotweave/issues
+repository: https://github.com/tinyrack-net/dart-packages
+issue_tracker: https://github.com/tinyrack-net/dart-packages/issues
 topics:
   - age
   - encryption

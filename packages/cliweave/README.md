@@ -1,13 +1,11 @@
-# tinyrack_cli
+# cliweave
 
 A typed CLI framework for Dart: command routing, argument scanning, rendered
 help, structured exit codes, and shell-completion proposals — plus a terminal
 logger, spinner, and colour theme.
 
-> **Status: pre-release.** The API is not stable yet and the package is not
-> published. It is developed inside the
-> [dotweave](https://github.com/tinyrack/dotweave) repository, which is its
-> first consumer.
+> **Status: 0.x.** The API is in production use but can still change before
+> 1.0. Dotweave is its first consumer.
 
 ## Why not `package:args`?
 
@@ -33,8 +31,8 @@ if you need what it does not provide:
 ## Libraries
 
 ```dart
-import 'package:tinyrack_cli/tinyrack_cli.dart'; // commands, flags, help, completion
-import 'package:tinyrack_cli/terminal.dart';     // logger, spinner, colour theme
+import 'package:cliweave/cliweave.dart'; // commands, flags, help, completion
+import 'package:cliweave/terminal.dart'; // logger, spinner, colour theme
 ```
 
 They are separate so that a consumer who only needs argument parsing does not

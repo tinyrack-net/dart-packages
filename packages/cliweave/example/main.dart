@@ -7,7 +7,7 @@
 
 import 'dart:io';
 
-import 'package:tinyrack_cli/tinyrack_cli.dart';
+import 'package:cliweave/cliweave.dart';
 
 final greetCommand = buildCommand(
   docs: const CommandDocs(brief: 'Greet someone'),

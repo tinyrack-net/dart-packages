@@ -21,8 +21,8 @@
 
 import 'dart:async';
 
-import 'package:tinyrack_cli/src/env.dart';
-import 'package:tinyrack_cli/src/write_stream.dart';
+import 'package:cliweave/src/env.dart';
+import 'package:cliweave/src/write_stream.dart';
 
 part 'router_help.dart';
 part 'router_parse.dart';
@@ -30,8 +30,10 @@ part 'router_parse.dart';
 /// Error thrown for invalid router configuration, mirroring stricli's
 /// `InternalError` (src/util/error.ts).
 class RouterInternalError implements Exception {
+  /// Creates a [RouterInternalError].
   RouterInternalError(this.message);
 
+  /// The human-readable message.
   final String message;
 
   @override
@@ -45,24 +47,34 @@ class RouterInternalError implements Exception {
 /// Mirror of the `process` slice stricli requires from a run context:
 /// stdout/stderr write streams, the environment, and a mutable exit code.
 class RunProcess {
+  /// Creates a [RunProcess].
   RunProcess({required this.stdout, required this.stderr, EnvLookup? readEnv})
     : readEnv = readEnv ?? lookupPlatformEnv;
 
+  /// The stream used for standard output.
   final WriteStream stdout;
+
+  /// The stream used for standard error.
   final WriteStream stderr;
 
   /// Environment lookup used for `STRICLI_NO_COLOR`. Supply one to read from
   /// somewhere other than the process environment.
   final EnvLookup readEnv;
+
+  /// The exit code value.
   int? exitCode;
 }
 
 /// Mirror of stricli's `CommandContext`: the dotweave app only ever supplies
 /// `process` (and never `locale` or `forCommand`).
 class RunContext {
+  /// Creates a [RunContext].
   RunContext({required this.process, this.locale});
 
+  /// The process-facing streams and environment.
   final RunProcess process;
+
+  /// The locale requested for this run.
   final String? locale;
 }
 
@@ -99,10 +111,22 @@ abstract final class ExitCode {
 // ---------------------------------------------------------------------------
 
 /// stricli scanner case styles ("original" | "allow-kebab-for-camel").
-enum ScannerCaseStyle { original, allowKebabForCamel }
+enum ScannerCaseStyle {
+  /// Accepts flag names exactly as declared.
+  original,
+
+  /// Accepts kebab-case aliases for camel-case flag names.
+  allowKebabForCamel,
+}
 
 /// stricli display case styles ("original" | "convert-camel-to-kebab").
-enum DisplayCaseStyle { original, convertCamelToKebab }
+enum DisplayCaseStyle {
+  /// Displays names exactly as declared.
+  original,
+
+  /// Converts camel-case names to kebab case for display.
+  convertCamelToKebab,
+}
 
 // ---------------------------------------------------------------------------
 // Flag parameters (src/parameter/flag/types.ts)
@@ -125,13 +149,19 @@ String stringParser(String input) => input;
 sealed class Flag {
   const Flag({required this.brief, this.optional, this.hidden = false});
 
+  /// The short description shown in help output.
   final String brief;
+
+  /// Whether the value can be omitted.
   final bool? optional;
+
+  /// Whether the item is hidden from normal help output.
   final bool hidden;
 }
 
 /// stricli `kind: "boolean"` flag.
 final class BooleanFlag extends Flag {
+  /// Creates a [BooleanFlag].
   const BooleanFlag({
     required super.brief,
     super.optional,
@@ -140,6 +170,7 @@ final class BooleanFlag extends Flag {
     this.withNegated,
   });
 
+  /// The value used when no input is provided.
   final bool? defaultValue;
 
   /// Mirrors `withNegated?: boolean`; only an explicit `false` disables the
@@ -149,11 +180,13 @@ final class BooleanFlag extends Flag {
 
 /// stricli `kind: "counter"` flag.
 final class CounterFlag extends Flag {
+  /// Creates a [CounterFlag].
   const CounterFlag({required super.brief, super.optional, super.hidden});
 }
 
 /// stricli `kind: "enum"` flag.
 final class EnumFlag extends Flag {
+  /// Creates an [EnumFlag].
   const EnumFlag({
     required super.brief,
     required this.values,
@@ -165,7 +198,10 @@ final class EnumFlag extends Flag {
     this.placeholder,
   });
 
+  /// The accepted values.
   final List<String> values;
+
+  /// Whether multiple input values are accepted.
   final bool variadic;
 
   /// Mirrors the TS `variadic: string` form (separator-joined inputs).
@@ -173,11 +209,14 @@ final class EnumFlag extends Flag {
 
   /// `String` or `List<String>` (variadic default).
   final Object? defaultValue;
+
+  /// The placeholder shown for the value in help output.
   final String? placeholder;
 }
 
 /// stricli `kind: "parsed"` flag.
 final class ParsedFlag extends Flag {
+  /// Creates a [ParsedFlag].
   const ParsedFlag({
     required super.brief,
     required this.parse,
@@ -191,16 +230,25 @@ final class ParsedFlag extends Flag {
     this.proposeCompletions,
   });
 
+  /// The parser used to convert the input value.
   final FlagParseFunction parse;
+
+  /// Whether multiple input values are accepted.
   final bool variadic;
 
   /// Mirrors the TS `variadic: string` form (separator-joined inputs).
   final String? variadicSeparator;
+
+  /// The placeholder shown for the value in help output.
   final String? placeholder;
 
   /// `String` or `List<String>` (variadic default); parsed like inputs.
   final Object? defaultValue;
+
+  /// The infer empty value.
   final bool inferEmpty;
+
+  /// The callback used to propose completions for partial input.
   final ProposeCompletionsCallback? proposeCompletions;
 }
 
@@ -210,6 +258,7 @@ final class ParsedFlag extends Flag {
 
 /// A single positional parameter definition.
 final class PositionalParameter {
+  /// Creates a [PositionalParameter].
   const PositionalParameter({
     required this.brief,
     required this.parse,
@@ -219,11 +268,22 @@ final class PositionalParameter {
     this.proposeCompletions,
   });
 
+  /// The short description shown in help output.
   final String brief;
+
+  /// The parser used to convert the input value.
   final FlagParseFunction parse;
+
+  /// The placeholder shown for the value in help output.
   final String? placeholder;
+
+  /// The value used when no input is provided.
   final String? defaultValue;
+
+  /// Whether the value can be omitted.
   final bool? optional;
+
+  /// The callback used to propose completions for partial input.
   final ProposeCompletionsCallback? proposeCompletions;
 }
 
@@ -234,21 +294,29 @@ sealed class PositionalParameters {
 
 /// stricli `positional: { kind: "tuple", parameters: [...] }`.
 final class TuplePositionalParameters extends PositionalParameters {
+  /// Creates a [TuplePositionalParameters].
   const TuplePositionalParameters(this.parameters);
 
+  /// The command parameter definitions.
   final List<PositionalParameter> parameters;
 }
 
 /// stricli `positional: { kind: "array", parameter, minimum?, maximum? }`.
 final class ArrayPositionalParameters extends PositionalParameters {
+  /// Creates an [ArrayPositionalParameters].
   const ArrayPositionalParameters({
     required this.parameter,
     this.minimum,
     this.maximum,
   });
 
+  /// The parameter value.
   final PositionalParameter parameter;
+
+  /// The minimum number of accepted values.
   final int? minimum;
+
+  /// The maximum number of accepted values.
   final int? maximum;
 }
 
@@ -259,22 +327,32 @@ final class ArrayPositionalParameters extends PositionalParameters {
 /// Mirror of stricli `CommandParameters`: flags keyed by internal (camelCase)
 /// name, single-letter aliases, and the positional layout.
 final class CommandParameters {
+  /// Creates a [CommandParameters].
   const CommandParameters({
     this.flags = const {},
     this.aliases = const {},
     this.positional,
   });
 
+  /// The flags keyed by their internal names.
   final Map<String, Flag> flags;
+
+  /// The alternative names accepted for the item.
   final Map<String, String> aliases;
+
+  /// The positional parameter layout.
   final PositionalParameters? positional;
 }
 
 /// Mirror of stricli `CommandDocumentation` (`customUsage` is not ported).
 final class CommandDocs {
+  /// Creates a [CommandDocs].
   const CommandDocs({required this.brief, this.fullDescription});
 
+  /// The short description shown in help output.
   final String brief;
+
+  /// The optional long-form description shown in detailed help.
   final String? fullDescription;
 }
 
@@ -296,10 +374,16 @@ typedef CommandLoader = FutureOr<CommandFunction> Function();
 
 /// A routing tree node: either a [Command] or a [RouteMap].
 sealed class RoutingTarget {
+  /// The short description shown in help output.
   String get brief;
+
+  /// The optional long-form description shown in detailed help.
   String? get fullDescription;
 
+  /// Formats this target's usage line.
   String formatUsageLine(HelpFormattingArguments args);
+
+  /// Formats the complete help text for this target.
   String formatHelp(HelpFormattingArguments args);
 }
 
@@ -307,7 +391,10 @@ sealed class RoutingTarget {
 final class Command extends RoutingTarget {
   Command._(this.loader, this.parameters, this._docs);
 
+  /// The loader value.
   final CommandLoader loader;
+
+  /// The command parameter definitions.
   final CommandParameters parameters;
   final CommandDocs _docs;
 
@@ -364,24 +451,35 @@ Command buildCommand({
 
 /// Mirror of stricli `RouteMapDocumentation`.
 final class RouteMapDocs {
+  /// Creates a [RouteMapDocs].
   const RouteMapDocs({
     required this.brief,
     this.fullDescription,
     this.hideRoute = const {},
   });
 
+  /// The short description shown in help output.
   final String brief;
+
+  /// The optional long-form description shown in detailed help.
   final String? fullDescription;
+
+  /// The hide route value.
   final Map<String, bool> hideRoute;
 }
 
 /// Route name in both display case styles.
 final class RouteName {
+  /// Creates a [RouteName].
   const RouteName({required this.original, required this.convertCamelToKebab});
 
+  /// The name in its original case style.
   final String original;
+
+  /// The name converted from camel case to kebab case.
   final String convertCamelToKebab;
 
+  /// Returns the route name rendered in [style].
   String byStyle(DisplayCaseStyle style) {
     return style == DisplayCaseStyle.convertCamelToKebab
         ? convertCamelToKebab
@@ -391,6 +489,7 @@ final class RouteName {
 
 /// Mirror of an entry returned by stricli's `RouteMap#getAllEntries`.
 final class RouteMapEntry {
+  /// Creates a [RouteMapEntry].
   const RouteMapEntry({
     required this.name,
     required this.target,
@@ -398,27 +497,40 @@ final class RouteMapEntry {
     required this.hidden,
   });
 
+  /// The name of the item.
   final RouteName name;
+
+  /// The routing target for the entry.
   final RoutingTarget target;
+
+  /// The alternative names accepted for the item.
   final List<String> aliases;
+
+  /// Whether the item is hidden from normal help output.
   final bool hidden;
 }
 
 /// Aliases of a scanned route in both display case styles (mirror of the
 /// object returned by `getOtherAliasesForInput`).
 final class RouteNameAliases {
+  /// Creates a [RouteNameAliases].
   const RouteNameAliases({
     required this.original,
     required this.convertCamelToKebab,
   });
 
+  /// Creates an alias collection with no aliases.
   const RouteNameAliases.empty()
     : original = const [],
       convertCamelToKebab = const [];
 
+  /// The name in its original case style.
   final List<String> original;
+
+  /// The name converted from camel case to kebab case.
   final List<String> convertCamelToKebab;
 
+  /// Returns the aliases rendered in [style].
   List<String> byStyle(DisplayCaseStyle style) {
     return style == DisplayCaseStyle.convertCamelToKebab
         ? convertCamelToKebab
@@ -462,6 +574,7 @@ final class RouteMap extends RoutingTarget {
     return '${lines.join('\n')}\n';
   }
 
+  /// Returns the default command, if one is configured.
   Command? getDefaultCommand() {
     final route = _defaultCommandRoute;
     if (route == null) {
@@ -521,11 +634,13 @@ final class RouteMap extends RoutingTarget {
     );
   }
 
+  /// Resolves [input] to a route target.
   RoutingTarget? getRoutingTargetForInput(String input) {
     final routeName = _aliases[input] ?? input;
     return _routes[routeName];
   }
 
+  /// Returns every route entry in declaration order.
   List<RouteMapEntry> getAllEntries() {
     return _routes.entries.map((entry) {
       return RouteMapEntry(
@@ -577,6 +692,7 @@ RouteMap buildRouteMap({
 
 /// Section headers used by help rendering.
 final class TextHeaders {
+  /// Creates a [TextHeaders].
   const TextHeaders({
     required this.usage,
     required this.aliases,
@@ -585,23 +701,37 @@ final class TextHeaders {
     required this.arguments,
   });
 
+  /// The usage value.
   final String usage;
+
+  /// The alternative names accepted for the item.
   final String aliases;
+
+  /// The commands value.
   final String commands;
+
+  /// The flags keyed by their internal names.
   final String flags;
+
+  /// The arguments value.
   final String arguments;
 }
 
 /// Keywords used by help rendering (`default =`, `separator =`).
 final class TextKeywords {
+  /// Creates a [TextKeywords].
   const TextKeywords({required this.defaultKeyword, required this.separator});
 
+  /// The default keyword value.
   final String defaultKeyword;
+
+  /// The separator value.
   final String separator;
 }
 
 /// Briefs for the built-in flags.
 final class TextBriefs {
+  /// Creates a [TextBriefs].
   const TextBriefs({
     required this.help,
     required this.helpAll,
@@ -609,54 +739,80 @@ final class TextBriefs {
     required this.argumentEscapeSequence,
   });
 
+  /// The help value.
   final String help;
+
+  /// The help all value.
   final String helpAll;
+
+  /// The version value.
   final String version;
+
+  /// The argument escape sequence value.
   final String argumentEscapeSequence;
 }
 
 /// Arguments for `noCommandRegisteredForInput`.
 final class NoCommandRegisteredArguments {
+  /// Creates a [NoCommandRegisteredArguments].
   const NoCommandRegisteredArguments({
     required this.input,
     required this.corrections,
     required this.ansiColor,
   });
 
+  /// The input value.
   final String input;
+
+  /// Suggested corrections for invalid input.
   final List<String> corrections;
+
+  /// Whether ANSI color sequences are enabled.
   final bool ansiColor;
 }
 
 /// Arguments for `noTextAvailableForLocale`.
 final class NoTextAvailableArguments {
+  /// Creates a [NoTextAvailableArguments].
   const NoTextAvailableArguments({
     required this.requestedLocale,
     required this.defaultLocale,
     required this.ansiColor,
   });
 
+  /// The requested locale.
   final String requestedLocale;
+
+  /// The fallback locale.
   final String defaultLocale;
+
+  /// Whether ANSI color sequences are enabled.
   final bool ansiColor;
 }
 
 /// Arguments for `currentVersionIsNotLatest`.
 final class CurrentVersionNotLatestArguments {
+  /// Creates a [CurrentVersionNotLatestArguments].
   const CurrentVersionNotLatestArguments({
     required this.currentVersion,
     required this.latestVersion,
     this.upgradeCommand,
   });
 
+  /// The current application version.
   final String currentVersion;
+
+  /// The latest version value.
   final String latestVersion;
+
+  /// The upgrade command value.
   final String? upgradeCommand;
 }
 
 /// Mirror of stricli `ApplicationText`; the dotweave app overrides the error
 /// formatters via [copyWith] (TS spreads over `text_en`).
 final class ApplicationText {
+  /// Creates an [ApplicationText].
   const ApplicationText({
     required this.headers,
     required this.keywords,
@@ -671,24 +827,46 @@ final class ApplicationText {
     required this.currentVersionIsNotLatest,
   });
 
+  /// The headers value.
   final TextHeaders headers;
+
+  /// The keywords value.
   final TextKeywords keywords;
+
+  /// The briefs value.
   final TextBriefs briefs;
+
+  /// Formats an unknown-command error.
   final String Function(NoCommandRegisteredArguments args)
   noCommandRegisteredForInput;
+
+  /// Formats an unavailable-locale error.
   final String Function(NoTextAvailableArguments args) noTextAvailableForLocale;
+
+  /// Formats an argument-parsing exception.
   final String Function(Object exc, bool ansiColor)
   exceptionWhileParsingArguments;
+
+  /// Formats a command-function loading exception.
   final String Function(Object exc, bool ansiColor)
   exceptionWhileLoadingCommandFunction;
+
+  /// Formats a command-context loading exception.
   final String Function(Object exc, bool ansiColor)
   exceptionWhileLoadingCommandContext;
+
+  /// Formats a command execution exception.
   final String Function(Object exc, bool ansiColor)
   exceptionWhileRunningCommand;
+
+  /// Formats an error returned by a command.
   final String Function(Object error, bool ansiColor) commandErrorResult;
+
+  /// Formats an available-version update notice.
   final String Function(CurrentVersionNotLatestArguments args)
   currentVersionIsNotLatest;
 
+  /// Returns a copy with the supplied text overrides.
   ApplicationText copyWith({
     TextHeaders? headers,
     TextKeywords? keywords,
@@ -805,6 +983,7 @@ String _formatException(Object exc) => exc.toString();
 
 /// Damerau-Levenshtein weights (`distanceOptions.weights`).
 final class DistanceWeights {
+  /// Creates a [DistanceWeights].
   const DistanceWeights({
     required this.insertion,
     required this.deletion,
@@ -812,17 +991,28 @@ final class DistanceWeights {
     required this.transposition,
   });
 
+  /// The insertion value.
   final num insertion;
+
+  /// The deletion value.
   final num deletion;
+
+  /// The substitution value.
   final num substitution;
+
+  /// The cost assigned to transposed characters.
   final num transposition;
 }
 
 /// Damerau-Levenshtein options used for did-you-mean suggestions.
 final class DistanceOptions {
+  /// Creates a [DistanceOptions].
   const DistanceOptions({required this.threshold, required this.weights});
 
+  /// The maximum distance accepted for a correction.
   final num threshold;
+
+  /// The weights value.
   final DistanceWeights weights;
 }
 
@@ -839,19 +1029,26 @@ const DistanceOptions defaultDistanceOptions = DistanceOptions(
 
 /// Input scanner configuration (all fields optional, like TS).
 final class ScannerConfiguration {
+  /// Creates a [ScannerConfiguration].
   const ScannerConfiguration({
     this.caseStyle,
     this.allowArgumentEscapeSequence,
     this.distanceOptions,
   });
 
+  /// The case style used while scanning names.
   final ScannerCaseStyle? caseStyle;
+
+  /// Whether the argument escape sequence is accepted.
   final bool? allowArgumentEscapeSequence;
+
+  /// The distance options value.
   final DistanceOptions? distanceOptions;
 }
 
 /// Input documentation configuration (all fields optional, like TS).
 final class DocumentationConfiguration {
+  /// Creates a [DocumentationConfiguration].
   const DocumentationConfiguration({
     this.alwaysShowHelpAllFlag,
     this.useAliasInUsageLine,
@@ -860,46 +1057,68 @@ final class DocumentationConfiguration {
     this.disableAnsiColor,
   });
 
+  /// Whether the help-all flag is always displayed.
   final bool? alwaysShowHelpAllFlag;
+
+  /// Whether usage lines may display an alias.
   final bool? useAliasInUsageLine;
+
+  /// Whether usage lines show only required parameters.
   final bool? onlyRequiredInUsageLine;
+
+  /// The case style used while scanning names.
   final DisplayCaseStyle? caseStyle;
+
+  /// Whether ANSI color output is disabled.
   final bool? disableAnsiColor;
 }
 
 /// Input completion configuration (all fields optional, like TS).
 final class CompletionConfiguration {
+  /// Creates a [CompletionConfiguration].
   const CompletionConfiguration({
     this.includeAliases,
     this.includeHiddenRoutes,
   });
 
+  /// Whether aliases are included in rendered help.
   final bool? includeAliases;
+
+  /// Whether hidden routes are included.
   final bool? includeHiddenRoutes;
 }
 
 /// Localization configuration; dotweave supplies `defaultLocale` + `loadText`.
 final class LocalizationConfiguration {
+  /// Creates a [LocalizationConfiguration].
   const LocalizationConfiguration({
     this.defaultLocale,
     this.loadText,
     this.text,
   });
 
+  /// The fallback locale.
   final String? defaultLocale;
+
+  /// Loads localized application text.
   final ApplicationText? Function(String locale)? loadText;
+
+  /// The localized application text.
   final ApplicationText? text;
 }
 
 /// Version metadata (`getLatestVersion`/`upgradeCommand` are not ported).
 final class VersionInformation {
+  /// Creates a [VersionInformation].
   const VersionInformation({required this.currentVersion});
 
+  /// The current application version.
   final String currentVersion;
 }
 
 /// Mirror of the stricli application configuration object.
 final class ApplicationConfiguration {
+  /// Creates an [ApplicationConfiguration].
   const ApplicationConfiguration({
     required this.name,
     this.completion,
@@ -910,30 +1129,50 @@ final class ApplicationConfiguration {
     this.versionInfo,
   });
 
+  /// The name of the item.
   final String name;
+
+  /// The proposed completion value.
   final CompletionConfiguration? completion;
+
+  /// Determines the exit code for an error.
   final int Function(Object? error)? determineExitCode;
+
+  /// The documentation associated with the target.
   final DocumentationConfiguration? documentation;
+
+  /// The localization configuration.
   final LocalizationConfiguration? localization;
+
+  /// The scanner state for the parsed arguments.
   final ScannerConfiguration? scanner;
+
+  /// The optional application version metadata.
   final VersionInformation? versionInfo;
 }
 
 /// Resolved scanner configuration after `withDefaults`.
 final class ScannerConfig {
+  /// Creates a [ScannerConfig].
   const ScannerConfig({
     required this.caseStyle,
     required this.allowArgumentEscapeSequence,
     required this.distanceOptions,
   });
 
+  /// The case style used while scanning names.
   final ScannerCaseStyle caseStyle;
+
+  /// Whether the argument escape sequence is accepted.
   final bool allowArgumentEscapeSequence;
+
+  /// The distance options value.
   final DistanceOptions distanceOptions;
 }
 
 /// Resolved documentation configuration after `withDefaults`.
 final class DocumentationConfig {
+  /// Creates a [DocumentationConfig].
   const DocumentationConfig({
     required this.alwaysShowHelpAllFlag,
     required this.useAliasInUsageLine,
@@ -942,39 +1181,59 @@ final class DocumentationConfig {
     required this.disableAnsiColor,
   });
 
+  /// Whether the help-all flag is always displayed.
   final bool alwaysShowHelpAllFlag;
+
+  /// Whether usage lines may display an alias.
   final bool useAliasInUsageLine;
+
+  /// Whether usage lines show only required parameters.
   final bool onlyRequiredInUsageLine;
+
+  /// The case style used while scanning names.
   final DisplayCaseStyle caseStyle;
+
+  /// Whether ANSI color output is disabled.
   final bool disableAnsiColor;
 }
 
 /// Resolved completion configuration after `withDefaults`.
 final class CompletionConfig {
+  /// Creates a [CompletionConfig].
   const CompletionConfig({
     required this.includeAliases,
     required this.includeHiddenRoutes,
   });
 
+  /// Whether aliases are included in rendered help.
   final bool includeAliases;
+
+  /// Whether hidden routes are included.
   final bool includeHiddenRoutes;
 }
 
 /// Resolved localization configuration after `withDefaults`.
 final class LocalizationConfig {
+  /// Creates a [LocalizationConfig].
   const LocalizationConfig({
     required this.defaultLocale,
     this.loadText,
     this.text,
   });
 
+  /// The fallback locale.
   final String defaultLocale;
+
+  /// Loads localized application text.
   final ApplicationText? Function(String locale)? loadText;
+
+  /// The localized application text.
   final ApplicationText? text;
 }
 
 /// Full resolved application configuration (mirror of `withDefaults` output).
 final class ResolvedApplicationConfiguration {
+  /// Creates a [ResolvedApplicationConfiguration].
   const ResolvedApplicationConfiguration({
     required this.name,
     required this.scanner,
@@ -985,12 +1244,25 @@ final class ResolvedApplicationConfiguration {
     this.versionInfo,
   });
 
+  /// The name of the item.
   final String name;
+
+  /// The scanner state for the parsed arguments.
   final ScannerConfig scanner;
+
+  /// The proposed completion value.
   final CompletionConfig completion;
+
+  /// The documentation associated with the target.
   final DocumentationConfig documentation;
+
+  /// The localization configuration.
   final LocalizationConfig localization;
+
+  /// Determines the exit code for an error.
   final int Function(Object? error)? determineExitCode;
+
+  /// The optional application version metadata.
   final VersionInformation? versionInfo;
 }
 
@@ -1073,8 +1345,13 @@ final class Application {
     required this.defaultText,
   });
 
+  /// The root value.
   final RoutingTarget root;
+
+  /// The resolved documentation configuration.
   final ResolvedApplicationConfiguration config;
+
+  /// The default text value.
   final ApplicationText defaultText;
 }
 
@@ -1547,14 +1824,20 @@ Future<void> run(
 /// (`routing-target:command`, `routing-target:route-map`, `argument:flag`,
 /// `argument:value`).
 final class InputCompletion {
+  /// Creates an [InputCompletion].
   const InputCompletion({
     required this.kind,
     required this.completion,
     required this.brief,
   });
 
+  /// The kind value.
   final String kind;
+
+  /// The proposed completion value.
   final String completion;
+
+  /// The short description shown in help output.
   final String brief;
 }
 

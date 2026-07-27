@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:dotweave_age/src/exception.dart';
-import 'package:dotweave_age/src/primitives.dart';
+import 'package:dartage/src/exception.dart';
+import 'package:dartage/src/primitives.dart';
 import 'package:test/test.dart';
 
 Uint8List hexToBytes(String hex) {

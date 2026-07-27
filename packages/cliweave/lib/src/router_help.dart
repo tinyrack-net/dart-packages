@@ -8,6 +8,7 @@ part of 'router.dart';
 /// Arguments threaded through help/usage rendering; mirror of the TS
 /// `DocumentedTarget`/`formatHelp` argument object.
 final class HelpFormattingArguments {
+  /// Creates a [HelpFormattingArguments].
   const HelpFormattingArguments({
     required this.prefix,
     required this.config,
@@ -20,16 +21,34 @@ final class HelpFormattingArguments {
     this.ansiColor = false,
   });
 
+  /// The command path leading to the current target.
   final List<String> prefix;
+
+  /// The resolved documentation configuration.
   final DocumentationConfig config;
+
+  /// The localized application text.
   final ApplicationText text;
+
+  /// The include version flag value.
   final bool includeVersionFlag;
+
+  /// The include argument escape sequence flag value.
   final bool includeArgumentEscapeSequenceFlag;
+
+  /// The include help all flag value.
   final bool includeHelpAllFlag;
+
+  /// Whether hidden items are included.
   final bool includeHidden;
+
+  /// The alternative names accepted for the item.
   final List<String> aliases;
+
+  /// Whether ANSI color sequences are enabled.
   final bool ansiColor;
 
+  /// Returns a copy using the supplied command [prefix].
   HelpFormattingArguments withPrefix(List<String> prefix) {
     return HelpFormattingArguments(
       prefix: prefix,

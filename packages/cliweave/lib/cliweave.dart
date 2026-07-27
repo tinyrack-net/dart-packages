@@ -5,7 +5,7 @@
 /// assemble an [Application] with [buildApplication], and dispatch with [run].
 ///
 /// The terminal logger, spinner, and colour theme live in a separate library
-/// (`package:tinyrack_cli/terminal.dart`) so that consumers who only need
+/// (`package:cliweave/terminal.dart`) so that consumers who only need
 /// argument parsing do not pull them in.
 ///
 /// This is a Dart implementation of the model introduced by Bloomberg's

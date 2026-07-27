@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed packages
+      - run: dart analyze --fatal-infos
+
+  cliweave:
+    name: cliweave (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-26
+          - windows-2025
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - run: dart pub get
+      - run: dart test
+        working-directory: packages/cliweave
+
+  dartage:
+    name: dartage (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-26
+          - windows-2025
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - run: dart pub get
+      - run: dart test -x interop
+        working-directory: packages/dartage
+
+  dartage-interop:
+    name: dartage interop (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-2025
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: packages/dartage/test/interop/pnpm-lock.yaml
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - run: dart pub get
+      - run: pnpm install --frozen-lockfile
+        working-directory: packages/dartage/test/interop
+      - run: dart test -t interop
+        working-directory: packages/dartage
+
+  package-quality:
+    name: Package quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - run: dart pub get
+      - run: dart doc
+        working-directory: packages/cliweave
+      - run: dart pub publish --dry-run
+        working-directory: packages/cliweave
+      - run: dart doc
+        working-directory: packages/dartage
+      - run: dart pub publish --dry-run
+        working-directory: packages/dartage

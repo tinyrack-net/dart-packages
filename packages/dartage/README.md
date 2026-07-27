@@ -1,12 +1,10 @@
-# dotweave_age
+# dartage
 
-A pure Dart implementation of the [age](https://age-encryption.org) v1 file
-encryption format, with X25519 recipients.
+`dartage` (pronounced “dart-age”) is a pure-Dart implementation of the
+[age](https://age-encryption.org) v1 file format with X25519 recipients.
 
-> **Status: pre-release.** The API is not stable yet and the package is not
-> published. It is developed inside the
-> [dotweave](https://github.com/tinyrack/dotweave) repository, which uses it to
-> store encrypted dotfiles.
+> **Status: 0.x.** The API is in production use but can still change before
+> 1.0. Dotweave is its first consumer.
 
 ## Scope
 
@@ -24,7 +22,7 @@ rather than silently mishandled.
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dotweave_age/dotweave_age.dart';
+import 'package:dartage/dartage.dart';
 
 Future<void> main() async {
   final identity = generateIdentity();

@@ -29,6 +29,7 @@ abstract class WriteStream {
 /// Adapts a `dart:io` [io.Stdout] to [WriteStream], emitting the same ANSI
 /// sequences Node's `clearLine`/`cursorTo` write.
 class StdioWriteStream implements WriteStream {
+  /// Creates a [StdioWriteStream].
   StdioWriteStream(this._sink);
 
   final io.Stdout _sink;

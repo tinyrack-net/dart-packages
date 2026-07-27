@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:dotweave_age/src/exception.dart';
-import 'package:dotweave_age/src/stanza.dart';
+import 'package:dartage/src/exception.dart';
+import 'package:dartage/src/stanza.dart';
 import 'package:test/test.dart';
 
 Stanza parseSerialized(String serialized) {

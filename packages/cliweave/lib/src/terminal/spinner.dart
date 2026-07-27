@@ -2,24 +2,33 @@
 
 import 'dart:async' show Timer;
 
-import 'package:tinyrack_cli/src/env.dart';
-import 'package:tinyrack_cli/src/terminal/theme.dart';
-import 'package:tinyrack_cli/src/write_stream.dart';
+import 'package:cliweave/src/env.dart';
+import 'package:cliweave/src/terminal/theme.dart';
+import 'package:cliweave/src/write_stream.dart';
 
 /// Mirror of the TS `Spinner` interface.
 abstract class Spinner {
+  /// Stops the spinner and reports [text] as a success.
   void succeed(String text);
+
+  /// Stops the spinner and reports [text] as a failure.
   void fail(String text);
+
+  /// Stops the spinner and reports [text] as a warning.
   void warn(String text);
+
+  /// Stops the spinner without reporting a result.
   void stop();
 }
 
 /// Cancellable handle mirroring the TS `setInterval` id, injectable so tests
 /// can drive ticks manually (the vitest fake-timer seam).
 abstract class SpinnerTimer {
+  /// Cancels future timer ticks.
   void cancel();
 }
 
+/// Callback used by [SpinnerTimerFactory].
 typedef SpinnerTimerFactory =
     SpinnerTimer Function(Duration interval, void Function() onTick);
 

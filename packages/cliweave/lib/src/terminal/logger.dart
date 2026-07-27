@@ -2,20 +2,34 @@
 
 import 'dart:io' as io;
 
-import 'package:tinyrack_cli/src/terminal/spinner.dart';
-import 'package:tinyrack_cli/src/terminal/theme.dart';
-import 'package:tinyrack_cli/src/write_stream.dart';
+import 'package:cliweave/src/terminal/spinner.dart';
+import 'package:cliweave/src/terminal/theme.dart';
+import 'package:cliweave/src/write_stream.dart';
 
 /// Mirror of the TS `CliLogger` interface.
 abstract class CliLogger {
+  /// Writes an unadorned log [message].
   void log(String message);
+
+  /// Writes an informational [message].
   void info(String message);
+
+  /// Writes a successful-result [message].
   void success(String message);
+
+  /// Writes a failure [message].
   void fail(String message);
+
+  /// Writes a warning [message].
   void warn(String message);
+
+  /// Writes an error [message].
   void error(String message);
+
+  /// Writes the [message] for an operation that is starting.
   void start(String message);
 
+  /// Writes a section [title].
   void section(String title);
 
   /// Render a key/value pair aligned to the configured label width.

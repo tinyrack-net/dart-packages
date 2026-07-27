@@ -270,6 +270,7 @@ String joinWithGrammar(
 sealed class ArgumentScannerError implements Exception {
   ArgumentScannerError(this.message);
 
+  /// The human-readable message.
   final String message;
 
   @override
@@ -291,11 +292,17 @@ String formatMessageForArgumentScannerError(
 
 /// `No flag registered for --…`.
 final class FlagNotFoundError extends ArgumentScannerError {
+  /// Creates a [FlagNotFoundError].
   FlagNotFoundError(this.input, this.corrections, [this.aliasName])
     : super(_buildMessage(input, corrections, aliasName));
 
+  /// The input value.
   final String input;
+
+  /// Suggested corrections for invalid input.
   final List<String> corrections;
+
+  /// The alias name value.
   final String? aliasName;
 
   static String _buildMessage(
@@ -320,13 +327,16 @@ final class FlagNotFoundError extends ArgumentScannerError {
 
 /// `No alias registered for -…`.
 final class AliasNotFoundError extends ArgumentScannerError {
+  /// Creates an [AliasNotFoundError].
   AliasNotFoundError(this.input) : super('No alias registered for -$input');
 
+  /// The input value.
   final String input;
 }
 
 /// `Failed to parse "…" for …: …`.
 final class ArgumentParseError extends ArgumentScannerError {
+  /// Creates an [ArgumentParseError].
   ArgumentParseError(
     this.externalFlagNameOrPlaceholder,
     this.input,
@@ -336,13 +346,19 @@ final class ArgumentParseError extends ArgumentScannerError {
         '${_thrownMessage(exception)}',
       );
 
+  /// The external flag name or placeholder value.
   final String externalFlagNameOrPlaceholder;
+
+  /// The input value.
   final String input;
+
+  /// The exception value.
   final Object exception;
 }
 
 /// `Expected "…" to be one of (…)`.
 final class EnumValidationError extends ArgumentScannerError {
+  /// Creates an [EnumValidationError].
   EnumValidationError(
     this.externalFlagName,
     this.input,
@@ -350,8 +366,13 @@ final class EnumValidationError extends ArgumentScannerError {
     List<String> corrections,
   ) : super(_buildMessage(input, values, corrections));
 
+  /// The flag name as entered by the user.
   final String externalFlagName;
+
+  /// The input value.
   final String input;
+
+  /// The accepted values.
   final List<String> values;
 
   static String _buildMessage(
@@ -374,32 +395,42 @@ final class EnumValidationError extends ArgumentScannerError {
 
 /// `Expected input for flag --…`.
 final class UnsatisfiedFlagError extends ArgumentScannerError {
+  /// Creates an [UnsatisfiedFlagError].
   UnsatisfiedFlagError(this.externalFlagName, [this.nextFlagName])
     : super(
         'Expected input for flag --$externalFlagName'
         '${nextFlagName == null ? '' : ' but encountered --$nextFlagName instead'}',
       );
 
+  /// The flag name as entered by the user.
   final String externalFlagName;
+
+  /// The next flag name to scan.
   final String? nextFlagName;
 }
 
 /// `Too many arguments, expected … but encountered "…"`.
 final class UnexpectedPositionalError extends ArgumentScannerError {
+  /// Creates an [UnexpectedPositionalError].
   UnexpectedPositionalError(this.expectedCount, this.input)
     : super(
         'Too many arguments, expected $expectedCount but encountered "$input"',
       );
 
+  /// The expected count value.
   final int expectedCount;
+
+  /// The input value.
   final String input;
 }
 
 /// `Expected argument for …` / `Expected at least … argument(s) for …`.
 final class UnsatisfiedPositionalError extends ArgumentScannerError {
+  /// Creates an [UnsatisfiedPositionalError].
   UnsatisfiedPositionalError(this.placeholder, [this.limit])
     : super(_buildMessage(placeholder, limit));
 
+  /// The placeholder shown for the value in help output.
   final String placeholder;
 
   /// `(minimum, found)` when a variadic minimum was not reached.
@@ -422,24 +453,34 @@ final class UnsatisfiedPositionalError extends ArgumentScannerError {
 
 /// `Cannot negate flag --… and pass "…" as value`.
 final class InvalidNegatedFlagSyntaxError extends ArgumentScannerError {
+  /// Creates an [InvalidNegatedFlagSyntaxError].
   InvalidNegatedFlagSyntaxError(this.externalFlagName, this.valueText)
     : super(
         'Cannot negate flag --$externalFlagName and pass "$valueText" as value',
       );
 
+  /// The flag name as entered by the user.
   final String externalFlagName;
+
+  /// The value text value.
   final String valueText;
 }
 
 /// `Too many arguments for --…, encountered "…" after "…"`.
 final class UnexpectedFlagError extends ArgumentScannerError {
+  /// Creates an [UnexpectedFlagError].
   UnexpectedFlagError(this.externalFlagName, this.previousInput, this.input)
     : super(
         'Too many arguments for --$externalFlagName, encountered "$input" after "$previousInput"',
       );
 
+  /// The flag name as entered by the user.
   final String externalFlagName;
+
+  /// The previously scanned input.
   final String previousInput;
+
+  /// The input value.
   final String input;
 }
 

@@ -1,5 +1,5 @@
+import 'package:cliweave/cliweave.dart';
 import 'package:test/test.dart';
-import 'package:tinyrack_cli/tinyrack_cli.dart';
 
 // These helpers are public API and are what a user actually sees when they
 // mistype something: the did-you-mean engine, the help column layout, and the

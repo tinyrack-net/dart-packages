@@ -10,7 +10,7 @@
 
 import 'dart:io';
 
-import 'package:tinyrack_cli/src/env.dart';
+import 'package:cliweave/src/env.dart';
 
 /// Mirrors NodeJS `process.platform` for the values picocolors checks.
 String _processPlatform() {
@@ -106,6 +106,7 @@ class Picocolors {
     this._cyan,
   );
 
+  /// Whether the style functions emit ANSI color sequences.
   final bool isColorSupported;
   final String Function(String input) _bold;
   final String Function(String input) _dim;
@@ -114,11 +115,22 @@ class Picocolors {
   final String Function(String input) _yellow;
   final String Function(String input) _cyan;
 
+  /// Applies the bold style to [input].
   String bold(String input) => _bold(input);
+
+  /// Applies the dim style to [input].
   String dim(String input) => _dim(input);
+
+  /// Applies the red foreground color to [input].
   String red(String input) => _red(input);
+
+  /// Applies the green foreground color to [input].
   String green(String input) => _green(input);
+
+  /// Applies the yellow foreground color to [input].
   String yellow(String input) => _yellow(input);
+
+  /// Applies the cyan foreground color to [input].
   String cyan(String input) => _cyan(input);
 }
 
@@ -155,18 +167,40 @@ Picocolors _resolvePicocolors(Picocolors? override) => override ?? pc;
 
 /// Mirror of the TS `SYMBOLS` const object.
 class Symbols {
+  /// The symbols used for terminal output.
   const Symbols();
 
+  /// Symbol for a successful result.
   final String success = '✔';
+
+  /// Symbol for an error.
   final String error = '✖';
+
+  /// Symbol for a warning.
   final String warn = '⚠';
+
+  /// Symbol for informational output.
   final String info = '~';
+
+  /// Symbol for an added item.
   final String add = '+';
+
+  /// Symbol for a modified item.
   final String modify = '~';
+
+  /// Symbol for a deleted item.
   final String delete = '-';
+
+  /// Symbol for a list bullet.
   final String bullet = '·';
+
+  /// Symbol for a directional relationship.
   final String arrow = '→';
+
+  /// Symbol for a section heading.
   final String section = '▼';
+
+  /// Animation frames for a terminal spinner.
   final List<String> spinner = const [
     '⠋',
     '⠙',
@@ -181,39 +215,69 @@ class Symbols {
   ];
 }
 
+/// The symbols used for terminal output.
 const Symbols SYMBOLS = Symbols();
 
 /// Mirror of the nested `color.action` object.
 class ColorActionTheme {
+  /// Creates a [ColorActionTheme].
   ColorActionTheme({Picocolors? pc}) : _pc = _resolvePicocolors(pc);
 
   final Picocolors _pc;
 
+  /// Styles [s] as an added item.
   String add(String s) => _pc.green(s);
+
+  /// Styles [s] as a modified item.
   String modify(String s) => _pc.yellow(s);
+
+  /// Styles [s] as a deleted item.
   String delete(String s) => _pc.red(s);
 }
 
 /// Mirror of the TS `color` const object. The optional [Picocolors] override
 /// is the DI seam replacing the vitest module mock of `picocolors`.
 class ColorTheme {
+  /// Creates a [ColorTheme].
   ColorTheme({Picocolors? pc})
     : _pc = _resolvePicocolors(pc),
       action = ColorActionTheme(pc: pc);
 
   final Picocolors _pc;
+
+  /// Styles used for added, modified, and deleted items.
   final ColorActionTheme action;
 
+  /// Styles [s] as successful output.
   String success(String s) => _pc.green(s);
+
+  /// Styles [s] as error output.
   String error(String s) => _pc.red(s);
+
+  /// Styles [s] as warning output.
   String warn(String s) => _pc.yellow(s);
+
+  /// Styles [s] as informational output.
   String info(String s) => _pc.cyan(s);
+
+  /// Styles [s] as secondary output.
   String dim(String s) => _pc.dim(s);
+
+  /// Emphasizes [s].
   String bold(String s) => _pc.bold(s);
+
+  /// Styles [s] as a heading.
   String header(String s) => _pc.bold(s);
+
+  /// Styles [s] as a command path.
   String path(String s) => _pc.dim(s);
+
+  /// Styles [s] as a label.
   String label(String s) => _pc.dim(s);
+
+  /// Highlights [s].
   String highlight(String s) => _pc.cyan(s);
 }
 
+/// The color theme used for terminal output.
 final ColorTheme color = ColorTheme();

@@ -1,0 +1,4 @@
+.dart_tool/
+**/doc/api/
+node_modules/
+pubspec.lock

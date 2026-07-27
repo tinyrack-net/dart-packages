@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dotweave_age/src/exception.dart';
-import 'package:dotweave_age/src/stream.dart';
+import 'package:dartage/src/exception.dart';
+import 'package:dartage/src/stream.dart';
 import 'package:test/test.dart';
 
 void main() {

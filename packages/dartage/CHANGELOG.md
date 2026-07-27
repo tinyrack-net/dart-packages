@@ -11,4 +11,4 @@
 - Verified against a 30-vector fixture corpus and, in the tagged `interop`
   suite, against the reference `age-encryption` npm implementation.
 
-Not published; the API is expected to change before 1.0.
+Initial public release. The API is expected to change before 1.0.
