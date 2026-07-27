@@ -63,11 +63,22 @@ printf '%s\n' "${COMPREPLY[@]}"
       r'''
 source "$E2E_SCRIPT"
 function compadd() {
-  local seen=0 arg
+  local displayName="" expectDisplayName=0 seen=0 arg
   for arg in "$@"; do
+    if (( expectDisplayName )); then
+      displayName="$arg"
+      expectDisplayName=0
+    elif [[ "$arg" == "-d" ]]; then
+      expectDisplayName=1
+    fi
     if (( seen )); then print -r -- "$arg"; fi
     if [[ "$arg" == "--" ]]; then seen=1; fi
   done
+  if [[ -n "$displayName" ]]; then
+    local -a displays
+    displays=("${(@P)displayName}")
+    print -rl -- "${displays[@]}"
+  fi
 }
 words=(${=E2E_LINE})
 if [[ "$E2E_LINE" == *" " ]]; then words+=(""); fi
@@ -102,7 +113,7 @@ $completion.CompletionMatches | ForEach-Object {
     environment: _environment(line, script),
   );
   expect(result.exitCode, 0, reason: '${result.stderr}');
-  return (result.stdout as String)
+  return '${result.stdout}${result.stderr}'
       .split(RegExp(r'\r?\n'))
       .map((value) => value.trim())
       .where((value) => value.isNotEmpty)
