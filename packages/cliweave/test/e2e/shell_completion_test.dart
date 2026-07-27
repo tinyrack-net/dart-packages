@@ -167,6 +167,7 @@ void main() {
     test(
       '$shell executes generated completion scripts',
       () async {
+        final describedRoutes = await _complete(shell, 'cliweave-fixture ');
         final route = await _complete(shell, 'cliweave-fixture de');
         final flag = await _complete(shell, 'cliweave-fixture deploy --m');
         final dynamicValue = await _complete(
@@ -176,7 +177,7 @@ void main() {
         final directory = await _complete(shell, 'cliweave-fixture deploy s');
 
         expect(route.join('\n'), contains('deploy'));
-        expect(route.join('\n'), contains('Deploy a target'));
+        expect(describedRoutes.join('\n'), contains('Deploy a target'));
         expect(flag.join('\n'), contains('--mode'));
         expect(dynamicValue.join('\n'), contains('alpha'));
         expect(directory.join('\n'), contains('src/'));
