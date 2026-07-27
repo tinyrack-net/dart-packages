@@ -64,7 +64,7 @@ void main() {
           isA<AgeException>().having(
             (e) => e.code,
             'code',
-            AgeExceptionCode.decryptionFailed,
+            AgeExceptionCode.authenticationFailed,
           ),
         ),
       );
@@ -135,7 +135,7 @@ void main() {
           isA<AgeException>().having(
             (e) => e.code,
             'code',
-            AgeExceptionCode.decryptionFailed,
+            AgeExceptionCode.authenticationFailed,
           ),
         ),
       );

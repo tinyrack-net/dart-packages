@@ -70,11 +70,14 @@ bool _isValidLabel(String label) {
   return true;
 }
 
-/// A single age header stanza.
-class Stanza {
+/// A single immutable age header stanza.
+final class AgeStanza {
   /// Creates a stanza, validating that the type and arguments are non-empty
   /// printable-ASCII strings without spaces.
-  Stanza(this.type, this.args, this.body) {
+  AgeStanza(String type, List<String> args, List<int> body)
+    : type = type,
+      args = List<String>.unmodifiable(args),
+      body = Uint8List.fromList(body).asUnmodifiableView() {
     if (!_isValidLabel(type) || args.any((arg) => !_isValidLabel(arg))) {
       throw const AgeException(
         'stanza type and arguments must be non-empty printable ASCII without spaces',
@@ -113,9 +116,12 @@ class Stanza {
   }
 }
 
+/// Legacy internal alias used by the wire-format implementation.
+typedef Stanza = AgeStanza;
+
 /// Parses one stanza given its already-read [firstLine] (which must start with
 /// `-> `) and a [readLine] callback yielding subsequent header lines.
-Stanza parseStanza(String firstLine, String Function() readLine) {
+AgeStanza parseStanza(String firstLine, String Function() readLine) {
   if (!firstLine.startsWith('-> ')) {
     throw const AgeException('malformed stanza start line');
   }
@@ -135,5 +141,5 @@ Stanza parseStanza(String firstLine, String Function() readLine) {
     }
   }
   final body = decodeBase64NoPad(encodedBody.toString());
-  return Stanza(parts.first, parts.sublist(1), body);
+  return AgeStanza(parts.first, parts.sublist(1), body);
 }

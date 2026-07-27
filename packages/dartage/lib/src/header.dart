@@ -143,7 +143,7 @@ Future<void> verifyHeaderMac(Uint8List fileKey, ParsedHeader header) async {
   if (!constantTimeEquals(expected, header.mac)) {
     throw const AgeException(
       'incorrect header MAC',
-      code: AgeExceptionCode.decryptionFailed,
+      code: AgeExceptionCode.authenticationFailed,
     );
   }
 }

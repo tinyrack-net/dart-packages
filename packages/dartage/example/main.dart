@@ -9,21 +9,21 @@ import 'dart:typed_data';
 import 'package:dartage/dartage.dart';
 
 Future<void> main() async {
-  final identity = generateIdentity();
-  final recipient = await identityToRecipient(identity);
+  final identity = X25519Identity.generate();
+  final recipient = await identity.recipient();
 
   print('recipient: $recipient');
 
-  final encrypter = AgeEncrypter()..addRecipient(recipient);
-  final ciphertext = await encrypter.encrypt(
-    Uint8List.fromList(utf8.encode('secret')),
-  );
+  final ciphertext = await AgeEncrypter(
+    recipients: [recipient],
+  ).encrypt(Uint8List.fromList(utf8.encode('secret')));
 
-  // `armorEncode` produces the PEM-style text form for storing in a file.
-  print(armorEncode(ciphertext).split('\n').first);
+  // `AgeArmor.encode` produces the PEM-style text form for storing in a file.
+  print(AgeArmor.encode(ciphertext).split('\n').first);
 
-  final decrypter = AgeDecrypter()..addIdentity(identity);
-  final plaintext = await decrypter.decrypt(ciphertext);
+  final plaintext = await AgeDecrypter(
+    identities: [identity],
+  ).decrypt(ciphertext);
 
   print('decrypted: ${utf8.decode(plaintext)}');
 }

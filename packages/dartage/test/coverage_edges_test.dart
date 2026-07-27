@@ -9,12 +9,12 @@ void main() {
   test('AgeException exposes a stable diagnostic string', () {
     const exception = AgeException(
       'broken input',
-      code: AgeExceptionCode.decryptionFailed,
+      code: AgeExceptionCode.authenticationFailed,
     );
 
     expect(
       exception.toString(),
-      'AgeException(decryptionFailed): broken input',
+      'AgeException(authenticationFailed): broken input',
     );
   });
 
