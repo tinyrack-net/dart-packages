@@ -21,6 +21,14 @@ For every changed package, run:
 - `dart doc`
 - `dart pub publish --dry-run`
 
+From the repository root, also run `dart run tool/verify_coverage.dart`. Each
+package must independently meet the 95% line coverage gate.
+
+For `cliweave`, require the installed completion shells with
+`CLIWEAVE_E2E_SHELLS=bash,zsh,fish dart test -t e2e` on Unix and
+`$env:CLIWEAVE_E2E_SHELLS='powershell'; dart test -t e2e` in Windows
+PowerShell.
+
 For `dartage`, `dart test -x interop` is the offline run. Install the Node
 fixture dependencies in `packages/dartage/test/interop` with
 `pnpm install --frozen-lockfile`, then run `dart test -t interop` from

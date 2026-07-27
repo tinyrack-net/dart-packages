@@ -114,6 +114,21 @@ word") and drops a leading executable token. Shell function names are derived
 from the executable with illegal characters replaced, so `my-cli` produces
 `__my_cli_complete` rather than an unparseable `__my-cli_complete`.
 
+The package test suite compiles a standalone fixture CLI and loads the
+generated scripts in bash, zsh, fish, and PowerShell. To require locally
+installed shells rather than skip them, set `CLIWEAVE_E2E_SHELLS`:
+
+```console
+CLIWEAVE_E2E_SHELLS=bash,zsh,fish dart test -t e2e
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:CLIWEAVE_E2E_SHELLS = 'powershell'
+dart test -t e2e
+```
+
 ## Environment access
 
 Anywhere this package consults the environment (`NO_COLOR`, `FORCE_COLOR`,
