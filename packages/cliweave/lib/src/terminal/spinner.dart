@@ -118,8 +118,19 @@ Spinner createSpinner(
     if (!running) {
       return;
     }
-    clear();
-    stream.write('${theme.info(frames[frameIndex])} ${theme.dim(text)}');
+    final frame = '${theme.info(frames[frameIndex])} ${theme.dim(text)}';
+    if (stream.isTTY) {
+      // Overwrite the previous frame in place instead of erasing the whole
+      // line first: move to column 0, redraw over the old glyph/text, then
+      // clear only any trailing leftover from a longer previous frame. A full
+      // `\x1B[2K` erase before the redraw leaves a momentary blank line that
+      // reads as flicker on Windows terminals; overwriting avoids it.
+      stream.cursorTo(0);
+      stream.write(frame);
+      stream.clearLine(1);
+    } else {
+      stream.write(frame);
+    }
     frameIndex = (frameIndex + 1) % frames.length;
   }
 
