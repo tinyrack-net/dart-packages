@@ -182,6 +182,33 @@ void main() {
         expect(stream.writes.length, greaterThanOrEqualTo(1));
       });
 
+      test('renders a frame by overwriting in place, not erasing first', () {
+        final stream = createMockStream(true);
+
+        createTtySpinner(stream, 'working');
+
+        // A frame moves the cursor home, redraws over the old text, then clears
+        // only the trailing leftover. It must NOT issue a whole-line erase
+        // (`clearLine(0)`) before the write, which would blank the line and
+        // read as flicker.
+        expect(
+          stream.operations,
+          equals(['cursorTo:0', 'write', 'clearLine:1']),
+        );
+      });
+
+      test('animation never issues a full-line erase between frames', () {
+        final stream = createMockStream(true);
+
+        final handle = createTtySpinner(stream, 'working');
+        handle.timer.advance(5);
+
+        // No frame (initial or ticked) may erase the entire line; every
+        // clearLine during the animation clears to end-of-line only.
+        expect(stream.clearLineDirs, isNotEmpty);
+        expect(stream.clearLineDirs.every((dir) => dir > 0), isTrue);
+      });
+
       test('succeed clears interval and writes final line', () {
         final stream = createMockStream(true);
 

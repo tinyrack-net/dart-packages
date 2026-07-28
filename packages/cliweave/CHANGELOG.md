@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+- Fix spinner flicker on Windows terminals. Each animation frame now overwrites
+  the previous frame in place (cursor-home, redraw, clear-to-end) instead of
+  erasing the whole line before redrawing, which left a momentary blank line
+  that read as flicker. Terminal output is otherwise unchanged.
+
 ## 0.2.0
 
 - Replace open `Map<String, Object?>` and `List<Object?>` command handlers with
