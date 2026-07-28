@@ -1,4 +1,4 @@
-import 'package:cliweave/cliweave.dart';
+import 'package:cliweave/src/router.dart';
 import 'package:test/test.dart';
 
 // These helpers are public API and are what a user actually sees when they

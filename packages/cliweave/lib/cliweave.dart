@@ -15,5 +15,5 @@ library;
 
 export 'src/completion_scripts.dart';
 export 'src/env.dart' show EnvLookup, lookupPlatformEnv;
-export 'src/router.dart';
+export 'src/typed_router.dart';
 export 'src/write_stream.dart';

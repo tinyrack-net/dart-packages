@@ -46,27 +46,86 @@ The shape is:
 ```dart
 final greetCommand = buildCommand(
   docs: const CommandDocs(brief: 'Greet someone'),
-  parameters: const CommandParameters(
-    flags: {'loud': BooleanFlag(brief: 'Shout the greeting', optional: true)},
-    positional: TuplePositionalParameters([
-      PositionalParameter(
+  parameters: CommandParameters(
+    flags: FlagSet.one(
+      BooleanFlag.required<ApplicationContext>(
+        name: 'loud',
+        brief: 'Shout the greeting',
+      ),
+    ).map((loud) => (loud: loud)),
+    positional: PositionalSet.one(
+      Positional.required<String, ApplicationContext>(
         brief: 'Who to greet',
         parse: stringParser,
         placeholder: 'name',
       ),
-    ]),
+    ).map((name) => (name: name)),
   ),
-  func: (context, flags, positional) {
-    final greeting = 'Hello, ${positional[0]}!';
-
+  func: (context, flags, args) {
+    final greeting = 'Hello, ${args.name}!';
     context.process.stdout.write(
-      '${flags['loud'] == true ? greeting.toUpperCase() : greeting}\n',
+      '${flags.loud ? greeting.toUpperCase() : greeting}\n',
     );
-
-    return null;
   },
 );
 ```
+
+`and` builds typed record pairs and `map` turns the result into the named
+record or class your handler should receive:
+
+```dart
+final output = ParsedFlag.optional<String, MyContext>(
+  name: 'output',
+  brief: 'Output path',
+  parse: (context, input) => context.resolvePath(input),
+);
+final force = BooleanFlag.required<MyContext>(
+  name: 'force',
+  brief: 'Overwrite output',
+);
+
+final flags = FlagSet.one(output)
+    .and(force)
+    .map((values) => CopyOptions(values.$1, values.$2));
+```
+
+Use `RunContext.direct(context)` for one prebuilt context, or
+`RunContext.forCommands` to load one asynchronously from `CommandInfo.prefix`.
+The same context reaches parsers, completion callbacks, hooks, and the handler.
+
+## Integrations
+
+Pass an ordered `List<CliIntegration<C>>` to `buildApplication` for validation,
+lifecycle hooks, and application-level flags. Supplying a list—including an
+empty list—replaces the defaults:
+
+```dart
+final app = buildApplication(
+  root,
+  const ApplicationConfiguration(name: 'example'),
+  integrations: [
+    helpIntegration<MyContext>(),
+    versionIntegration<MyContext>(
+      info: const VersionInformation(currentVersion: '2.0.0'),
+    ),
+    CliIntegration(
+      name: 'diagnostics',
+      hooks: LifecycleHooks(
+        commandStart: (args) => args.context.trace(args.result.prefix),
+      ),
+      flag: ApplicationFlag(
+        brief: 'Print diagnostics',
+        aliases: const ['d'],
+        global: true,
+        run: (args) => args.context.process.stdout.write('ok\n'),
+      ),
+    ),
+  ],
+);
+```
+
+Omit `integrations` to install the default help/help-all integrations and the
+version integration configured through `ApplicationConfiguration.versionInfo`.
 
 ```console
 $ dart run example/main.dart greet --loud world

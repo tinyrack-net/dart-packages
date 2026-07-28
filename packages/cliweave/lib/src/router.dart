@@ -69,13 +69,204 @@ class RunProcess {
 /// `process` (and never `locale` or `forCommand`).
 class RunContext {
   /// Creates a [RunContext].
-  RunContext({required this.process, this.locale});
+  RunContext({
+    required this.process,
+    this.locale,
+    this.commandContext,
+    this.forCommand,
+  });
 
   /// The process-facing streams and environment.
   final RunProcess process;
 
   /// The locale requested for this run.
   final String? locale;
+
+  /// Type-erased command context used by the public typed facade.
+  Object? commandContext;
+
+  /// Type-erased command-context loader used by the public typed facade.
+  final FutureOr<Object> Function(List<String> prefix)? forCommand;
+}
+
+/// Documentation for an application-level flag supplied by an integration.
+final class AdditionalFlagDocumentation {
+  /// Creates additional flag documentation.
+  const AdditionalFlagDocumentation({
+    required this.name,
+    required this.brief,
+    this.aliases = const [],
+    this.hidden = false,
+    this.global = false,
+    this.complete = false,
+  });
+
+  /// Long flag name without leading dashes.
+  final String name;
+
+  /// Description shown in help and completion.
+  final String brief;
+
+  /// Single-character aliases.
+  final List<String> aliases;
+
+  /// Whether normal help and completion hide this flag.
+  final bool hidden;
+
+  /// Whether the flag is available below the root target.
+  final bool global;
+
+  /// Whether completion includes this flag.
+  final bool complete;
+}
+
+/// Application-level flag supplied by an integration.
+final class InternalApplicationFlag {
+  /// Creates an application-level flag.
+  const InternalApplicationFlag({
+    required this.documentation,
+    required this.run,
+    this.defaultForRouteMap = false,
+  });
+
+  /// Display and routing metadata.
+  final AdditionalFlagDocumentation documentation;
+
+  /// Whether this flag runs when a route map is selected without a flag.
+  final bool defaultForRouteMap;
+
+  /// Executes the application-level flag.
+  final FutureOr<void> Function(
+    RunContext context,
+    Application app,
+    IntegrationFlagArguments arguments,
+  )
+  run;
+}
+
+/// ANSI color decisions supplied to integration callbacks.
+final class AnsiColorByStream {
+  /// Creates stream color decisions.
+  const AnsiColorByStream({required this.stdout, required this.stderr});
+
+  /// Whether stdout supports color.
+  final bool stdout;
+
+  /// Whether stderr supports color.
+  final bool stderr;
+}
+
+/// Base arguments supplied to lifecycle hooks.
+final class ApplicationHookArguments {
+  /// Creates application hook arguments.
+  const ApplicationHookArguments({
+    required this.text,
+    required this.ansiColorByStream,
+    this.exitCode,
+  });
+
+  /// Localized application text.
+  final ApplicationText text;
+
+  /// Color support by stream.
+  final AnsiColorByStream ansiColorByStream;
+
+  /// Intended exit code for end hooks.
+  final int? exitCode;
+}
+
+/// Arguments supplied to command lifecycle hooks.
+final class InternalCommandHookArguments extends ApplicationHookArguments {
+  /// Creates command hook arguments.
+  const InternalCommandHookArguments({
+    required super.text,
+    required super.ansiColorByStream,
+    required this.result,
+    super.exitCode,
+  });
+
+  /// Route scan result for the command.
+  final RouteScanResult result;
+}
+
+/// Arguments supplied to an integration application flag.
+final class IntegrationFlagArguments extends InternalCommandHookArguments {
+  /// Creates integration flag arguments.
+  const IntegrationFlagArguments({
+    required super.text,
+    required super.ansiColorByStream,
+    required super.result,
+    required this.additionalFlags,
+  });
+
+  /// Flags visible for the selected target.
+  final List<AdditionalFlagDocumentation> additionalFlags;
+}
+
+/// Type-erased lifecycle hooks used by the typed facade.
+final class InternalLifecycleHooks {
+  /// Creates lifecycle hooks.
+  const InternalLifecycleHooks({
+    this.appStart,
+    this.commandStart,
+    this.commandEnd,
+    this.appEnd,
+  });
+
+  /// Runs before route scanning.
+  final FutureOr<void> Function(
+    RunContext context,
+    ApplicationHookArguments arguments,
+  )?
+  appStart;
+
+  /// Runs before command parsing and execution.
+  final FutureOr<void> Function(
+    RunContext context,
+    InternalCommandHookArguments arguments,
+  )?
+  commandStart;
+
+  /// Runs after command execution.
+  final FutureOr<void> Function(
+    RunContext context,
+    InternalCommandHookArguments arguments,
+  )?
+  commandEnd;
+
+  /// Runs after route scanning or command execution.
+  final FutureOr<void> Function(
+    RunContext context,
+    ApplicationHookArguments arguments,
+  )?
+  appEnd;
+}
+
+/// Type-erased integration used by the typed facade.
+final class InternalIntegration {
+  /// Creates an integration.
+  const InternalIntegration({
+    required this.name,
+    this.validate,
+    this.hooks,
+    this.flag,
+  });
+
+  /// Integration name and application flag name.
+  final String name;
+
+  /// Application-build validation.
+  final void Function(
+    RoutingTarget root,
+    ResolvedApplicationConfiguration configuration,
+  )?
+  validate;
+
+  /// Lifecycle hooks.
+  final InternalLifecycleHooks? hooks;
+
+  /// Optional application flag.
+  final InternalApplicationFlag? flag;
 }
 
 // ---------------------------------------------------------------------------
@@ -84,6 +275,9 @@ class RunContext {
 
 /// Mirror of stricli's `ExitCode` const object.
 abstract final class ExitCode {
+  /// An integration hook or application flag failed.
+  static const int integrationError = -10;
+
   /// Unable to find a command in the application with the given inputs.
   static const int unknownCommand = -5;
 
@@ -139,6 +333,14 @@ typedef FlagParseFunction = FutureOr<Object?> Function(String input);
 /// Completion callback for flags/positionals (`proposeCompletions` in TS).
 typedef ProposeCompletionsCallback =
     FutureOr<List<String>> Function(String partial);
+
+/// Internal context-aware parser used by the typed public facade.
+typedef ContextualParseFunction =
+    FutureOr<Object?> Function(RunContext context, String input);
+
+/// Internal context-aware completion callback used by the typed public facade.
+typedef ContextualProposeCompletionsCallback =
+    FutureOr<List<String>> Function(RunContext context, String partial);
 
 /// Identity parser mirroring the TS idiom `parse: String`.
 String stringParser(String input) => input;
@@ -228,6 +430,8 @@ final class ParsedFlag extends Flag {
     this.defaultValue,
     this.inferEmpty = false,
     this.proposeCompletions,
+    this.contextualParse,
+    this.contextualProposeCompletions,
   });
 
   /// The parser used to convert the input value.
@@ -250,6 +454,12 @@ final class ParsedFlag extends Flag {
 
   /// The callback used to propose completions for partial input.
   final ProposeCompletionsCallback? proposeCompletions;
+
+  /// Context-aware parser used by the typed facade.
+  final ContextualParseFunction? contextualParse;
+
+  /// Context-aware completion callback used by the typed facade.
+  final ContextualProposeCompletionsCallback? contextualProposeCompletions;
 }
 
 // ---------------------------------------------------------------------------
@@ -266,6 +476,8 @@ final class PositionalParameter {
     this.defaultValue,
     this.optional,
     this.proposeCompletions,
+    this.contextualParse,
+    this.contextualProposeCompletions,
   });
 
   /// The short description shown in help output.
@@ -285,6 +497,12 @@ final class PositionalParameter {
 
   /// The callback used to propose completions for partial input.
   final ProposeCompletionsCallback? proposeCompletions;
+
+  /// Context-aware parser used by the typed facade.
+  final ContextualParseFunction? contextualParse;
+
+  /// Context-aware completion callback used by the typed facade.
+  final ContextualProposeCompletionsCallback? contextualProposeCompletions;
 }
 
 /// Positional parameter layout (`kind: "tuple" | "array"` in TS).
@@ -429,20 +647,21 @@ Command buildCommand({
   required CommandParameters parameters,
 }) {
   final flags = parameters.flags;
-  final aliases = parameters.aliases;
-  for (final flag in const ['help', 'helpAll', 'help-all']) {
-    if (flags.containsKey(flag)) {
-      throw RouterInternalError('Unable to use reserved flag --$flag');
-    }
-  }
-  for (final alias in const ['h', 'H']) {
-    if (aliases.containsKey(alias)) {
-      throw RouterInternalError('Unable to use reserved alias -$alias');
-    }
-  }
   _checkForNegationCollisions(flags);
   _checkForInvalidVariadicSeparators(flags);
   return Command._(() => func, parameters, docs);
+}
+
+/// Internal lazy-command builder used by the typed public facade.
+Command buildLazyCommand({
+  required CommandDocs docs,
+  required CommandLoader loader,
+  required CommandParameters parameters,
+}) {
+  final flags = parameters.flags;
+  _checkForNegationCollisions(flags);
+  _checkForInvalidVariadicSeparators(flags);
+  return Command._(loader, parameters, docs);
 }
 
 // ---------------------------------------------------------------------------
@@ -809,6 +1028,58 @@ final class CurrentVersionNotLatestArguments {
   final String? upgradeCommand;
 }
 
+/// Arguments for an integration hook failure message.
+final class IntegrationHookErrorArguments {
+  /// Creates integration hook error arguments.
+  const IntegrationHookErrorArguments({
+    required this.exception,
+    required this.hook,
+    required this.integration,
+    required this.ansiColor,
+  });
+
+  /// Thrown value.
+  final Object exception;
+
+  /// Hook name.
+  final String hook;
+
+  /// Integration name.
+  final String integration;
+
+  /// Whether ANSI color is enabled.
+  final bool ansiColor;
+}
+
+/// Arguments for an integration flag failure message.
+final class IntegrationFlagErrorArguments {
+  /// Creates integration flag error arguments.
+  const IntegrationFlagErrorArguments({
+    required this.exception,
+    required this.integration,
+    required this.ansiColor,
+  });
+
+  /// Thrown value.
+  final Object exception;
+
+  /// Integration name.
+  final String integration;
+
+  /// Whether ANSI color is enabled.
+  final bool ansiColor;
+}
+
+String _defaultIntegrationHookError(IntegrationHookErrorArguments args) {
+  return 'Integration "${args.integration}" failed during ${args.hook}, '
+      '${_formatException(args.exception)}';
+}
+
+String _defaultIntegrationFlagError(IntegrationFlagErrorArguments args) {
+  return 'Unable to run integration flag "--${args.integration}", '
+      '${_formatException(args.exception)}';
+}
+
 /// Mirror of stricli `ApplicationText`; the dotweave app overrides the error
 /// formatters via [copyWith] (TS spreads over `text_en`).
 final class ApplicationText {
@@ -825,6 +1096,8 @@ final class ApplicationText {
     required this.exceptionWhileRunningCommand,
     required this.commandErrorResult,
     required this.currentVersionIsNotLatest,
+    this.exceptionWhileRunningIntegrationHook = _defaultIntegrationHookError,
+    this.exceptionWhileRunningIntegrationFlag = _defaultIntegrationFlagError,
   });
 
   /// The headers value.
@@ -866,6 +1139,14 @@ final class ApplicationText {
   final String Function(CurrentVersionNotLatestArguments args)
   currentVersionIsNotLatest;
 
+  /// Formats an integration lifecycle hook exception.
+  final String Function(IntegrationHookErrorArguments args)
+  exceptionWhileRunningIntegrationHook;
+
+  /// Formats an integration application flag exception.
+  final String Function(IntegrationFlagErrorArguments args)
+  exceptionWhileRunningIntegrationFlag;
+
   /// Returns a copy with the supplied text overrides.
   ApplicationText copyWith({
     TextHeaders? headers,
@@ -883,6 +1164,10 @@ final class ApplicationText {
     String Function(Object error, bool ansiColor)? commandErrorResult,
     String Function(CurrentVersionNotLatestArguments args)?
     currentVersionIsNotLatest,
+    String Function(IntegrationHookErrorArguments args)?
+    exceptionWhileRunningIntegrationHook,
+    String Function(IntegrationFlagErrorArguments args)?
+    exceptionWhileRunningIntegrationFlag,
   }) {
     return ApplicationText(
       headers: headers ?? this.headers,
@@ -905,6 +1190,12 @@ final class ApplicationText {
       commandErrorResult: commandErrorResult ?? this.commandErrorResult,
       currentVersionIsNotLatest:
           currentVersionIsNotLatest ?? this.currentVersionIsNotLatest,
+      exceptionWhileRunningIntegrationHook:
+          exceptionWhileRunningIntegrationHook ??
+          this.exceptionWhileRunningIntegrationHook,
+      exceptionWhileRunningIntegrationFlag:
+          exceptionWhileRunningIntegrationFlag ??
+          this.exceptionWhileRunningIntegrationFlag,
     );
   }
 }
@@ -1107,13 +1398,35 @@ final class LocalizationConfiguration {
   final ApplicationText? text;
 }
 
-/// Version metadata (`getLatestVersion`/`upgradeCommand` are not ported).
+/// Version metadata used by the default version integration.
 final class VersionInformation {
   /// Creates a [VersionInformation].
-  const VersionInformation({required this.currentVersion});
+  const VersionInformation({
+    this.currentVersion,
+    this.getCurrentVersion,
+    this.getLatestVersion,
+    this.upgradeCommand,
+  }) : assert(
+         (currentVersion == null) != (getCurrentVersion == null),
+         'Provide exactly one current-version source',
+       );
 
-  /// The current application version.
-  final String currentVersion;
+  /// A static current application version.
+  final String? currentVersion;
+
+  /// Asynchronously resolves the current application version.
+  final FutureOr<String> Function(RunContext context)? getCurrentVersion;
+
+  /// Resolves the latest available version from the current version.
+  final FutureOr<String?> Function(RunContext context, String currentVersion)?
+  getLatestVersion;
+
+  /// Optional command displayed in update notices.
+  final String? upgradeCommand;
+
+  /// Resolves the configured current version.
+  Future<String> resolveCurrent(RunContext context) async =>
+      currentVersion ?? await getCurrentVersion!(context);
 }
 
 /// Mirror of the stricli application configuration object.
@@ -1343,6 +1656,7 @@ final class Application {
     required this.root,
     required this.config,
     required this.defaultText,
+    required this.integrations,
   });
 
   /// The root value.
@@ -1353,26 +1667,244 @@ final class Application {
 
   /// The default text value.
   final ApplicationText defaultText;
+
+  /// Ordered integrations.
+  final List<InternalIntegration> integrations;
+}
+
+List<InternalIntegration> _defaultIntegrations(
+  ResolvedApplicationConfiguration config,
+  ApplicationText text,
+) {
+  final help = InternalIntegration(
+    name: 'help',
+    flag: InternalApplicationFlag(
+      documentation: AdditionalFlagDocumentation(
+        name: 'help',
+        brief: text.briefs.help,
+        aliases: const ['h'],
+        global: true,
+        complete: true,
+      ),
+      defaultForRouteMap: true,
+      run: (context, app, args) {
+        context.process.stdout.write(
+          args.result.target.formatHelp(
+            HelpFormattingArguments(
+              prefix: args.result.prefix,
+              config: config.documentation,
+              text: args.text,
+              includeLegacyHelpFlag: false,
+              includeArgumentEscapeSequenceFlag:
+                  config.scanner.allowArgumentEscapeSequence,
+              includeHidden: false,
+              aliases: args.result.aliases.byStyle(
+                config.documentation.caseStyle,
+              ),
+              additionalFlags: args.additionalFlags,
+              ansiColor: args.ansiColorByStream.stdout,
+            ),
+          ),
+        );
+      },
+    ),
+  );
+  final helpAll = InternalIntegration(
+    name: 'helpAll',
+    flag: InternalApplicationFlag(
+      documentation: AdditionalFlagDocumentation(
+        name: 'helpAll',
+        brief: text.briefs.helpAll,
+        aliases: const ['H'],
+        hidden: !config.documentation.alwaysShowHelpAllFlag,
+        global: true,
+        complete: true,
+      ),
+      run: (context, app, args) {
+        context.process.stdout.write(
+          args.result.target.formatHelp(
+            HelpFormattingArguments(
+              prefix: args.result.prefix,
+              config: config.documentation,
+              text: args.text,
+              includeLegacyHelpFlag: false,
+              includeArgumentEscapeSequenceFlag:
+                  config.scanner.allowArgumentEscapeSequence,
+              includeHidden: true,
+              aliases: args.result.aliases.byStyle(
+                config.documentation.caseStyle,
+              ),
+              additionalFlags: args.additionalFlags,
+              ansiColor: args.ansiColorByStream.stdout,
+            ),
+          ),
+        );
+      },
+    ),
+  );
+  final integrations = <InternalIntegration>[help, helpAll];
+  final versionInfo = config.versionInfo;
+  if (versionInfo != null) {
+    integrations.add(
+      InternalIntegration(
+        name: 'version',
+        hooks: versionInfo.getLatestVersion == null
+            ? null
+            : InternalLifecycleHooks(
+                appStart: (context, arguments) async {
+                  if (_checkEnvironmentVariable(
+                    context.process.readEnv,
+                    'STRICLI_SKIP_VERSION_CHECK',
+                  )) {
+                    return;
+                  }
+                  final currentVersion = await versionInfo.resolveCurrent(
+                    context,
+                  );
+                  final latestVersion = await versionInfo.getLatestVersion!(
+                    context,
+                    currentVersion,
+                  );
+                  if (latestVersion != null &&
+                      latestVersion != currentVersion) {
+                    final message = arguments.text.currentVersionIsNotLatest(
+                      CurrentVersionNotLatestArguments(
+                        currentVersion: currentVersion,
+                        latestVersion: latestVersion,
+                        upgradeCommand: versionInfo.upgradeCommand,
+                      ),
+                    );
+                    _writeWarning(
+                      context.process.stderr,
+                      message,
+                      arguments.ansiColorByStream.stderr,
+                    );
+                  }
+                },
+              ),
+        flag: InternalApplicationFlag(
+          documentation: AdditionalFlagDocumentation(
+            name: 'version',
+            brief: text.briefs.version,
+            aliases: const ['v'],
+            complete: true,
+          ),
+          run: (context, app, args) async {
+            context.process.stdout.write(
+              '${await versionInfo.resolveCurrent(context)}\n',
+            );
+          },
+        ),
+      ),
+    );
+  }
+  return integrations;
+}
+
+void _validateIntegrations(
+  RoutingTarget root,
+  ResolvedApplicationConfiguration config,
+  List<InternalIntegration> integrations,
+) {
+  final names = <String>{};
+  final aliases = <String, String>{};
+  String? defaultForRouteMap;
+  for (final integration in integrations) {
+    final name = integration.name;
+    if (!names.add(name)) {
+      throw RouterInternalError('Duplicate integration name "$name"');
+    }
+    if (config.scanner.caseStyle == ScannerCaseStyle.allowKebabForCamel) {
+      final camelName = convertKebabCaseToCamelCase(name);
+      final collision = integrations.any(
+        (other) => other.name != name && other.name == camelName,
+      );
+      if (collision) {
+        throw RouterInternalError(
+          'Multiple integrations use the same flag name: "$name" and "$camelName"',
+        );
+      }
+    }
+    final flag = integration.flag;
+    if (flag != null) {
+      if (flag.documentation.name != name) {
+        throw RouterInternalError(
+          'Integration "$name" must use "$name" as its flag name',
+        );
+      }
+      if (flag.defaultForRouteMap) {
+        if (defaultForRouteMap != null) {
+          throw RouterInternalError(
+            'Multiple integrations provide a default flag for route maps: '
+            '"$defaultForRouteMap" and "$name"',
+          );
+        }
+        defaultForRouteMap = name;
+      }
+      for (final alias in flag.documentation.aliases) {
+        if (alias.length != 1) {
+          throw RouterInternalError(
+            'Integration "$name" uses invalid alias "-$alias"',
+          );
+        }
+        final existing = aliases[alias];
+        if (existing != null) {
+          throw RouterInternalError(
+            'Multiple integrations use alias "-$alias": "$existing" and "$name"',
+          );
+        }
+        aliases[alias] = name;
+      }
+    }
+  }
+
+  void checkTarget(RoutingTarget target, bool isRoot, List<String> prefix) {
+    if (target is Command) {
+      for (final integration in integrations) {
+        final documentation = integration.flag?.documentation;
+        if (documentation == null || (!isRoot && !documentation.global)) {
+          continue;
+        }
+        final namesToCheck = [documentation.name, ...documentation.aliases];
+        for (final name in namesToCheck) {
+          final camelName = convertKebabCaseToCamelCase(name);
+          if (target.usesFlag(name) ||
+              (config.scanner.caseStyle ==
+                      ScannerCaseStyle.allowKebabForCamel &&
+                  target.usesFlag(camelName))) {
+            throw RouterInternalError(
+              'Integration "${integration.name}" would override '
+              '"${[...prefix, name.length == 1 ? '-$name' : '--$name'].join(' ')}"',
+            );
+          }
+        }
+      }
+      return;
+    }
+    for (final entry in (target as RouteMap).getAllEntries()) {
+      checkTarget(entry.target, false, [...prefix, entry.name.original]);
+    }
+  }
+
+  checkTarget(root, true, const []);
+  for (final integration in integrations) {
+    try {
+      integration.validate?.call(root, config);
+    } catch (error) {
+      throw RouterInternalError(
+        'Integration "${integration.name}" failed validation: $error',
+      );
+    }
+  }
 }
 
 /// Mirror of stricli `buildApplication` (dist index.js:1505).
 Application buildApplication(
   RoutingTarget root,
-  ApplicationConfiguration appConfig,
-) {
+  ApplicationConfiguration appConfig, {
+  List<InternalIntegration>? integrations,
+}) {
   final config = _withDefaults(appConfig);
-  if (root is Command && config.versionInfo != null) {
-    if (root.usesFlag('version')) {
-      throw RouterInternalError(
-        'Unable to use command with flag --version as root when version info is supplied',
-      );
-    }
-    if (root.usesFlag('v')) {
-      throw RouterInternalError(
-        'Unable to use command with alias -v as root when version info is supplied',
-      );
-    }
-  }
   ApplicationText defaultText;
   final text = config.localization.text;
   if (text != null) {
@@ -1388,7 +1920,15 @@ Application buildApplication(
     }
     defaultText = loaded;
   }
-  return Application._(root: root, config: config, defaultText: defaultText);
+  final resolvedIntegrations =
+      integrations ?? _defaultIntegrations(config, defaultText);
+  _validateIntegrations(root, config, resolvedIntegrations);
+  return Application._(
+    root: root,
+    config: config,
+    defaultText: defaultText,
+    integrations: List.unmodifiable(resolvedIntegrations),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -1429,8 +1969,6 @@ void _writeWarning(WriteStream stream, String message, bool ansiColor) {
 // Route scanning (src/routing/scanner.ts)
 // ---------------------------------------------------------------------------
 
-enum _HelpRequest { none, help, all }
-
 final class _RouteScanError {
   const _RouteScanError({required this.input, required this.routeMap});
 
@@ -1438,37 +1976,57 @@ final class _RouteScanError {
   final RouteMap routeMap;
 }
 
-final class _RouteScanResult {
-  const _RouteScanResult({
+/// Result of scanning inputs to select an application target.
+final class RouteScanResult {
+  /// Creates a route scan result.
+  const RouteScanResult({
     required this.target,
     required this.unprocessedInputs,
-    required this.helpRequested,
     required this.prefix,
     required this.rootLevel,
     required this.aliases,
+    this.activeFlag,
   });
 
+  /// Selected command or route map.
   final RoutingTarget target;
+
+  /// Inputs not consumed by route scanning.
   final List<String> unprocessedInputs;
-  final _HelpRequest helpRequested;
+
+  /// Consumed route prefix.
   final List<String> prefix;
+
+  /// Whether [target] is the root.
   final bool rootLevel;
+
+  /// Other aliases for the selected route.
   final RouteNameAliases aliases;
+
+  /// First active integration application flag.
+  final InternalApplicationFlag? activeFlag;
 }
 
 final class _RouteScanner {
-  _RouteScanner(RoutingTarget root, this.config, List<String> startingPrefix)
-    : prefix = [...startingPrefix],
+  _RouteScanner(
+    RoutingTarget root,
+    this.config,
+    List<String> startingPrefix,
+    this.additionalFlags,
+  ) : prefix = [...startingPrefix],
+      _root = root,
       _current = root;
 
   final ScannerConfig config;
+  final RoutingTarget _root;
+  final List<InternalApplicationFlag> additionalFlags;
   final List<String> prefix;
   final List<String> unprocessedInputs = [];
   (RouteMap, String)? _parent;
   RoutingTarget _current;
   RoutingTarget? _target;
   bool _rootLevel = true;
-  _HelpRequest _helpRequested = _HelpRequest.none;
+  InternalApplicationFlag? _activeFlag;
   bool _treatInputsAsArguments = false;
 
   _RouteScanError? next(String input) {
@@ -1480,14 +2038,37 @@ final class _RouteScanner {
       return null;
     }
     if (!_treatInputsAsArguments) {
-      if (input == '--help' || input == '-h') {
-        _helpRequested = _HelpRequest.help;
-        _target ??= _current;
-        return null;
-      } else if (input == '--helpAll' ||
-          input == '--help-all' ||
-          input == '-H') {
-        _helpRequested = _HelpRequest.all;
+      final relevantFlags = additionalFlags.where(
+        (flag) => identical(_current, _root) || flag.documentation.global,
+      );
+      InternalApplicationFlag? matchedFlag;
+      if (input.startsWith('--')) {
+        final inputName = input.substring(2);
+        for (final flag in relevantFlags) {
+          final name = flag.documentation.name;
+          if (inputName == name ||
+              (config.caseStyle == ScannerCaseStyle.allowKebabForCamel &&
+                  convertKebabCaseToCamelCase(inputName) == name)) {
+            matchedFlag = flag;
+            break;
+          }
+        }
+      } else if (input.startsWith('-') && !input.startsWith('--')) {
+        final aliases = input.substring(1).split('');
+        for (final alias in aliases) {
+          for (final flag in relevantFlags) {
+            if (flag.documentation.aliases.contains(alias)) {
+              matchedFlag = flag;
+              break;
+            }
+          }
+          if (matchedFlag != null) {
+            break;
+          }
+        }
+      }
+      if (matchedFlag != null) {
+        _activeFlag = matchedFlag;
         _target ??= _current;
         return null;
       }
@@ -1531,9 +2112,9 @@ final class _RouteScanner {
     return null;
   }
 
-  _RouteScanResult finish() {
+  RouteScanResult finish() {
     var target = _target ?? _current;
-    if (target is RouteMap && _helpRequested == _HelpRequest.none) {
+    if (target is RouteMap && _activeFlag == null) {
       final defaultCommand = target.getDefaultCommand();
       if (defaultCommand != null) {
         _parent = (target, '');
@@ -1545,13 +2126,13 @@ final class _RouteScanner {
     final aliases = parent != null
         ? parent.$1.getOtherAliasesForInput(parent.$2, config.caseStyle)
         : const RouteNameAliases.empty();
-    return _RouteScanResult(
+    return RouteScanResult(
       target: target,
       unprocessedInputs: unprocessedInputs,
-      helpRequested: _helpRequested,
       prefix: prefix,
       rootLevel: _rootLevel,
       aliases: aliases,
+      activeFlag: _activeFlag,
     );
   }
 }
@@ -1693,6 +2274,226 @@ Future<int> _runCommand(
 // Application running (src/application/run.ts, src/index.ts)
 // ---------------------------------------------------------------------------
 
+AnsiColorByStream _resolveAnsiColorByStream(
+  RunContext context,
+  DocumentationConfig config,
+) {
+  return AnsiColorByStream(
+    stdout: _shouldUseAnsiColor(
+      context.process,
+      context.process.stdout,
+      config,
+    ),
+    stderr: _shouldUseAnsiColor(
+      context.process,
+      context.process.stderr,
+      config,
+    ),
+  );
+}
+
+Future<int?> _runIntegrationHooks(
+  Application app,
+  String hookName,
+  RunContext context,
+  ApplicationHookArguments arguments,
+) async {
+  for (final integration in app.integrations) {
+    final hooks = integration.hooks;
+    if (hooks == null) {
+      continue;
+    }
+    final hook = switch (hookName) {
+      'app:start' =>
+        hooks.appStart == null
+            ? null
+            : () => hooks.appStart!(context, arguments),
+      'app:end' =>
+        hooks.appEnd == null ? null : () => hooks.appEnd!(context, arguments),
+      'command:start' =>
+        hooks.commandStart == null
+            ? null
+            : () => hooks.commandStart!(
+                context,
+                arguments as InternalCommandHookArguments,
+              ),
+      'command:end' =>
+        hooks.commandEnd == null
+            ? null
+            : () => hooks.commandEnd!(
+                context,
+                arguments as InternalCommandHookArguments,
+              ),
+      _ => null,
+    };
+    if (hook == null) {
+      continue;
+    }
+    try {
+      await hook();
+    } catch (error) {
+      final message = arguments.text.exceptionWhileRunningIntegrationHook(
+        IntegrationHookErrorArguments(
+          exception: error,
+          hook: hookName,
+          integration: integration.name,
+          ansiColor: arguments.ansiColorByStream.stderr,
+        ),
+      );
+      _writeError(
+        context.process.stderr,
+        message,
+        arguments.ansiColorByStream.stderr,
+      );
+      return ExitCode.integrationError;
+    }
+  }
+  return null;
+}
+
+List<InternalApplicationFlag> _applicationFlags(Application app) {
+  return [for (final integration in app.integrations) ?integration.flag];
+}
+
+Future<int> _scanInputsAndRunTarget(
+  Application app,
+  List<String> rawInputs,
+  RunContext context,
+  ApplicationText text,
+  AnsiColorByStream ansiColorByStream,
+) async {
+  final config = app.config;
+  final applicationFlags = _applicationFlags(app);
+  final inputs = [...rawInputs];
+  final scanner = _RouteScanner(app.root, config.scanner, [
+    config.name,
+  ], applicationFlags);
+  _RouteScanError? error;
+  while (inputs.isNotEmpty && error == null) {
+    error = scanner.next(inputs.removeAt(0));
+  }
+  if (error != null) {
+    final routeNames = _listAllRouteNamesAndAliasesForScan(
+      error.routeMap,
+      config.scanner.caseStyle,
+      config.completion,
+    );
+    final corrections = filterClosestAlternatives(
+      error.input,
+      routeNames,
+      config.scanner.distanceOptions,
+    ).map((str) => '`$str`').toList();
+    final errorMessage = text.noCommandRegisteredForInput(
+      NoCommandRegisteredArguments(
+        input: error.input,
+        corrections: corrections,
+        ansiColor: ansiColorByStream.stderr,
+      ),
+    );
+    _writeError(context.process.stderr, errorMessage, ansiColorByStream.stderr);
+    return ExitCode.unknownCommand;
+  }
+
+  final result = scanner.finish();
+  var activeFlag = result.activeFlag;
+  if (activeFlag == null && result.target is RouteMap) {
+    for (final flag in applicationFlags) {
+      if (flag.defaultForRouteMap) {
+        activeFlag = flag;
+        break;
+      }
+    }
+  }
+  if (activeFlag != null || result.target is RouteMap) {
+    if (activeFlag != null) {
+      final relevantFlags = result.rootLevel
+          ? applicationFlags
+          : applicationFlags
+                .where((flag) => flag.documentation.global)
+                .toList();
+      try {
+        await activeFlag.run(
+          context,
+          app,
+          IntegrationFlagArguments(
+            text: text,
+            ansiColorByStream: ansiColorByStream,
+            result: result,
+            additionalFlags: List.unmodifiable(
+              relevantFlags.map((flag) => flag.documentation),
+            ),
+          ),
+        );
+      } catch (error) {
+        final integrationName = activeFlag.documentation.name;
+        final message = text.exceptionWhileRunningIntegrationFlag(
+          IntegrationFlagErrorArguments(
+            exception: error,
+            integration: integrationName,
+            ansiColor: ansiColorByStream.stderr,
+          ),
+        );
+        _writeError(context.process.stderr, message, ansiColorByStream.stderr);
+        return ExitCode.integrationError;
+      }
+    }
+    return ExitCode.success;
+  }
+
+  final contextLoader = context.forCommand;
+  if (contextLoader != null) {
+    try {
+      context.commandContext = await contextLoader(result.prefix);
+    } catch (error) {
+      final errorMessage = text.exceptionWhileLoadingCommandContext(
+        error,
+        ansiColorByStream.stderr,
+      );
+      _writeError(
+        context.process.stderr,
+        errorMessage,
+        ansiColorByStream.stderr,
+      );
+      return ExitCode.contextLoadError;
+    }
+  }
+  final commandArguments = InternalCommandHookArguments(
+    text: text,
+    ansiColorByStream: ansiColorByStream,
+    result: result,
+  );
+  final hookStartCode = await _runIntegrationHooks(
+    app,
+    'command:start',
+    context,
+    commandArguments,
+  );
+  if (hookStartCode != null) {
+    return hookStartCode;
+  }
+  final commandExitCode = await _runCommand(
+    result.target as Command,
+    context: context,
+    inputs: result.unprocessedInputs,
+    scannerConfig: config.scanner,
+    documentationConfig: config.documentation,
+    errorFormatting: text,
+    determineExitCode: config.determineExitCode,
+  );
+  final hookEndCode = await _runIntegrationHooks(
+    app,
+    'command:end',
+    context,
+    InternalCommandHookArguments(
+      text: text,
+      ansiColorByStream: ansiColorByStream,
+      result: result,
+      exitCode: commandExitCode,
+    ),
+  );
+  return hookEndCode ?? commandExitCode;
+}
+
 /// Mirror of stricli `runApplication`; returns the process exit code.
 Future<int> runApplication(
   Application app,
@@ -1723,86 +2524,37 @@ Future<int> runApplication(
       _writeWarning(context.process.stderr, warningMessage, ansiColor);
     }
   }
-  // `versionInfo.getLatestVersion` is not ported (dotweave only supplies
-  // `currentVersion`), so the "latest version" warning path is omitted here.
-  final inputs = [...rawInputs];
-  final versionInfo = config.versionInfo;
-  if (versionInfo != null &&
-      inputs.isNotEmpty &&
-      (inputs[0] == '--version' || inputs[0] == '-v')) {
-    context.process.stdout.write('${versionInfo.currentVersion}\n');
-    return ExitCode.success;
-  }
-  final scanner = _RouteScanner(app.root, config.scanner, [config.name]);
-  _RouteScanError? error;
-  while (inputs.isNotEmpty && error == null) {
-    final arg = inputs.removeAt(0);
-    error = scanner.next(arg);
-  }
-  if (error != null) {
-    final routeNames = _listAllRouteNamesAndAliasesForScan(
-      error.routeMap,
-      config.scanner.caseStyle,
-      config.completion,
-    );
-    final corrections = filterClosestAlternatives(
-      error.input,
-      routeNames,
-      config.scanner.distanceOptions,
-    ).map((str) => '`$str`').toList();
-    final ansiColor = _shouldUseAnsiColor(
-      context.process,
-      context.process.stderr,
-      config.documentation,
-    );
-    final errorMessage = text.noCommandRegisteredForInput(
-      NoCommandRegisteredArguments(
-        input: error.input,
-        corrections: corrections,
-        ansiColor: ansiColor,
-      ),
-    );
-    _writeError(context.process.stderr, errorMessage, ansiColor);
-    return ExitCode.unknownCommand;
-  }
-  final result = scanner.finish();
-  if (result.helpRequested != _HelpRequest.none || result.target is RouteMap) {
-    final ansiColor = _shouldUseAnsiColor(
-      context.process,
-      context.process.stdout,
-      config.documentation,
-    );
-    context.process.stdout.write(
-      result.target.formatHelp(
-        HelpFormattingArguments(
-          prefix: result.prefix,
-          includeVersionFlag: config.versionInfo != null && result.rootLevel,
-          includeArgumentEscapeSequenceFlag:
-              config.scanner.allowArgumentEscapeSequence,
-          includeHelpAllFlag:
-              result.helpRequested == _HelpRequest.all ||
-              config.documentation.alwaysShowHelpAllFlag,
-          includeHidden: result.helpRequested == _HelpRequest.all,
-          config: config.documentation,
-          aliases: result.aliases.byStyle(config.documentation.caseStyle),
-          text: text,
-          ansiColor: ansiColor,
-        ),
-      ),
-    );
-    return ExitCode.success;
-  }
-  // Context `forCommand` loading is not ported (dotweave contexts never
-  // define it); the run context doubles as the command context.
-  return _runCommand(
-    result.target as Command,
-    context: context,
-    inputs: result.unprocessedInputs,
-    scannerConfig: config.scanner,
-    documentationConfig: config.documentation,
-    errorFormatting: text,
-    determineExitCode: config.determineExitCode,
+  final ansiColorByStream = _resolveAnsiColorByStream(
+    context,
+    config.documentation,
   );
+  final appStartCode = await _runIntegrationHooks(
+    app,
+    'app:start',
+    context,
+    ApplicationHookArguments(text: text, ansiColorByStream: ansiColorByStream),
+  );
+  if (appStartCode != null) {
+    return appStartCode;
+  }
+  final exitCode = await _scanInputsAndRunTarget(
+    app,
+    rawInputs,
+    context,
+    text,
+    ansiColorByStream,
+  );
+  final appEndCode = await _runIntegrationHooks(
+    app,
+    'app:end',
+    context,
+    ApplicationHookArguments(
+      text: text,
+      ansiColorByStream: ansiColorByStream,
+      exitCode: exitCode,
+    ),
+  );
+  return appEndCode ?? exitCode;
 }
 
 /// Mirror of stricli `run`: runs the application and assigns the exit code to
@@ -1920,7 +2672,8 @@ Future<List<InputCompletion>> proposeCompletions(
     return [];
   }
   final config = app.config;
-  final scanner = _RouteScanner(app.root, config.scanner, []);
+  final applicationFlags = _applicationFlags(app);
+  final scanner = _RouteScanner(app.root, config.scanner, [], applicationFlags);
   final leadingInputs = rawInputs.sublist(0, rawInputs.length - 1);
   _RouteScanError? error;
   while (leadingInputs.isNotEmpty && error == null) {
@@ -1931,20 +2684,62 @@ Future<List<InputCompletion>> proposeCompletions(
     return [];
   }
   final result = scanner.finish();
-  if (result.helpRequested != _HelpRequest.none) {
+  if (result.activeFlag != null) {
     return [];
   }
+  final contextLoader = context.forCommand;
+  if (contextLoader != null) {
+    try {
+      context.commandContext = await contextLoader(result.prefix);
+    } catch (_) {
+      return [];
+    }
+  }
   final partial = rawInputs[rawInputs.length - 1];
+  final relevantFlags = result.rootLevel
+      ? applicationFlags
+      : applicationFlags.where((flag) => flag.documentation.global).toList();
+  final additionalCompletions = <InputCompletion>[];
+  if (partial.startsWith('-')) {
+    for (final flag in relevantFlags) {
+      final documentation = flag.documentation;
+      if (!documentation.complete ||
+          (documentation.hidden && !config.completion.includeHiddenRoutes)) {
+        continue;
+      }
+      final names = <String>[
+        '--${documentation.name}',
+        if (config.scanner.caseStyle == ScannerCaseStyle.allowKebabForCamel &&
+            convertCamelCaseToKebabCase(documentation.name) !=
+                documentation.name)
+          '--${convertCamelCaseToKebabCase(documentation.name)}',
+        if (config.completion.includeAliases)
+          ...documentation.aliases.map((alias) => '-$alias'),
+      ];
+      additionalCompletions.addAll(
+        names
+            .where((name) => name.startsWith(partial))
+            .map(
+              (name) => InputCompletion(
+                kind: 'argument:flag',
+                completion: name,
+                brief: documentation.brief,
+              ),
+            ),
+      );
+    }
+  }
   final target = result.target;
   if (target is RouteMap) {
-    return _proposeCompletionsForRouteMap(
+    final targetCompletions = await _proposeCompletionsForRouteMap(
       target,
       partial: partial,
       scannerConfig: config.scanner,
       completionConfig: config.completion,
     );
+    return [...targetCompletions, ...additionalCompletions];
   }
-  return _proposeCompletionsForCommand(
+  final targetCompletions = await _proposeCompletionsForCommand(
     target as Command,
     context: context,
     inputs: result.unprocessedInputs,
@@ -1952,6 +2747,7 @@ Future<List<InputCompletion>> proposeCompletions(
     scannerConfig: config.scanner,
     completionConfig: config.completion,
     text: app.defaultText,
-    includeVersionFlag: config.versionInfo != null && result.rootLevel,
+    includeVersionFlag: false,
   );
+  return [...targetCompletions, ...additionalCompletions];
 }
