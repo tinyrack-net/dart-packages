@@ -6,10 +6,13 @@ Reusable Dart libraries maintained by Tinyrack.
 | --- | --- |
 | [`cliweave`](packages/cliweave) | Typed command routing, help, completion, and terminal output for Dart CLIs. |
 | [`dartage`](packages/dartage) | Pure-Dart age v1 encryption with native, passphrase, post-quantum, tag, and streaming support. |
+| [`shipworld`](packages/shipworld) | Release, signing, and desktop-packaging tooling for Dart CLI and Flutter desktop apps. |
 
-Each package has an independent version and changelog. Releases are published
-to [pub.dev](https://pub.dev/publishers/tinyrack.net/packages) by the verified
-`tinyrack.net` publisher.
+`cliweave` and `dartage` have independent versions and changelogs, and are
+published to [pub.dev](https://pub.dev/publishers/tinyrack.net/packages) by the
+verified `tinyrack.net` publisher. `shipworld` is currently unpublished
+(`publish_to: none`) while its public contract is evaluated; validate it as a
+standalone package with `dart run packages/shipworld/tool/validate_standalone.dart`.
 
 ## Development
 
