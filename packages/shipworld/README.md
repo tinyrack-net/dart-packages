@@ -1,8 +1,7 @@
 # shipworld
 
-`shipworld` is an experimental, unpublished Dart library for preparing
-independently versioned releases and packaging prebuilt Dart CLI and Flutter
-desktop payloads.
+`shipworld` is a Dart library for preparing independently versioned releases
+and packaging prebuilt Dart CLI and Flutter desktop payloads.
 
 It supports:
 
@@ -13,9 +12,9 @@ It supports:
 - strict schema-v1 configuration with editor-compatible JSON Schema;
 - injected Git, process, environment, and logging boundaries.
 
-The package currently lives in the Dotweave workspace so its API and package
-boundary can be evaluated before it is moved to a standalone package
-repository.
+The package is published to pub.dev from the `tinyrack-net/dart-packages`
+workspace. It can also be moved to a standalone package repository; see the
+[standalone repository handoff](doc/separation.md).
 
 ## Configuration
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2
+
+- Verified automated pub.dev publishing from GitHub Actions using OIDC.
+
+## 0.1.1
+
+- Initial pub.dev release.
+
 ## 0.1.0
 
 - Added schema-v1 typed configuration and its JSON Schema.
