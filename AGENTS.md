@@ -8,8 +8,8 @@ public packages.
 - `packages/cliweave` is a general-purpose typed CLI framework.
 - `packages/dartage` is a pure-Dart age v1 implementation.
 - `packages/shipworld` is reusable release, signing, and desktop-packaging
-  tooling. It is unpublished (`publish_to: none`) while its public contract is
-  evaluated, and it consumes `cliweave` from the workspace.
+  tooling. It is published to pub.dev from this workspace via the
+  `shipworld-v*` tag trigger, and it consumes `cliweave` from the workspace.
 - Keep product-specific types and behavior out of every package.
 - Treat each package's public API, README, CHANGELOG, examples, and package
   metadata as user-facing.
