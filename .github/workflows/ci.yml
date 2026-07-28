@@ -124,11 +124,28 @@ jobs:
           sdk: 3.12.2
       - run: dart pub get
       - run: dart test test/lcov_test.dart
-      - run: dart run tool/verify_coverage.dart
+      - run: dart run tool/verify_coverage.dart cliweave dartage
       - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: package-coverage
+          path: coverage
+          if-no-files-found: error
+
+  shipworld-coverage:
+    name: shipworld coverage (95% minimum)
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - run: dart pub get
+      - run: dart run tool/verify_coverage.dart shipworld
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shipworld-coverage
           path: coverage
           if-no-files-found: error
 

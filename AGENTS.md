@@ -24,10 +24,13 @@ For every changed package, run:
 - `dart doc`
 - `dart pub publish --dry-run`
 
-From the repository root, also run `dart run tool/verify_coverage.dart`. Each
-gated package (`cliweave`, `dartage`) must independently meet the 95% line
-coverage gate; `shipworld` is excluded because much of its packaging code is
-platform-specific and cannot run in CI.
+From the repository root, run `dart run tool/verify_coverage.dart` to check the
+95% line-coverage gate (each package independently). `cliweave` and `dartage`
+are checked on Linux (`dart run tool/verify_coverage.dart cliweave dartage`);
+`shipworld` is checked on **Windows** (`dart run tool/verify_coverage.dart
+shipworld`), because its Windows SDK-tool discovery is guarded by
+`Platform.isWindows` and only executes on a Windows runner. Passing no package
+names runs all three (use that only on Windows).
 
 For `shipworld`, also run `dart run packages/shipworld/tool/validate_standalone.dart`,
 which copies the package out of the workspace and runs `pub get`, analyze, test,

@@ -23,7 +23,7 @@ Future<int> _run(
   return process.exitCode;
 }
 
-Future<void> main() async {
+Future<void> main(List<String> arguments) async {
   final root = File.fromUri(Platform.script).parent.parent.absolute;
   final outputRoot = Directory.fromUri(root.uri.resolve('coverage/'));
   if (outputRoot.existsSync()) {
@@ -31,10 +31,22 @@ Future<void> main() async {
   }
   outputRoot.createSync(recursive: true);
 
-  const packages = [
+  // `shipworld` is checked on a Windows runner because its Windows SDK-tool
+  // discovery is guarded by `Platform.isWindows`; the others are checked on
+  // Linux. Passing package names restricts the run to those packages.
+  const allPackages = [
     _PackageCoverage(name: 'cliweave', testArguments: ['-x', 'e2e']),
     _PackageCoverage(name: 'dartage', testArguments: ['-x', 'interop']),
+    _PackageCoverage(name: 'shipworld', testArguments: []),
   ];
+  final packages = arguments.isEmpty
+      ? allPackages
+      : allPackages.where((p) => arguments.contains(p.name)).toList();
+  if (packages.isEmpty) {
+    stderr.writeln('No matching packages for: ${arguments.join(', ')}');
+    exitCode = 64;
+    return;
+  }
   var failed = false;
 
   for (final package in packages) {
