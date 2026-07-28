@@ -14,10 +14,12 @@ final class HelpFormattingArguments {
     required this.config,
     required this.text,
     this.includeVersionFlag = false,
+    this.includeLegacyHelpFlag = true,
     this.includeArgumentEscapeSequenceFlag = false,
     this.includeHelpAllFlag = false,
     this.includeHidden = false,
     this.aliases = const [],
+    this.additionalFlags = const [],
     this.ansiColor = false,
   });
 
@@ -33,6 +35,9 @@ final class HelpFormattingArguments {
   /// The include version flag value.
   final bool includeVersionFlag;
 
+  /// Whether to include the pre-integration built-in help flag.
+  final bool includeLegacyHelpFlag;
+
   /// The include argument escape sequence flag value.
   final bool includeArgumentEscapeSequenceFlag;
 
@@ -45,6 +50,9 @@ final class HelpFormattingArguments {
   /// The alternative names accepted for the item.
   final List<String> aliases;
 
+  /// Application-level flags visible for this target.
+  final List<AdditionalFlagDocumentation> additionalFlags;
+
   /// Whether ANSI color sequences are enabled.
   final bool ansiColor;
 
@@ -55,10 +63,12 @@ final class HelpFormattingArguments {
       config: config,
       text: text,
       includeVersionFlag: includeVersionFlag,
+      includeLegacyHelpFlag: includeLegacyHelpFlag,
       includeArgumentEscapeSequenceFlag: includeArgumentEscapeSequenceFlag,
       includeHelpAllFlag: includeHelpAllFlag,
       includeHidden: includeHidden,
       aliases: aliases,
+      additionalFlags: additionalFlags,
       ansiColor: ansiColor,
     );
   }
@@ -198,9 +208,12 @@ List<String> _formatDocumentationForFlagParameters(
   final visibleFlags = flags.entries
       .where((entry) => !entry.value.hidden || args.includeHidden)
       .toList();
-  final atLeastOneOptional = visibleFlags.any(
-    (entry) => _isOptionalAtRuntime(entry.value),
-  );
+  final visibleAdditionalFlags = args.additionalFlags
+      .where((flag) => !flag.hidden || args.includeHidden)
+      .toList();
+  final atLeastOneOptional =
+      visibleAdditionalFlags.isNotEmpty ||
+      visibleFlags.any((entry) => _isOptionalAtRuntime(entry.value));
   final rows = <_FlagHelpRow>[];
   for (final entry in visibleFlags) {
     final name = entry.key;
@@ -266,13 +279,27 @@ List<String> _formatDocumentationForFlagParameters(
       ),
     );
   }
-  rows.add(
-    _FlagHelpRow(
-      aliases: '-h',
-      flagName: atLeastOneOptional ? ' --help' : '--help',
-      brief: briefs.help,
-    ),
-  );
+  for (final flag in visibleAdditionalFlags) {
+    rows.add(
+      _FlagHelpRow(
+        aliases: flag.aliases.map((alias) => '-$alias').join(' '),
+        flagName:
+            '${atLeastOneOptional ? ' ' : ''}'
+            '--${_formatForDisplay(flag.name, args.config.caseStyle)}',
+        brief: flag.brief,
+        hidden: flag.hidden,
+      ),
+    );
+  }
+  if (args.includeLegacyHelpFlag) {
+    rows.add(
+      _FlagHelpRow(
+        aliases: '-h',
+        flagName: atLeastOneOptional ? ' --help' : '--help',
+        brief: briefs.help,
+      ),
+    );
+  }
   if (args.includeHelpAllFlag) {
     final helpAllFlagName = _formatForDisplay('helpAll', args.config.caseStyle);
     rows.add(
@@ -330,7 +357,19 @@ List<String> _formatDocumentationForFlagParameters(
 Iterable<String> _generateBuiltInFlagUsageLines(
   HelpFormattingArguments args,
 ) sync* {
-  yield args.config.useAliasInUsageLine ? '-h' : '--help';
+  for (final flag in args.additionalFlags) {
+    if (flag.hidden && !args.includeHidden) {
+      continue;
+    }
+    if (args.config.useAliasInUsageLine && flag.aliases.length == 1) {
+      yield '-${flag.aliases.single}';
+    } else {
+      yield '--${_formatForDisplay(flag.name, args.config.caseStyle)}';
+    }
+  }
+  if (args.includeLegacyHelpFlag) {
+    yield args.config.useAliasInUsageLine ? '-h' : '--help';
+  }
   if (args.includeHelpAllFlag) {
     final helpAllFlagName = _formatForDisplay('helpAll', args.config.caseStyle);
     yield args.config.useAliasInUsageLine ? '-H' : '--$helpAllFlagName';

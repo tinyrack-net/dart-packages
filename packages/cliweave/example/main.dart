@@ -9,26 +9,28 @@ import 'dart:io';
 
 import 'package:cliweave/cliweave.dart';
 
+final loudFlag = BooleanFlag.optional<ApplicationContext>(
+  name: 'loud',
+  brief: 'Shout the greeting',
+);
+final nameArgument = Positional.required<String, ApplicationContext>(
+  brief: 'Who to greet',
+  parse: stringParser,
+  placeholder: 'name',
+);
+
 final greetCommand = buildCommand(
   docs: const CommandDocs(brief: 'Greet someone'),
-  parameters: const CommandParameters(
-    flags: {'loud': BooleanFlag(brief: 'Shout the greeting', optional: true)},
-    positional: TuplePositionalParameters([
-      PositionalParameter(
-        brief: 'Who to greet',
-        parse: stringParser,
-        placeholder: 'name',
-      ),
-    ]),
+  parameters: CommandParameters(
+    flags: FlagSet.one(loudFlag).map((loud) => (loud: loud)),
+    positional: PositionalSet.one(nameArgument).map((name) => (name,)),
   ),
-  func: (context, flags, positional) {
-    final greeting = 'Hello, ${positional[0]}!';
+  func: (context, flags, args) {
+    final greeting = 'Hello, ${args.$1}!';
 
     context.process.stdout.write(
-      '${flags['loud'] == true ? greeting.toUpperCase() : greeting}\n',
+      '${flags.loud == true ? greeting.toUpperCase() : greeting}\n',
     );
-
-    return null;
   },
 );
 
@@ -52,7 +54,7 @@ Future<void> main(List<String> args) async {
     stderr: StdioWriteStream(stderr),
   );
 
-  await run(app, args, RunContext(process: process));
+  await run(app, args, RunContext.direct(ApplicationContext(process: process)));
 
   exitCode = process.exitCode ?? 0;
 }

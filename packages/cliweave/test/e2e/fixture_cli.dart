@@ -4,44 +4,47 @@ import 'package:cliweave/cliweave.dart';
 
 const executableName = 'cliweave-fixture';
 final scripts = CompletionScripts(executableName: executableName);
-late final Application application;
+late final Application<ApplicationContext> application;
+
+final modeFlag = EnumFlag.optional<String, ApplicationContext>(
+  name: 'mode',
+  brief: 'Deployment mode',
+  values: const {'fast': 'fast', 'safe': 'safe'},
+);
+final projectFlag = ParsedFlag.optional<String, ApplicationContext>(
+  name: 'project',
+  brief: 'Project name',
+  parse: stringParser,
+  proposeCompletions: (context, partial) => ['alpha', 'beta'],
+);
+final targetArgument = Positional.required<String, ApplicationContext>(
+  brief: 'Target directory',
+  parse: stringParser,
+  placeholder: 'target',
+  proposeCompletions: (context, partial) => ['src/', 'test/'],
+);
 
 final deployCommand = buildCommand(
   docs: const CommandDocs(brief: 'Deploy a target'),
   parameters: CommandParameters(
-    flags: {
-      'mode': const EnumFlag(
-        brief: 'Deployment mode',
-        values: ['fast', 'safe'],
-        optional: true,
-      ),
-      'project': ParsedFlag(
-        brief: 'Project name',
-        parse: stringParser,
-        optional: true,
-        proposeCompletions: (partial) => ['alpha', 'beta'],
-      ),
-    },
-    positional: TuplePositionalParameters([
-      PositionalParameter(
-        brief: 'Target directory',
-        parse: stringParser,
-        placeholder: 'target',
-        proposeCompletions: (partial) => ['src/', 'test/'],
-      ),
-    ]),
+    flags: FlagSet.one(
+      modeFlag,
+    ).and(projectFlag).map((values) => (mode: values.$1, project: values.$2)),
+    positional: PositionalSet.one(targetArgument).map((target) => (target,)),
   ),
-  func: (context, flags, positional) {
+  func: (context, flags, args) {
     context.process.stdout.write(
-      'deploy:${positional.single}:${flags['mode'] ?? 'default'}\n',
+      'deploy:${args.$1}:${flags.mode ?? 'default'}\n',
     );
-    return null;
   },
 );
 
 final streamCommand = buildCommand(
   docs: const CommandDocs(brief: 'Exercise the stdio adapter'),
-  parameters: const CommandParameters(),
+  parameters: CommandParameters<NoFlags, NoArgs, ApplicationContext>(
+    flags: FlagSet<NoFlags, ApplicationContext>.none(),
+    positional: PositionalSet.none(),
+  ),
   func: (context, flags, positional) {
     context.process.stdout
       ..clearLine(-1)
@@ -49,23 +52,23 @@ final streamCommand = buildCommand(
       ..clearLine(1)
       ..cursorTo(2)
       ..write('stream\n');
-    return null;
   },
+);
+
+final shellArgument = Positional.required<String, ApplicationContext>(
+  brief: 'Shell name',
+  parse: stringParser,
+  placeholder: 'shell',
 );
 
 final completionCommand = buildCommand(
   docs: const CommandDocs(brief: 'Print a shell completion script'),
-  parameters: const CommandParameters(
-    positional: TuplePositionalParameters([
-      PositionalParameter(
-        brief: 'Shell name',
-        parse: stringParser,
-        placeholder: 'shell',
-      ),
-    ]),
+  parameters: CommandParameters(
+    flags: FlagSet<NoFlags, ApplicationContext>.none(),
+    positional: PositionalSet.one(shellArgument).map((shell) => (shell,)),
   ),
-  func: (context, flags, positional) {
-    final script = switch (positional.single) {
+  func: (context, flags, args) {
+    final script = switch (args.$1) {
       'bash' => scripts.bash,
       'zsh' => scripts.zsh,
       'fish' => scripts.fish,
@@ -73,31 +76,35 @@ final completionCommand = buildCommand(
       final shell => throw ArgumentError('unsupported shell: $shell'),
     };
     context.process.stdout.write(script);
-    return null;
   },
+);
+
+final completionInput = Positional.optional<String, ApplicationContext>(
+  brief: 'Input token',
+  parse: stringParser,
 );
 
 final completeCommand = buildCommand(
   docs: const CommandDocs(brief: 'Compute completion candidates'),
-  parameters: const CommandParameters(
-    positional: ArrayPositionalParameters(
-      parameter: PositionalParameter(
-        brief: 'Input token',
-        parse: stringParser,
-        optional: true,
-      ),
+  parameters: CommandParameters(
+    flags: FlagSet<NoFlags, ApplicationContext>.none(),
+    positional: PositionalSet.array(
+      completionInput,
       minimum: 0,
-    ),
+    ).map((values) => values.whereType<String>().toList()),
   ),
-  func: (context, flags, positional) async {
-    final inputs = scripts.resolveCompletionInputs(positional.cast<String>());
-    final completions = await proposeCompletions(application, inputs, context);
+  func: (context, flags, inputsFromShell) async {
+    final inputs = scripts.resolveCompletionInputs(inputsFromShell);
+    final completions = await proposeCompletions(
+      application,
+      inputs,
+      RunContext.direct(context),
+    );
     for (final completion in completions) {
       context.process.stdout.write(
         '${completion.completion}\t${completion.brief}\n',
       );
     }
-    return null;
   },
 );
 
@@ -136,6 +143,10 @@ Future<void> main(List<String> arguments) async {
     stdout: StdioWriteStream(stdout),
     stderr: StdioWriteStream(stderr),
   );
-  await run(application, routedArguments, RunContext(process: process));
+  await run(
+    application,
+    routedArguments,
+    RunContext.direct(ApplicationContext(process: process)),
+  );
   exitCode = process.exitCode ?? 0;
 }

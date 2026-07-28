@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:cliweave/cliweave.dart';
+import 'package:cliweave/src/router.dart';
+import 'package:cliweave/src/write_stream.dart';
 import 'package:test/test.dart';
 
 final class _Stream implements WriteStream {
@@ -98,12 +99,14 @@ Future<({int code, String stdout, String stderr})> _run(
 
 void main() {
   group('builder contracts', () {
-    test('rejects reserved flags and aliases', () {
-      for (final name in ['help', 'helpAll', 'help-all']) {
+    test('rejects actual integration flag and alias collisions', () {
+      for (final name in ['help', 'helpAll']) {
         expect(
-          () => _command(
-            parameters: CommandParameters(
-              flags: {name: const BooleanFlag(brief: 'reserved')},
+          () => _application(
+            _command(
+              parameters: CommandParameters(
+                flags: {name: const BooleanFlag(brief: 'reserved')},
+              ),
             ),
           ),
           throwsA(isA<RouterInternalError>()),
@@ -111,12 +114,14 @@ void main() {
       }
       for (final alias in ['h', 'H']) {
         expect(
-          () => _command(
-            parameters: CommandParameters(
-              aliases: {alias: 'value'},
-              flags: const {
-                'value': BooleanFlag(brief: 'value', optional: true),
-              },
+          () => _application(
+            _command(
+              parameters: CommandParameters(
+                aliases: {alias: 'value'},
+                flags: const {
+                  'value': BooleanFlag(brief: 'value', optional: true),
+                },
+              ),
             ),
           ),
           throwsA(isA<RouterInternalError>()),
@@ -446,7 +451,7 @@ void main() {
         final commandHelp = await _run(app, [
           'nested',
           'n',
-          '--help-all',
+          '--helpAll',
         ], tty: true);
         expect(rootHelp.stdout, contains('example nested rich ...'));
         expect(nestedHelp.stdout, contains('Nested description.'));
@@ -1084,7 +1089,13 @@ void main() {
     );
 
     test('covers shorthand guards and flags without value proposals', () async {
-      expect(await proposeCompletions(app, ['main', '-h'], context), isEmpty);
+      expect(
+        (await proposeCompletions(app, [
+          'main',
+          '-h',
+        ], context)).map((completion) => completion.completion),
+        contains('-h'),
+      );
       expect(
         (await proposeCompletions(app, [
           'main',

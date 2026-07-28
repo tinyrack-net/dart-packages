@@ -8,7 +8,7 @@
 
 import 'dart:async';
 
-import 'package:cliweave/cliweave.dart';
+import 'package:cliweave/src/router.dart';
 import 'package:test/test.dart';
 
 import 'helpers/capture_stream.dart';
@@ -493,6 +493,7 @@ void main() {
         '--kind',
         '--mode',
         '--profile',
+        '--help',
       ]);
       expect(completions.every((c) => c.kind == 'argument:flag'), isTrue);
     });

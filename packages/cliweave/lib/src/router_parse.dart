@@ -573,12 +573,16 @@ String _asExternal(String internal, ScannerCaseStyle scannerCaseStyle) {
 
 /// Mirror of `parseInput` (wraps parse failures in [ArgumentParseError]).
 Future<Object?> _parseInput(
+  RunContext context,
   String externalFlagNameOrPlaceholder,
   FlagParseFunction parse,
-  String input,
-) async {
+  String input, [
+  ContextualParseFunction? contextualParse,
+]) async {
   try {
-    return await parse(input);
+    return await (contextualParse == null
+        ? parse(input)
+        : contextualParse(context, input));
   } catch (exc) {
     throw ArgumentParseError(externalFlagNameOrPlaceholder, input, exc);
   }
@@ -778,6 +782,7 @@ List<_FlagMatch> _findFlagsByArgument(
 
 /// Mirror of `parseInputsForFlag` (dist index.js:600).
 Future<Object?> _parseInputsForFlag(
+  RunContext context,
   String externalFlagName,
   Flag flag,
   List<String>? inputs,
@@ -814,10 +819,22 @@ Future<Object?> _parseInputsForFlag(
           if (_isVariadicFlag(f) && defaultValue is List<String>) {
             return [
               for (final input in defaultValue)
-                await _parseInput(externalFlagName, f.parse, input),
+                await _parseInput(
+                  context,
+                  externalFlagName,
+                  f.parse,
+                  input,
+                  f.contextualParse,
+                ),
             ];
           }
-          return _parseInput(externalFlagName, f.parse, defaultValue as String);
+          return _parseInput(
+            context,
+            externalFlagName,
+            f.parse,
+            defaultValue as String,
+            f.contextualParse,
+          );
         case CounterFlag():
           break;
       }
@@ -865,7 +882,13 @@ Future<Object?> _parseInputsForFlag(
     final parsed = flag as ParsedFlag;
     return [
       for (final input in inputs)
-        await _parseInput(externalFlagName, parsed.parse, input),
+        await _parseInput(
+          context,
+          externalFlagName,
+          parsed.parse,
+          input,
+          parsed.contextualParse,
+        ),
     ];
   }
   final input = inputs[0];
@@ -892,7 +915,14 @@ Future<Object?> _parseInputsForFlag(
     }
     return input;
   }
-  return _parseInput(externalFlagName, (flag as ParsedFlag).parse, input);
+  final parsed = flag as ParsedFlag;
+  return _parseInput(
+    context,
+    externalFlagName,
+    parsed.parse,
+    input,
+    parsed.contextualParse,
+  );
 }
 
 /// Mirror of `storeInput`.
@@ -1106,9 +1136,11 @@ final class _ArgumentScanner {
         try {
           positionalValues.add(
             await _parseInput(
+              context,
               placeholder,
               pos.parameter.parse,
               _positionalInputs[i],
+              pos.parameter.contextualParse,
             ),
           );
         } catch (exc) {
@@ -1128,7 +1160,13 @@ final class _ArgumentScanner {
             final defaultValue = param.defaultValue;
             if (defaultValue != null) {
               positionalValues.add(
-                await _parseInput(placeholder, param.parse, defaultValue),
+                await _parseInput(
+                  context,
+                  placeholder,
+                  param.parse,
+                  defaultValue,
+                  param.contextualParse,
+                ),
               );
             } else if (param.optional ?? false) {
               positionalValues.add(null);
@@ -1137,7 +1175,13 @@ final class _ArgumentScanner {
             }
           } else {
             positionalValues.add(
-              await _parseInput(placeholder, param.parse, input),
+              await _parseInput(
+                context,
+                placeholder,
+                param.parse,
+                input,
+                param.contextualParse,
+              ),
             );
           }
         } catch (exc) {
@@ -1156,6 +1200,7 @@ final class _ArgumentScanner {
           throw UnsatisfiedFlagError(externalFlagName);
         }
         flagEntries[entry.key] = await _parseInputsForFlag(
+          context,
           externalFlagName,
           entry.value,
           _flagInputs[entry.key],
@@ -1183,7 +1228,11 @@ final class _ArgumentScanner {
   }) async {
     final active = _activeFlag;
     if (active != null) {
-      return _proposeFlagCompletionsForPartialInput(active.flag, partial);
+      return _proposeFlagCompletionsForPartialInput(
+        active.flag,
+        partial,
+        context,
+      );
     }
     final completions = <InputCompletion>[];
     if (!_treatInputsAsArguments) {
@@ -1302,10 +1351,13 @@ final class _ArgumentScanner {
     final pos = positional;
     if (pos is ArrayPositionalParameters) {
       final propose = pos.parameter.proposeCompletions;
-      if (propose != null) {
+      final contextualPropose = pos.parameter.contextualProposeCompletions;
+      if (propose != null || contextualPropose != null) {
         final maximum = pos.maximum;
         if (maximum == null || _positionalIndex < maximum) {
-          final positionalCompletions = await propose(partial);
+          final positionalCompletions = contextualPropose == null
+              ? await propose!(partial)
+              : await contextualPropose(context, partial);
           completions.addAll(
             positionalCompletions.map(
               (value) => InputCompletion(
@@ -1323,8 +1375,12 @@ final class _ArgumentScanner {
           ? parameters[_positionalIndex]
           : null;
       final propose = nextPositional?.proposeCompletions;
-      if (nextPositional != null && propose != null) {
-        final positionalCompletions = await propose(partial);
+      final contextualPropose = nextPositional?.contextualProposeCompletions;
+      if (nextPositional != null &&
+          (propose != null || contextualPropose != null)) {
+        final positionalCompletions = contextualPropose == null
+            ? await propose!(partial)
+            : await contextualPropose(context, partial);
         completions.addAll(
           positionalCompletions.map(
             (value) => InputCompletion(
@@ -1346,16 +1402,19 @@ final class _ArgumentScanner {
 Future<List<InputCompletion>> _proposeFlagCompletionsForPartialInput(
   Flag flag,
   String partial,
+  RunContext context,
 ) async {
   final separator = _variadicSeparator(flag);
   if (separator != null && partial.endsWith(separator)) {
-    return _proposeFlagCompletionsForPartialInput(flag, '');
+    return _proposeFlagCompletionsForPartialInput(flag, '', context);
   }
   List<String> values;
   if (flag is EnumFlag) {
     values = flag.values;
   } else if (flag is ParsedFlag && flag.proposeCompletions != null) {
     values = await flag.proposeCompletions!(partial);
+  } else if (flag is ParsedFlag && flag.contextualProposeCompletions != null) {
+    values = await flag.contextualProposeCompletions!(context, partial);
   } else {
     values = [];
   }
