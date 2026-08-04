@@ -47,6 +47,11 @@ void main() {
 
       expect(s.bash, contains('_custom_complete() {'));
       expect(s.zsh, contains('add-zsh-hook precmd _custom_ensure_completion'));
+      expect(s.fish, contains('function _custom_complete'));
+      expect(s.fish, contains("-a '(_custom_complete)'"));
+      // PowerShell registers an anonymous script block, so the prefix has no
+      // name to apply to there.
+      expect(s.powershell, isNot(contains('_custom')));
     });
   });
 
@@ -63,7 +68,7 @@ void main() {
         contains('env -u COMP_LINE example completions "\${inputs[@]}"'),
       );
       expect(s.fish, contains('command example completions \$tokens'));
-      expect(s.powershell, contains(r'& example completions $inputs'));
+      expect(s.powershell, contains(r'& example completions 2>$null'));
     });
 
     test('registers the completer with the shell', () {
@@ -87,6 +92,47 @@ void main() {
 
       expect(s.powershell, contains(r'$commandLine = $commandAst.ToString()'));
       expect(s.powershell, contains(r"$commandLine.EndsWith(' ')"));
+    });
+
+    test('powershell hands the raw line over in COMP_LINE', () {
+      // Windows PowerShell 5.1 drops empty string arguments to native commands,
+      // so completing at the start of a new word cannot pass the empty trailing
+      // token as an argument — it goes through COMP_LINE instead.
+      final s = scripts();
+
+      expect(s.powershell, contains(r'$env:COMP_LINE = $commandLine'));
+      expect(s.powershell, contains(r'& example __complete 2>$null'));
+      expect(s.powershell, isNot(contains(r'__complete $inputs')));
+    });
+
+    test('powershell restores COMP_LINE it did not own', () {
+      // The completer runs in the user's own session, so a COMP_LINE that was
+      // already there has to survive pressing Tab.
+      final s = scripts();
+
+      expect(
+        s.powershell,
+        contains(r'$previousCompletionLine = $env:COMP_LINE'),
+      );
+      expect(
+        s.powershell,
+        contains(r'$env:COMP_LINE = $previousCompletionLine'),
+      );
+      expect(s.powershell, contains('} finally {'));
+    });
+
+    test('powershell distinguishes directory candidates from values', () {
+      // bash omits the trailing space for `foo/` and zsh uses `compadd -S ""`;
+      // ProviderContainer is how PowerShell expresses the same "the path
+      // continues" intent.
+      final s = scripts();
+
+      expect(
+        s.powershell,
+        contains('CompletionResultType]::ProviderContainer'),
+      );
+      expect(s.powershell, contains('CompletionResultType]::ParameterValue'));
+      expect(s.powershell, contains(r"if ($word.EndsWith('/'))"));
     });
 
     test('every script ends with a newline', () {

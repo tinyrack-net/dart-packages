@@ -131,18 +131,27 @@ complete -o default -o nospace -F $_completionFunctionName $executableName
 Register-ArgumentCompleter -Native -CommandName $executableName -ScriptBlock {
   param(\$wordToComplete, \$commandAst, \$cursorPosition)
   \$commandLine = \$commandAst.ToString()
-  \$inputs = \$commandLine.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)
   if (\$cursorPosition -gt \$commandLine.Length -or (\$cursorPosition -ge \$commandLine.Length -and \$commandLine.EndsWith(' '))) {
-    \$inputs += ''
+    \$commandLine += ' '
   }
-  \$rawCompletions = & $_completeCommand \$inputs 2>\$null
+  # Windows PowerShell 5.1 drops empty string arguments on their way to a
+  # native command, so the trailing token that means "the cursor starts a new
+  # word" cannot be passed as one. COMP_LINE carries the raw line instead,
+  # trailing space and all, which is why bash and zsh unset it before calling.
+  \$previousCompletionLine = \$env:COMP_LINE
+  \$env:COMP_LINE = \$commandLine
+  try {
+    \$rawCompletions = & $_completeCommand 2>\$null
+  } finally {
+    \$env:COMP_LINE = \$previousCompletionLine
+  }
   if (-not \$rawCompletions) { return }
   foreach (\$line in \$rawCompletions) {
     \$parts = \$line.Split([char]9, 2)
     \$word = \$parts[0]
     \$desc = if (\$parts.Length -gt 1) { \$parts[1] } else { '' }
     \$type = if (\$word.EndsWith('/')) {
-      [System.Management.Automation.CompletionResultType]::ParameterValue
+      [System.Management.Automation.CompletionResultType]::ProviderContainer
     } else {
       [System.Management.Automation.CompletionResultType]::ParameterValue
     }
