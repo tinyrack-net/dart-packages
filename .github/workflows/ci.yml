@@ -47,21 +47,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: linux bash-zsh-fish
+          # These two names are required status checks on main; renaming them
+          # makes every pull request unmergeable until protection is updated.
+          - name: bash-zsh-fish
             os: ubuntu-latest
             shells: bash,zsh,fish
+          - name: powershell
+            os: windows-2025
+            shells: powershell
           # macOS still ships bash 3.2, and its PATH finds Homebrew's bash 5
           # first, so the OS bash has to be pinned explicitly.
-          - name: macos bash3.2-zsh-fish
+          - name: macos-bash3.2-zsh-fish
             os: macos-26
             shells: bash,zsh,fish
             bash: /bin/bash
-          - name: pwsh 7
-            os: windows-2025
-            shells: powershell
-          # Windows PowerShell 5.1 runs on .NET Framework, where several
-          # .NET Core-only overloads the script might reach for do not exist.
-          - name: windows powershell 5.1
+          # Windows PowerShell 5.1 runs on .NET Framework and is still the
+          # default shell there, so it needs its own lane alongside pwsh 7.
+          - name: powershell5.1
             os: windows-2025
             shells: powershell5
     runs-on: ${{ matrix.os }}
