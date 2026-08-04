@@ -158,10 +158,6 @@ void main() {
   test('imports the certificate before signing an app bundle', () async {
     final temporary = await Directory.systemTemp.createTemp('shipworld-macos-');
     addTearDown(() => temporary.delete(recursive: true));
-    final previous = Directory.current;
-    Directory.current = temporary;
-    addTearDown(() => Directory.current = previous);
-
     final app = Directory(p.join(temporary.path, 'Example.app'));
     final binary = File(p.join(app.path, 'Contents', 'MacOS', 'Example'));
     await binary.parent.create(recursive: true);
@@ -209,10 +205,6 @@ void main() {
   test('notarizes and staples a signed app bundle', () async {
     final temporary = await Directory.systemTemp.createTemp('shipworld-macos-');
     addTearDown(() => temporary.delete(recursive: true));
-    final previous = Directory.current;
-    Directory.current = temporary;
-    addTearDown(() => Directory.current = previous);
-
     final app = Directory(p.join(temporary.path, 'Example.app'));
     final binary = File(p.join(app.path, 'Contents', 'MacOS', 'Example'));
     await binary.parent.create(recursive: true);
@@ -260,6 +252,6 @@ void main() {
       isTrue,
     );
     expect(File(zipPath).existsSync(), isFalse);
-    expect(File(p.join(temporary.path, 'AuthKey.p8')).existsSync(), isFalse);
+    expect(File('AuthKey.p8').existsSync(), isFalse);
   });
 }
