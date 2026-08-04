@@ -47,8 +47,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # These two names are required status checks on main; renaming them
-          # makes every pull request unmergeable until protection is updated.
+          # Every name here is a required status check on main, so renaming one
+          # leaves pull requests unmergeable until protection is updated too.
           - name: bash-zsh-fish
             os: ubuntu-latest
             shells: bash,zsh,fish
