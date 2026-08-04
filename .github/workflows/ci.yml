@@ -47,12 +47,23 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: bash-zsh-fish
+          - name: linux bash-zsh-fish
             os: ubuntu-latest
             shells: bash,zsh,fish
-          - name: powershell
+          # macOS still ships bash 3.2, and its PATH finds Homebrew's bash 5
+          # first, so the OS bash has to be pinned explicitly.
+          - name: macos bash3.2-zsh-fish
+            os: macos-26
+            shells: bash,zsh,fish
+            bash: /bin/bash
+          - name: pwsh 7
             os: windows-2025
             shells: powershell
+          # Windows PowerShell 5.1 runs on .NET Framework, where several
+          # .NET Core-only overloads the script might reach for do not exist.
+          - name: windows powershell 5.1
+            os: windows-2025
+            shells: powershell5
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
@@ -61,11 +72,14 @@ jobs:
           sdk: 3.12.2
       - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --yes fish zsh
+      - if: runner.os == 'macOS'
+        run: brew install fish
       - run: dart pub get
       - run: dart test -t e2e
         working-directory: packages/cliweave
         env:
           CLIWEAVE_E2E_SHELLS: ${{ matrix.shells }}
+          CLIWEAVE_E2E_SHELL_BASH: ${{ matrix.bash }}
 
   dartage:
     name: dartage (${{ matrix.os }})

@@ -131,7 +131,7 @@ complete -o default -o nospace -F $_completionFunctionName $executableName
 Register-ArgumentCompleter -Native -CommandName $executableName -ScriptBlock {
   param(\$wordToComplete, \$commandAst, \$cursorPosition)
   \$commandLine = \$commandAst.ToString()
-  \$inputs = \$commandLine.Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)
+  \$inputs = \$commandLine.Split([char[]]' ', [System.StringSplitOptions]::RemoveEmptyEntries)
   if (\$cursorPosition -gt \$commandLine.Length -or (\$cursorPosition -ge \$commandLine.Length -and \$commandLine.EndsWith(' '))) {
     \$inputs += ''
   }
@@ -142,7 +142,7 @@ Register-ArgumentCompleter -Native -CommandName $executableName -ScriptBlock {
     \$word = \$parts[0]
     \$desc = if (\$parts.Length -gt 1) { \$parts[1] } else { '' }
     \$type = if (\$word.EndsWith('/')) {
-      [System.Management.Automation.CompletionResultType]::ParameterValue
+      [System.Management.Automation.CompletionResultType]::ProviderContainer
     } else {
       [System.Management.Automation.CompletionResultType]::ParameterValue
     }

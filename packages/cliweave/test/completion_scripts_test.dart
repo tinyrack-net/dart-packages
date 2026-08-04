@@ -47,6 +47,11 @@ void main() {
 
       expect(s.bash, contains('_custom_complete() {'));
       expect(s.zsh, contains('add-zsh-hook precmd _custom_ensure_completion'));
+      expect(s.fish, contains('function _custom_complete'));
+      expect(s.fish, contains("-a '(_custom_complete)'"));
+      // PowerShell registers an anonymous script block, so the prefix has no
+      // name to apply to there.
+      expect(s.powershell, isNot(contains('_custom')));
     });
   });
 
@@ -87,6 +92,34 @@ void main() {
 
       expect(s.powershell, contains(r'$commandLine = $commandAst.ToString()'));
       expect(s.powershell, contains(r"$commandLine.EndsWith(' ')"));
+    });
+
+    test('powershell splits the command line the way PS 5.1 can', () {
+      // Windows PowerShell 5.1 runs on .NET Framework, which has no
+      // `Split(char, StringSplitOptions)` overload — only the `char[]` one. The
+      // single-char form binds fine under pwsh 7 and throws under 5.1, which is
+      // still the default shell on Windows.
+      expect(
+        scripts().powershell,
+        contains(
+          r"$commandLine.Split([char[]]' ', "
+          '[System.StringSplitOptions]::RemoveEmptyEntries)',
+        ),
+      );
+    });
+
+    test('powershell distinguishes directory candidates from values', () {
+      // bash omits the trailing space for `foo/` and zsh uses `compadd -S ""`;
+      // ProviderContainer is how PowerShell expresses the same "the path
+      // continues" intent.
+      final s = scripts();
+
+      expect(
+        s.powershell,
+        contains('CompletionResultType]::ProviderContainer'),
+      );
+      expect(s.powershell, contains('CompletionResultType]::ParameterValue'));
+      expect(s.powershell, contains(r"if ($word.EndsWith('/'))"));
     });
 
     test('every script ends with a newline', () {
