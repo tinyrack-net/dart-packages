@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:shipworld/macos.dart';
@@ -46,6 +47,18 @@ Future<void> _signWith(_FakeExecutor executor, MacosSignConfig config) {
     ShipworldContext(process: executor),
   ).sign(config);
 }
+
+/// Bytes that make a fixture look like a Mach-O image to the signer.
+final Uint8List _machO = Uint8List.fromList(<int>[
+  0xcf,
+  0xfa,
+  0xed,
+  0xfe,
+  0,
+  0,
+  0,
+  0,
+]);
 
 void main() {
   // The signing flow writes `certificate.p12` / `AuthKey.p8` relative to the
@@ -270,7 +283,7 @@ void main() {
         p.join(app.path, 'Contents', 'Frameworks', 'Example'),
       );
       await framework.parent.create(recursive: true);
-      await framework.writeAsString('binary');
+      await framework.writeAsBytes(_machO);
       final entitlements = File(p.join(temporary.path, 'entitlements.plist'));
       await entitlements.writeAsString('<plist/>');
       final executor = _FakeExecutor();

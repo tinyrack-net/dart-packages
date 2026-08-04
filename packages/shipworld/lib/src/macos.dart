@@ -231,6 +231,48 @@ Future<void> signMacosExecutable({
 ///
 /// Flutter bundles are signed from their nested binaries outward before the
 /// root application receives the hardened-runtime signature.
+/// Leading words that identify a Mach-O image, in both byte orders, plus the
+/// universal-binary magic.
+const Set<int> _machOMagics = {
+  0xfeedface, // 32-bit
+  0xcefaedfe,
+  0xfeedfacf, // 64-bit
+  0xcffaedfe,
+  0xcafebabe, // universal
+  0xbebafeca,
+};
+
+/// Whether [file] begins with a Mach-O magic word.
+///
+/// Nested code is identified by what it is rather than by where it sits: a
+/// Flutter bundle keeps hundreds of images under `Frameworks`, and signing
+/// those individually is both pointless and slow.
+///
+/// A file that cannot be read is left to throw. Skipping it would leave
+/// unsigned code inside the bundle, which surfaces much later as an opaque
+/// notarization rejection.
+Future<bool> _isMachO(File file) async {
+  final handle = await file.open();
+  try {
+    final header = await handle.read(4);
+    if (header.length < 4) return false;
+    final word =
+        (header[0] << 24) | (header[1] << 16) | (header[2] << 8) | header[3];
+    return _machOMagics.contains(word);
+  } finally {
+    await handle.close();
+  }
+}
+
+/// Extensions of nested bundles, which seal their own contents.
+const Set<String> _bundleExtensions = {
+  '.framework',
+  '.app',
+  '.bundle',
+  '.xpc',
+  '.appex',
+};
+
 Future<void> signMacosPayload(MacosSignConfig config) async {
   if (!config.isAppBundle) {
     return signMacosExecutable(
@@ -246,28 +288,34 @@ Future<void> signMacosPayload(MacosSignConfig config) async {
   final identity = developerId != null && developerId.isNotEmpty
       ? developerId
       : '-';
-  final nested = <File>[];
+  final nested = <String>[];
 
   await for (final entity in Directory(
     config.inputPath,
-  ).list(recursive: true)) {
-    if (entity is File &&
-        (entity.path.endsWith('.dylib') ||
-            entity.path.contains('${p.separator}Frameworks${p.separator}'))) {
-      nested.add(entity);
+  ).list(recursive: true, followLinks: false)) {
+    final isNested = switch (entity) {
+      File() => await _isMachO(entity),
+      // Nested bundles seal their own resources, so signing the bundle covers
+      // everything inside it.
+      Directory() => _bundleExtensions.contains(p.extension(entity.path)),
+      _ => false,
+    };
+    if (isNested) {
+      nested.add(entity.path);
     }
   }
 
-  nested.sort((left, right) => right.path.length.compareTo(left.path.length));
+  // Deepest first, so an inner bundle is sealed before the one containing it.
+  nested.sort((left, right) => right.length.compareTo(left.length));
 
-  for (final file in nested) {
+  for (final path in nested) {
     await runChecked('codesign', [
       '--force',
       '--options',
       'runtime',
       '--sign',
       identity,
-      file.path,
+      path,
     ]);
   }
 

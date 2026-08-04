@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:shipworld/macos.dart';
@@ -30,6 +31,18 @@ final class _MacExecutor implements ProcessExecutor {
     throw UnimplementedError();
   }
 }
+
+/// Bytes that make a fixture look like a Mach-O image to the signer.
+final Uint8List _machO = Uint8List.fromList(<int>[
+  0xcf,
+  0xfa,
+  0xed,
+  0xfe,
+  0,
+  0,
+  0,
+  0,
+]);
 
 void main() {
   group('decodeBase64Secret', () {
@@ -69,7 +82,7 @@ void main() {
       p.join(app.path, 'Contents', 'Frameworks', 'example.dylib'),
     );
     await framework.parent.create(recursive: true);
-    await framework.writeAsString('binary');
+    await framework.writeAsBytes(_machO);
     final entitlements = File(p.join(temporary.path, 'entitlements.plist'));
     await entitlements.writeAsString('<plist/>');
     final executor = _MacExecutor();
@@ -91,5 +104,54 @@ void main() {
       isTrue,
     );
     expect(executor.calls.last, contains('--verify'));
+  });
+
+  test('signs nested bundles rather than the resources inside them', () async {
+    final temporary = await Directory.systemTemp.createTemp('shipworld-macos-');
+    addTearDown(() => temporary.delete(recursive: true));
+    final app = Directory(p.join(temporary.path, 'Example.app'));
+    final frameworks = p.join(app.path, 'Contents', 'Frameworks');
+    // A Flutter application bundle keeps its assets inside App.framework, so
+    // anything that sweeps up every file under Frameworks signs hundreds of
+    // images. A framework seals its own resources.
+    final assetPath = p.join(
+      frameworks,
+      'App.framework',
+      'Versions',
+      'A',
+      'Resources',
+      'flutter_assets',
+      'icon.png',
+    );
+    await Directory(p.dirname(assetPath)).create(recursive: true);
+    await File(assetPath).writeAsString('png');
+    final dylib = File(p.join(frameworks, 'libplugin.dylib'));
+    await dylib.writeAsBytes(_machO);
+    final entitlements = File(p.join(temporary.path, 'entitlements.plist'));
+    await entitlements.writeAsString('<plist/>');
+    final executor = _MacExecutor();
+
+    await MacosPackagingService(ShipworldContext(process: executor)).sign(
+      MacosSignConfig(
+        inputPath: app.path,
+        entitlementsPath: entitlements.path,
+        skipNotarize: true,
+        isAppBundle: true,
+      ),
+    );
+
+    final signed = executor.calls
+        .where((call) => call.first == 'codesign' && !call.contains('--verify'))
+        .map((call) => call.last)
+        .toList();
+
+    expect(signed, contains(dylib.path));
+    expect(signed, contains(p.join(frameworks, 'App.framework')));
+    expect(signed, isNot(contains(assetPath)));
+    // The framework is sealed before the application that contains it.
+    expect(
+      signed.indexOf(p.join(frameworks, 'App.framework')),
+      lessThan(signed.indexOf(app.path)),
+    );
   });
 }
