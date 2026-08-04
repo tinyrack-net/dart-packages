@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2
+
+- Fixed application-bundle signing to import the Developer ID certificate. The
+  bundle path read `APPLE_DEVELOPER_ID` but never installed a keychain, so
+  `codesign` reported `no identity found` for every Flutter desktop build that
+  supplied a real certificate.
+- Added notarization and stapling for application bundles, which previously
+  signed and stopped. An un-stapled bundle is rejected by Gatekeeper offline.
+
 ## 0.2.1
 
 - Fixed macOS application signing to sign nested Mach-O images and nested
