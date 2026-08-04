@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.2
+
+- Fix shell completion on Windows PowerShell 5.1, where pressing Tab at the
+  start of a new argument listed the current directory instead of the
+  application's own candidates. PowerShell 5.1 drops empty string arguments on
+  their way to a native command, so the trailing token that means "the cursor
+  starts a new word" never reached the application; the generated script now
+  passes the raw command line in `COMP_LINE` instead of as arguments.
+- Mark directory-style completion candidates as `ProviderContainer` in the
+  PowerShell script, so the cursor stays on the trailing slash rather than
+  jumping past a space, matching what the bash and zsh scripts already did.
+
 ## 0.2.1
 
 - Fix spinner flicker on Windows terminals. Each animation frame now overwrites
