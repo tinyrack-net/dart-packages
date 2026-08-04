@@ -145,22 +145,112 @@ final class WindowsTargetConfig {
 
 /// macOS package metadata for a target.
 final class MacosTargetConfig {
-  const MacosTargetConfig({this.entitlements});
+  const MacosTargetConfig({
+    this.entitlements,
+    this.bundleName,
+    this.bundleId,
+    this.minimumVersion,
+  });
 
   final String? entitlements;
+
+  /// Basename of the `.app` inside the archive, without the extension.
+  final String? bundleName;
+
+  /// Bundle identifier used by the Cask's zap stanza.
+  final String? bundleId;
+
+  /// Minimum macOS release name, such as `ventura`.
+  final String? minimumVersion;
 }
 
-/// Linux AppImage metadata for a target.
+/// One icon installed into the hicolor theme by a deb or rpm.
+final class LinuxIconConfig {
+  const LinuxIconConfig({required this.size, required this.path});
+
+  /// Square pixel size, or zero for a scalable icon.
+  final int size;
+
+  /// Source image path, relative to the target root.
+  final String path;
+}
+
+/// Debian-specific packaging metadata.
+final class LinuxDebConfig {
+  const LinuxDebConfig({
+    this.depends = const <String>[],
+    this.recommends = const <String>[],
+    this.conflicts = const <String>[],
+    this.section = 'utils',
+  });
+
+  final List<String> depends;
+  final List<String> recommends;
+  final List<String> conflicts;
+  final String section;
+}
+
+/// RPM-specific packaging metadata.
+final class LinuxRpmConfig {
+  const LinuxRpmConfig({
+    this.requires = const <String>[],
+    this.recommends = const <String>[],
+    this.conflicts = const <String>[],
+    this.release = '1',
+    this.group,
+  });
+
+  final List<String> requires;
+  final List<String> recommends;
+  final List<String> conflicts;
+  final String release;
+  final String? group;
+}
+
+/// Linux AppImage and distribution-package metadata for a target.
 final class LinuxTargetConfig {
   const LinuxTargetConfig({
     required this.icon,
     required this.categories,
     required this.terminal,
+    this.maintainer,
+    this.license,
+    this.vendor,
+    this.appId,
+    this.prefix = '/usr/lib',
+    this.launcherStyle = 'symlink',
+    this.icons = const <LinuxIconConfig>[],
+    this.deb = const LinuxDebConfig(),
+    this.rpm = const LinuxRpmConfig(),
   });
 
   final String icon;
   final List<String> categories;
   final bool terminal;
+
+  /// Package maintainer as `Name <email>`, required by deb and rpm.
+  final String? maintainer;
+
+  /// SPDX license identifier, required by rpm.
+  final String? license;
+
+  /// Package vendor.
+  final String? vendor;
+
+  /// Reverse-DNS id naming the installed desktop entry and icons.
+  final String? appId;
+
+  /// Directory the payload is installed under.
+  final String prefix;
+
+  /// Either `symlink` or `wrapper`.
+  final String launcherStyle;
+
+  /// Icons installed into the hicolor theme.
+  final List<LinuxIconConfig> icons;
+
+  final LinuxDebConfig deb;
+  final LinuxRpmConfig rpm;
 }
 
 /// Homebrew artifact naming metadata for a target.
@@ -484,27 +574,128 @@ WindowsTargetConfig? _parseWindows(Map<Object?, Object?> target, String label) {
 MacosTargetConfig? _parseMacos(Map<Object?, Object?> target, String label) {
   if (target['macos'] == null) return null;
   final map = _map(target['macos'], '$label.macos');
-  _onlyKeys(map, const {'entitlements'}, '$label.macos');
+  _onlyKeys(map, const {
+    'entitlements',
+    'bundle-name',
+    'bundle-id',
+    'minimum-version',
+  }, '$label.macos');
   return MacosTargetConfig(
     entitlements: switch (_optionalString(map, 'entitlements')) {
       final value? => _relativePath(value, '$label.macos.entitlements'),
       null => null,
     },
+    bundleName: _optionalString(map, 'bundle-name'),
+    bundleId: _optionalString(map, 'bundle-id'),
+    minimumVersion: _optionalString(map, 'minimum-version'),
   );
 }
 
 LinuxTargetConfig? _parseLinux(Map<Object?, Object?> target, String label) {
   if (target['linux'] == null) return null;
   final map = _map(target['linux'], '$label.linux');
-  _onlyKeys(map, const {'icon', 'categories', 'terminal'}, '$label.linux');
+  _onlyKeys(map, const {
+    'icon',
+    'categories',
+    'terminal',
+    'maintainer',
+    'license',
+    'vendor',
+    'app-id',
+    'prefix',
+    'launcher-style',
+    'icons',
+    'deb',
+    'rpm',
+  }, '$label.linux');
+  final launcherStyle = _optionalString(map, 'launcher-style') ?? 'symlink';
+  if (launcherStyle != 'symlink' && launcherStyle != 'wrapper') {
+    throw ShipworldException(
+      '$label.linux.launcher-style must be symlink or wrapper',
+      code: 'invalid_config',
+    );
+  }
   return LinuxTargetConfig(
     icon: _requiredString(map, 'icon', '$label.linux'),
     categories: List.unmodifiable(
       _stringList(map['categories'], '$label.linux.categories'),
     ),
     terminal: _requiredBool(map, 'terminal', '$label.linux'),
+    maintainer: _optionalString(map, 'maintainer'),
+    license: _optionalString(map, 'license'),
+    vendor: _optionalString(map, 'vendor'),
+    appId: _optionalString(map, 'app-id'),
+    prefix: _optionalString(map, 'prefix') ?? '/usr/lib',
+    launcherStyle: launcherStyle,
+    icons: _parseLinuxIcons(map['icons'], '$label.linux.icons'),
+    deb: _parseLinuxDeb(map['deb'], '$label.linux.deb'),
+    rpm: _parseLinuxRpm(map['rpm'], '$label.linux.rpm'),
   );
 }
+
+List<LinuxIconConfig> _parseLinuxIcons(Object? value, String label) {
+  if (value == null) return const <LinuxIconConfig>[];
+  if (value is! List) {
+    throw ShipworldException('$label must be a list', code: 'invalid_config');
+  }
+  return List.unmodifiable(
+    value.map((entry) {
+      final map = _map(entry, label);
+      _onlyKeys(map, const {'size', 'path'}, label);
+      final size = map['size'];
+      if (size is! int || size < 0) {
+        throw ShipworldException(
+          '$label.size must be a non-negative integer',
+          code: 'invalid_config',
+        );
+      }
+      return LinuxIconConfig(
+        size: size,
+        path: _requiredString(map, 'path', label),
+      );
+    }),
+  );
+}
+
+LinuxDebConfig _parseLinuxDeb(Object? value, String label) {
+  if (value == null) return const LinuxDebConfig();
+  final map = _map(value, label);
+  _onlyKeys(map, const {
+    'depends',
+    'recommends',
+    'conflicts',
+    'section',
+  }, label);
+  return LinuxDebConfig(
+    depends: _optionalStringList(map['depends'], '$label.depends'),
+    recommends: _optionalStringList(map['recommends'], '$label.recommends'),
+    conflicts: _optionalStringList(map['conflicts'], '$label.conflicts'),
+    section: _optionalString(map, 'section') ?? 'utils',
+  );
+}
+
+LinuxRpmConfig _parseLinuxRpm(Object? value, String label) {
+  if (value == null) return const LinuxRpmConfig();
+  final map = _map(value, label);
+  _onlyKeys(map, const {
+    'requires',
+    'recommends',
+    'conflicts',
+    'release',
+    'group',
+  }, label);
+  return LinuxRpmConfig(
+    requires: _optionalStringList(map['requires'], '$label.requires'),
+    recommends: _optionalStringList(map['recommends'], '$label.recommends'),
+    conflicts: _optionalStringList(map['conflicts'], '$label.conflicts'),
+    release: _optionalString(map, 'release') ?? '1',
+    group: _optionalString(map, 'group'),
+  );
+}
+
+List<String> _optionalStringList(Object? value, String label) => value == null
+    ? const <String>[]
+    : List.unmodifiable(_stringList(value, label));
 
 HomebrewTargetConfig? _parseHomebrew(
   Map<Object?, Object?> target,
@@ -628,6 +819,13 @@ Future<ShipworldConfig> loadShipworldConfig(String configPath) async {
         p.join(targetRoot, linux.icon),
         '$label.linux.icon',
       );
+      for (final icon in linux.icons) {
+        _resolveWithin(
+          p.dirname(resolved),
+          p.join(targetRoot, icon.path),
+          '$label.linux.icons',
+        );
+      }
     }
     if (!parsed.tagTemplate.contains('{version}')) {
       throw ShipworldException(

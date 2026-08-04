@@ -21,6 +21,10 @@ shipworld package macos sign app --input build/App.app --app-bundle
 shipworld package macos archive app --input build/App.app --output dist/App.zip
 shipworld package linux appimage app --input build/linux \
   --output dist/App.AppImage --arch x86_64 --tool /usr/local/bin/appimagetool
+shipworld package linux deb app --input build/linux \
+  --output dist/app_1.2.3_amd64.deb --arch amd64 --tool /usr/local/bin/nfpm
+shipworld package linux rpm app --input build/linux \
+  --output dist/app-1.2.3.x86_64.rpm --arch x86_64
 shipworld package homebrew formula app --artifacts-dir dist \
   --output dist/app.rb --versioned-output dist/app@1.2.3.rb
 shipworld package homebrew cask app --archive dist/App.zip \
@@ -28,6 +32,6 @@ shipworld package homebrew cask app --archive dist/App.zip \
 ```
 
 Shipworld never downloads signing or packaging tools. Windows SDK tools,
-`codesign`, `xcrun`, `ditto`, and `appimagetool` must be installed by the
+`codesign`, `xcrun`, `ditto`, `appimagetool`, and `nfpm` must be installed by the
 caller or CI environment. Credential values are read from the environment
 names declared in the target configuration.

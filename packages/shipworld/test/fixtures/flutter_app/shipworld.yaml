@@ -35,6 +35,15 @@ targets:
       categories:
         - Utility
       terminal: false
+      maintainer: "Shipworld <dev@example.invalid>"
+      license: MIT
+      app-id: invalid.example.shipworld
+      icons:
+        - { size: 0, path: icon.svg }
+      deb:
+        depends: [libgtk-3-0t64]
+      rpm:
+        requires: [gtk3]
     homebrew:
       formula-class: ShipworldFixture
       artifact-prefix: shipworld-fixture

@@ -300,6 +300,36 @@ jobs:
           test -x "$artifact"
           "$artifact" --appimage-extract >/dev/null
           test -x squashfs-root/usr/bin/shipworld_fixture
+      - name: Install verified nfpm and rpm for the Flutter fixture
+        if: matrix.platform == 'linux'
+        run: |
+          curl --fail --location --output nfpm.deb \
+            https://github.com/goreleaser/nfpm/releases/download/v2.47.0/nfpm_2.47.0_amd64.deb
+          echo "3f1cf344bd0b57373ca55636a78c08b0491f7293d609a456a9ac3b0b150fda97  nfpm.deb" |
+            sha256sum --check -
+          sudo dpkg -i nfpm.deb
+          sudo apt-get install -y rpm
+      - name: Build and install the Flutter deb and rpm
+        if: matrix.platform == 'linux'
+        run: |
+          config=packages/shipworld/test/fixtures/flutter_app/shipworld.yaml
+          input=packages/shipworld/test/fixtures/flutter_app/${{ matrix.payload }}
+          root=packages/shipworld/test/fixtures/flutter_app
+          for format in deb rpm; do
+            dart run packages/shipworld/bin/shipworld.dart package linux "$format" fixture \
+              --config "$config" --input "$input" --launcher shipworld_fixture \
+              --output "dist/shipworld-fixture.$format" --arch amd64
+          done
+          dpkg-deb --info "$root/dist/shipworld-fixture.deb"
+          dpkg-deb --contents "$root/dist/shipworld-fixture.deb" |
+            grep 'usr/bin/shipworld_fixture ->'
+          rpm -qpl "$root/dist/shipworld-fixture.rpm" |
+            grep 'usr/lib/shipworld-fixture/shipworld_fixture'
+          # A package that builds but cannot install is the failure mode the
+          # rendering tests cannot see.
+          sudo dpkg -i "$root/dist/shipworld-fixture.deb"
+          test -x /usr/bin/shipworld_fixture
+          sudo dpkg -r shipworld-fixture
       - name: Validate Formula and Cask rendering
         if: matrix.platform == 'linux'
         run: |

@@ -7,7 +7,8 @@ It supports:
 
 - atomic multi-package release preparation and signed tag finalization;
 - single-executable and directory payloads;
-- Windows MSIX, macOS signing/archive, and Linux AppImage packaging;
+- Windows MSIX, macOS signing/archive, and Linux AppImage, deb, and rpm
+  packaging;
 - Homebrew Formula and Cask generation;
 - strict schema-v1 configuration with editor-compatible JSON Schema;
 - injected Git, process, environment, and logging boundaries.

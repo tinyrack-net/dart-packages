@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 
+import 'error.dart';
+
 /// One downloadable Homebrew artifact.
 final class HomebrewArtifact {
   const HomebrewArtifact({
@@ -118,15 +120,47 @@ end
 }
 
 /// Renders a Homebrew Cask for a notarized macOS application archive.
+///
+/// [appName] is the name shown to the user, while [bundleName] is the basename
+/// of the `.app` inside the archive. They are usually different, and naming the
+/// wrong one produces a cask that installs nothing.
 String generateHomebrewCask({
   required String token,
   required String version,
   required String sha256,
   required String url,
   required String appName,
+  required String bundleName,
   required String description,
   required String homepage,
+  String? bundleId,
+  String? minimumMacosVersion,
+  String? repository,
 }) {
+  if (!RegExp(r'^[a-z0-9][a-z0-9-]*$').hasMatch(token)) {
+    throw ShipworldException(
+      'Invalid Homebrew Cask token: $token. '
+      'Tokens may only contain lowercase letters, digits, and hyphens.',
+      code: 'invalid_config',
+    );
+  }
+  final dependsOn = minimumMacosVersion == null
+      ? ''
+      : '\n  depends_on macos: ">= :$minimumMacosVersion"\n';
+  final livecheck = repository == null
+      ? ''
+      : '\n  livecheck do\n'
+            '    url :url\n'
+            '    strategy :github_latest\n'
+            '  end\n';
+  final zap = bundleId == null
+      ? ''
+      : '\n  zap trash: [\n'
+            '    "~/Library/Application Support/$bundleName",\n'
+            '    "~/Library/Caches/$bundleId",\n'
+            '    "~/Library/Preferences/$bundleId.plist",\n'
+            '    "~/Library/Saved Application State/$bundleId.savedState",\n'
+            '  ]\n';
   return '''
 cask "$token" do
   version "$version"
@@ -136,8 +170,8 @@ cask "$token" do
   name "$appName"
   desc "$description"
   homepage "$homepage"
-
-  app "$appName.app"
-end
+$livecheck$dependsOn
+  app "$bundleName.app"
+${zap}end
 ''';
 }

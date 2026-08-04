@@ -77,6 +77,12 @@ void main() {
         'user.email',
         'shipworld@example.invalid',
       ], work);
+      // The signing key generated above is an OpenPGP key in a throwaway
+      // GNUPGHOME. Pin both settings so a developer whose global config signs
+      // with ssh, or signs every commit, still runs the same test CI does:
+      // only the tags this test asserts on are signed.
+      await _run('git', ['config', 'gpg.format', 'openpgp'], work);
+      await _run('git', ['config', 'commit.gpgsign', 'false'], work);
       await _run('git', ['config', 'user.signingkey', fingerprint], work);
       await _run('git', ['remote', 'add', 'origin', remote], work);
 
