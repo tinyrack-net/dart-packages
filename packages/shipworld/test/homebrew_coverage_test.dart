@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:shipworld/homebrew.dart';
+import 'package:shipworld/shipworld.dart';
 import 'package:test/test.dart';
 
 List<HomebrewArtifact> _fullArtifactSet() => [
@@ -95,6 +96,68 @@ void main() {
     expect(formula, contains('keg_only :versioned_formula'));
   });
 
+  test('generateHomebrewCask names the built bundle, not the label', () {
+    final cask = generateHomebrewCask(
+      token: 'example-app',
+      version: '2.0.0',
+      sha256: 'e' * 64,
+      url: 'https://example.com/Example.zip',
+      appName: 'Example App',
+      bundleName: 'example_app',
+      description: 'An example app',
+      homepage: 'https://example.com',
+    );
+
+    // Naming the display name here produces a cask that installs nothing.
+    expect(cask, contains('app "example_app.app"'));
+    expect(cask, contains('name "Example App"'));
+    expect(cask, isNot(contains('zap')));
+    expect(cask, isNot(contains('depends_on')));
+    expect(cask, isNot(contains('livecheck')));
+  });
+
+  test('generateHomebrewCask renders the optional audit stanzas', () {
+    final cask = generateHomebrewCask(
+      token: 'example',
+      version: '2.0.0',
+      sha256: 'e' * 64,
+      url: 'https://example.com/Example.zip',
+      appName: 'Example',
+      bundleName: 'Example',
+      description: 'An example app',
+      homepage: 'https://example.com',
+      bundleId: 'net.example.app',
+      minimumMacosVersion: 'ventura',
+      repository: 'example/example',
+    );
+
+    expect(cask, contains('depends_on macos: ">= :ventura"'));
+    expect(cask, contains('strategy :github_latest'));
+    expect(cask, contains('"~/Library/Preferences/net.example.app.plist"'));
+  });
+
+  test('generateHomebrewCask rejects a token Homebrew would not accept', () {
+    expect(
+      () => generateHomebrewCask(
+        token: 'Example_App',
+        version: '2.0.0',
+        sha256: 'e' * 64,
+        url: 'https://example.com/Example.zip',
+        appName: 'Example',
+        bundleName: 'Example',
+        description: 'An example app',
+        homepage: 'https://example.com',
+      ),
+      throwsA(
+        isA<ShipworldException>().having(
+          (error) => error.code,
+          'code',
+          'invalid_config',
+        ),
+      ),
+    );
+  });
+
   test('generateHomebrewCask renders a notarized app cask', () {
     final cask = generateHomebrewCask(
       token: 'example',
@@ -102,6 +165,7 @@ void main() {
       sha256: 'e' * 64,
       url: 'https://example.com/Example.zip',
       appName: 'Example',
+      bundleName: 'Example',
       description: 'An example app',
       homepage: 'https://example.com',
     );

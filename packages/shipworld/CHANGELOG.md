@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.0
+
+- Added `package linux deb` and `package linux rpm`, which build distribution
+  packages from a prebuilt payload using a caller-provided nfpm.
+- Added optional `linux` maintainer, license, vendor, app id, prefix, launcher
+  style, icon set, and per-format dependency configuration.
+- Added optional `macos` bundle name, bundle id, and minimum version.
+- **Breaking:** `generateHomebrewCask` now requires `bundleName`. The `app`
+  stanza previously named the display name, so a cask whose bundle was named
+  anything else installed nothing.
+- Added optional Cask `zap`, `depends_on macos:`, and `livecheck` stanzas, and
+  rejected tokens Homebrew would not accept.
+- Fixed the AppImage icon to keep its source extension instead of forcing
+  `.svg`.
+
 ## 0.1.2
 
 - Verified automated pub.dev publishing from GitHub Actions using OIDC.

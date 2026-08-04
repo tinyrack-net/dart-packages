@@ -107,8 +107,45 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "entitlements": { "$ref": "#/$defs/relativePath" }
+        "entitlements": { "$ref": "#/$defs/relativePath" },
+        "bundle-name": { "$ref": "#/$defs/nonEmptyString" },
+        "bundle-id": { "$ref": "#/$defs/nonEmptyString" },
+        "minimum-version": { "$ref": "#/$defs/nonEmptyString" }
       }
+    },
+    "linuxIcon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["size", "path"],
+      "properties": {
+        "size": { "type": "integer", "minimum": 0 },
+        "path": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "linuxDeb": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "depends": { "$ref": "#/$defs/stringArray" },
+        "recommends": { "$ref": "#/$defs/stringArray" },
+        "conflicts": { "$ref": "#/$defs/stringArray" },
+        "section": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "linuxRpm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requires": { "$ref": "#/$defs/stringArray" },
+        "recommends": { "$ref": "#/$defs/stringArray" },
+        "conflicts": { "$ref": "#/$defs/stringArray" },
+        "release": { "$ref": "#/$defs/nonEmptyString" },
+        "group": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmptyString" }
     },
     "linux": {
       "type": "object",
@@ -121,7 +158,19 @@
           "minItems": 1,
           "items": { "$ref": "#/$defs/nonEmptyString" }
         },
-        "terminal": { "type": "boolean" }
+        "terminal": { "type": "boolean" },
+        "maintainer": { "$ref": "#/$defs/nonEmptyString" },
+        "license": { "$ref": "#/$defs/nonEmptyString" },
+        "vendor": { "$ref": "#/$defs/nonEmptyString" },
+        "app-id": { "$ref": "#/$defs/nonEmptyString" },
+        "prefix": { "$ref": "#/$defs/nonEmptyString" },
+        "launcher-style": { "enum": ["symlink", "wrapper"] },
+        "icons": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/linuxIcon" }
+        },
+        "deb": { "$ref": "#/$defs/linuxDeb" },
+        "rpm": { "$ref": "#/$defs/linuxRpm" }
       }
     },
     "homebrew": {

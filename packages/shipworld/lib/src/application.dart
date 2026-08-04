@@ -452,6 +452,128 @@ final _appImageCommand = buildCommand(
   },
 );
 
+typedef _LinuxPackageFlags = ({
+  String config,
+  String input,
+  String output,
+  String arch,
+  String? tool,
+  String? launcher,
+  String? release,
+});
+
+Command<ApplicationContext> _linuxPackageCommand(LinuxPackageFormat format) =>
+    buildCommand<ApplicationContext, _LinuxPackageFlags, ({String target})>(
+      docs: CommandDocs(
+        brief: 'Build a ${format.packagerName} package from a prebuilt payload',
+      ),
+      parameters: CommandParameters(
+        flags: FlagSet.one(_configFlag)
+            .and(_requiredFlag('input', 'Executable or directory payload path'))
+            .and(_requiredFlag('output', 'Output ${format.packagerName} path'))
+            .and(_requiredFlag('arch', 'Package architecture'))
+            .and(_optionalFlag('tool', 'Explicit nfpm path'))
+            .and(_optionalFlag('launcher', 'Payload launcher override'))
+            .and(_optionalFlag('release', 'Packaging revision override'))
+            .map((values) {
+              final (
+                (((((config, input), output), arch), tool), launcher),
+                release,
+              ) = values;
+              return (
+                config: config,
+                input: input,
+                output: output,
+                arch: arch,
+                tool: tool,
+                launcher: launcher,
+                release: release,
+              );
+            }),
+        positional: PositionalSet.one(
+          _targetArgument(),
+        ).map((target) => (target: target)),
+      ),
+      func: (context, flags, args) async {
+        final loaded = await _loadTarget(flags.config, args.target);
+        final target = loaded.target;
+        final product = target.product;
+        final linux = target.linux;
+        if (product == null || linux == null) {
+          throw ShipworldException(
+            'Target ${target.name} must configure product and linux',
+            code: 'invalid_config',
+          );
+        }
+        final maintainer = linux.maintainer;
+        if (maintainer == null) {
+          throw ShipworldException(
+            'Target ${target.name} must configure linux.maintainer',
+            code: 'invalid_config',
+          );
+        }
+        final version = (await readPubspecVersion(
+          target.versionPath(loaded.config.repoRoot),
+        )).split('+').first;
+        final targetRoot = p.join(loaded.config.repoRoot, target.root);
+        final env = _context(context).environment;
+        final artifact = await LinuxPackagingService(_context(context))
+            .buildPackage(
+              repoRoot: loaded.config.repoRoot,
+              payload: _payload(target, flags.input, flags.launcher),
+              config: LinuxPackageConfig(
+                name: product.name,
+                displayName: product.displayName,
+                description: product.description,
+                executableName: product.executable,
+                appId: linux.appId ?? product.name,
+                version: version,
+                architecture: LinuxArchitecture.parse(flags.arch),
+                maintainer: maintainer,
+                categories: linux.categories,
+                terminal: linux.terminal,
+                icons: <LinuxIconAsset>[
+                  for (final icon in linux.icons)
+                    LinuxIconAsset(
+                      size: icon.size,
+                      sourcePath: p.normalize(p.join(targetRoot, icon.path)),
+                    ),
+                ],
+                release:
+                    flags.release ??
+                    (format == LinuxPackageFormat.rpm
+                        ? linux.rpm.release
+                        : '1'),
+                prefix: linux.prefix,
+                launcherStyle: linux.launcherStyle == 'wrapper'
+                    ? LinuxLauncherStyle.wrapper
+                    : LinuxLauncherStyle.symlink,
+                homepage: product.homepage,
+                license: linux.license,
+                vendor: linux.vendor,
+                section: linux.deb.section,
+                group: linux.rpm.group,
+                depends: format == LinuxPackageFormat.deb
+                    ? linux.deb.depends
+                    : linux.rpm.requires,
+                recommends: format == LinuxPackageFormat.deb
+                    ? linux.deb.recommends
+                    : linux.rpm.recommends,
+                conflicts: format == LinuxPackageFormat.deb
+                    ? linux.deb.conflicts
+                    : linux.rpm.conflicts,
+              ),
+              format: format,
+              outputPath: flags.output,
+              nfpmToolPath: flags.tool ?? env['NFPM_PATH'] ?? 'nfpm',
+            );
+        context.process.stdout.write('Built $artifact\n');
+      },
+    );
+
+final _debCommand = _linuxPackageCommand(LinuxPackageFormat.deb);
+final _rpmCommand = _linuxPackageCommand(LinuxPackageFormat.rpm);
+
 final _formulaCommand = buildCommand(
   docs: const CommandDocs(brief: 'Generate a Homebrew Formula'),
   parameters: CommandParameters(
@@ -598,8 +720,14 @@ final _caskCommand = buildCommand(
       sha256: await calculateSha256(flags.archive),
       url: flags.url,
       appName: product.displayName,
+      // The archive contains the built bundle, whose name is the Flutter or
+      // Xcode product name rather than the name shown to the user.
+      bundleName: target.macos?.bundleName ?? product.executable,
       description: product.description,
       homepage: product.homepage!,
+      bundleId: target.macos?.bundleId,
+      minimumMacosVersion: target.macos?.minimumVersion,
+      repository: product.repository,
     );
     await File(flags.output).writeAsString(cask);
     context.process.stdout.write('Generated ${flags.output}\n');
@@ -628,7 +756,11 @@ Application<ApplicationContext> _buildShipworldApplication() {
       ),
       'linux': buildRouteMap(
         docs: const RouteMapDocs(brief: 'Linux packaging'),
-        routes: {'appimage': _appImageCommand},
+        routes: {
+          'appimage': _appImageCommand,
+          'deb': _debCommand,
+          'rpm': _rpmCommand,
+        },
       ),
       'homebrew': buildRouteMap(
         docs: const RouteMapDocs(brief: 'Homebrew metadata'),

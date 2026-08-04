@@ -36,11 +36,14 @@ void main() {
       sha256: 'abc',
       url: 'https://example.test/example.zip',
       appName: 'Example',
+      bundleName: 'example_app',
       description: 'Example app',
       homepage: 'https://example.test',
     );
 
     expect(cask, contains('cask "example"'));
-    expect(cask, contains('app "Example.app"'));
+    // The bundle inside the archive keeps the Flutter product name, which is
+    // not the name shown to the user.
+    expect(cask, contains('app "example_app.app"'));
   });
 }
