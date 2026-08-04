@@ -385,6 +385,39 @@ print -r -- "restored=\${_comps[$executableName]}"
         : 'Set CLIWEAVE_E2E_SHELLS to require a PowerShell host.',
   );
 
+  test(
+    'powershell leaves the session COMP_LINE as it found it',
+    () async {
+      // The completer runs inside the user's own session, so the COMP_LINE it
+      // needs to smuggle the raw line through must not outlive the Tab press.
+      final shell = _selected('powershell5') ? 'powershell5' : 'powershell';
+      final result = await _runShell(shell, r'''
+. $env:E2E_SCRIPT
+$env:COMP_LINE = 'pre-existing'
+[System.Management.Automation.CommandCompletion]::CompleteInput(
+  'cliweave-fixture ',
+  17,
+  $null
+) | Out-Null
+"kept=$env:COMP_LINE"
+Remove-Item Env:COMP_LINE
+[System.Management.Automation.CommandCompletion]::CompleteInput(
+  'cliweave-fixture ',
+  17,
+  $null
+) | Out-Null
+"absent=$($null -eq $env:COMP_LINE)"
+''');
+
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(result.stdout, contains('kept=pre-existing'));
+      expect(result.stdout, contains('absent=True'));
+    },
+    skip: _selected('powershell') || _selected('powershell5')
+        ? null
+        : 'Set CLIWEAVE_E2E_SHELLS to require a PowerShell host.',
+  );
+
   for (final shell in ['bash', 'zsh']) {
     final skipReason = !_selected(shell)
         ? 'Set CLIWEAVE_E2E_SHELLS to require this shell.'
