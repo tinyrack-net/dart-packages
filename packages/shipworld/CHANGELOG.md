@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+- Fixed the Cask `depends_on macos:` stanza to use the symbol form. Homebrew
+  deprecated the string comparison, and the old form printed a warning on every
+  `brew` invocation touching the tap.
+
 ## 0.2.2
 
 - Fixed application-bundle signing to import the Developer ID certificate. The

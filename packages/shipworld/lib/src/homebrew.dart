@@ -146,7 +146,9 @@ String generateHomebrewCask({
   }
   final dependsOn = minimumMacosVersion == null
       ? ''
-      : '\n  depends_on macos: ">= :$minimumMacosVersion"\n';
+      // Homebrew deprecated the string comparison form; the bare symbol
+      // already means "this release or newer".
+      : '\n  depends_on macos: :$minimumMacosVersion\n';
   final livecheck = repository == null
       ? ''
       : '\n  livecheck do\n'

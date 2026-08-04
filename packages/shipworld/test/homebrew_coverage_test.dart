@@ -131,7 +131,9 @@ void main() {
       repository: 'example/example',
     );
 
-    expect(cask, contains('depends_on macos: ">= :ventura"'));
+    expect(cask, contains('depends_on macos: :ventura'));
+    // The string comparison form warns on every brew invocation.
+    expect(cask, isNot(contains('">= :ventura"')));
     expect(cask, contains('strategy :github_latest'));
     expect(cask, contains('"~/Library/Preferences/net.example.app.plist"'));
   });
