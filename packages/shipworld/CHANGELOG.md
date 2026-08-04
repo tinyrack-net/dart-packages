@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed macOS application signing to sign nested Mach-O images and nested
+  bundles instead of every file under `Frameworks`. A Flutter bundle keeps its
+  assets inside `App.framework`, so the previous rule signed hundreds of
+  images, one process each, and reported failures against a PNG.
+
 ## 0.2.0
 
 - Added `package linux deb` and `package linux rpm`, which build distribution
