@@ -154,4 +154,112 @@ void main() {
       lessThan(signed.indexOf(app.path)),
     );
   });
+
+  test('imports the certificate before signing an app bundle', () async {
+    final temporary = await Directory.systemTemp.createTemp('shipworld-macos-');
+    addTearDown(() => temporary.delete(recursive: true));
+    final previous = Directory.current;
+    Directory.current = temporary;
+    addTearDown(() => Directory.current = previous);
+
+    final app = Directory(p.join(temporary.path, 'Example.app'));
+    final binary = File(p.join(app.path, 'Contents', 'MacOS', 'Example'));
+    await binary.parent.create(recursive: true);
+    await binary.writeAsBytes(_machO);
+    final entitlements = File(p.join(temporary.path, 'entitlements.plist'));
+    await entitlements.writeAsString('<plist/>');
+    final executor = _MacExecutor();
+
+    await MacosPackagingService(ShipworldContext(process: executor)).sign(
+      MacosSignConfig(
+        inputPath: app.path,
+        entitlementsPath: entitlements.path,
+        skipNotarize: true,
+        isAppBundle: true,
+        environment: {
+          'APPLE_CERTIFICATE': base64Encode(<int>[1, 2, 3]),
+          'APPLE_CERTIFICATE_PASSWORD': 'secret',
+          'APPLE_DEVELOPER_ID': 'Developer ID Application: Example (TEAM12345)',
+        },
+      ),
+    );
+
+    // Without this the keychain holds no identity and codesign fails with
+    // "no identity found" against whichever file it reached first.
+    expect(
+      executor.calls.any(
+        (call) => call.first == 'security' && call.contains('import'),
+      ),
+      isTrue,
+    );
+    expect(
+      executor.calls.any(
+        (call) =>
+            call.first == 'codesign' &&
+            call.contains('Developer ID Application: Example (TEAM12345)'),
+      ),
+      isTrue,
+    );
+    expect(
+      File(p.join(temporary.path, 'certificate.p12')).existsSync(),
+      isFalse,
+    );
+  });
+
+  test('notarizes and staples a signed app bundle', () async {
+    final temporary = await Directory.systemTemp.createTemp('shipworld-macos-');
+    addTearDown(() => temporary.delete(recursive: true));
+    final previous = Directory.current;
+    Directory.current = temporary;
+    addTearDown(() => Directory.current = previous);
+
+    final app = Directory(p.join(temporary.path, 'Example.app'));
+    final binary = File(p.join(app.path, 'Contents', 'MacOS', 'Example'));
+    await binary.parent.create(recursive: true);
+    await binary.writeAsBytes(_machO);
+    final entitlements = File(p.join(temporary.path, 'entitlements.plist'));
+    await entitlements.writeAsString('<plist/>');
+    final executor = _MacExecutor();
+
+    await MacosPackagingService(ShipworldContext(process: executor)).sign(
+      MacosSignConfig(
+        inputPath: app.path,
+        entitlementsPath: entitlements.path,
+        skipNotarize: false,
+        isAppBundle: true,
+        environment: {
+          'APPLE_CERTIFICATE': base64Encode(<int>[1, 2, 3]),
+          'APPLE_CERTIFICATE_PASSWORD': 'secret',
+          'APPLE_DEVELOPER_ID': 'Developer ID Application: Example (TEAM12345)',
+          'APPLE_NOTARY_KEY_P8_BASE64': base64Encode(<int>[4, 5, 6]),
+          'APPLE_NOTARY_KEY_ID': 'KEY123',
+          'APPLE_NOTARY_ISSUER_ID': 'ISSUER123',
+        },
+      ),
+    );
+
+    final zipPath = '${app.path}.notarize.zip';
+    expect(
+      executor.calls.any(
+        (call) => call.first == 'ditto' && call.contains(zipPath),
+      ),
+      isTrue,
+    );
+    expect(
+      executor.calls.any(
+        (call) => call.first == 'xcrun' && call.contains('notarytool'),
+      ),
+      isTrue,
+    );
+    // Stapling writes the ticket into the bundle so Gatekeeper accepts it
+    // without reaching the network.
+    expect(
+      executor.calls.any(
+        (call) => call.first == 'xcrun' && call.contains('stapler'),
+      ),
+      isTrue,
+    );
+    expect(File(zipPath).existsSync(), isFalse);
+    expect(File(p.join(temporary.path, 'AuthKey.p8')).existsSync(), isFalse);
+  });
 }
