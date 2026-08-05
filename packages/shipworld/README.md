@@ -63,6 +63,11 @@ dart run shipworld package linux appimage example \
 Homebrew Formula generation accepts `--versioned-output` when a tap publishes
 both the current Formula and a `keg_only :versioned_formula` variant.
 
+`homebrew.platforms` lists the `<platform>-<arch>` pairs a target builds,
+defaulting to all four of `macos-arm64`, `macos-x64`, `linux-arm64`, and
+`linux-x64`. Naming fewer omits the rest from the Formula instead of
+referencing an artifact the release does not carry.
+
 The Formula follows the target's `payload.kind`. An `executable` target reads
 one bare file per platform, named `<artifact-prefix>-<platform>-<arch>`, and
 installs it directly as the binary. A `directory` target reads

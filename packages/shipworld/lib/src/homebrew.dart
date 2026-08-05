@@ -59,36 +59,92 @@ String homebrewArtifactExtension(PayloadKind kind) => switch (kind) {
   PayloadKind.directory => '.tar.gz',
 };
 
+/// Renders the branch chain that installs one bare executable per platform.
+///
+/// Only the combinations that were actually built appear, so a Formula never
+/// references an artifact the release does not carry.
+String _executableInstall(
+  HomebrewFormulaConfig config,
+  HomebrewArtifact? Function(String platform, String architecture) find,
+) {
+  const conditions = <(String, String, String)>[
+    ('macos', 'arm64', 'OS.mac? && Hardware::CPU.arm?'),
+    ('macos', 'x64', 'OS.mac? && Hardware::CPU.intel?'),
+    ('linux', 'x64', 'OS.linux? && Hardware::CPU.intel?'),
+    ('linux', 'arm64', 'OS.linux? && Hardware::CPU.arm?'),
+  ];
+  final branches = <String>[];
+  for (final (platform, architecture, condition) in conditions) {
+    final artifact = find(platform, architecture);
+    if (artifact == null) continue;
+    final keyword = branches.isEmpty ? 'if' : 'elsif';
+    branches.add(
+      '    $keyword $condition\n'
+      '      bin.install "${artifact.fileName}" '
+      '=> "${config.executableName}"',
+    );
+  }
+  return '${branches.join('\n')}\n    end';
+}
+
 Future<String> calculateSha256(String filePath) async {
   final content = await File(filePath).readAsBytes();
 
   return sha256.convert(content).toString();
 }
 
-/// Renders a product-neutral Formula for macOS and Linux artifacts.
+/// Renders a product-neutral Formula for the supplied artifacts.
+///
+/// Only the platforms and architectures present in [artifacts] are rendered,
+/// so a product that does not ship, say, a Linux arm64 build produces a
+/// Formula that simply does not claim to support it.
 String generateConfigurableHomebrewFormula({
   required HomebrewFormulaConfig config,
   required List<HomebrewArtifact> artifacts,
 }) {
-  String artifact(String platform, String architecture) {
-    return artifacts
-        .singleWhere(
-          (item) =>
-              item.platform == platform && item.architecture == architecture,
-        )
-        .fileName;
-  }
-
-  HomebrewArtifact details(String platform, String architecture) {
-    return artifacts.singleWhere(
-      (item) => item.platform == platform && item.architecture == architecture,
+  if (artifacts.isEmpty) {
+    throw const ShipworldException(
+      'A Homebrew Formula needs at least one artifact',
+      code: 'invalid_config',
     );
   }
 
-  final macArm = details('macos', 'arm64');
-  final macX64 = details('macos', 'x64');
-  final linuxArm = details('linux', 'arm64');
-  final linuxX64 = details('linux', 'x64');
+  HomebrewArtifact? find(String platform, String architecture) {
+    for (final item in artifacts) {
+      if (item.platform == platform && item.architecture == architecture) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  /// Renders `on_macos`/`on_linux` with only the architectures that exist.
+  String? platformBlock(String platform) {
+    final arm = find(platform, 'arm64');
+    final intel = find(platform, 'x64');
+    if (arm == null && intel == null) return null;
+    final blocks = <String>[
+      // Homebrew's DSL names them by CPU family, not by the architecture
+      // strings this package uses everywhere else.
+      if (intel != null)
+        '''
+    on_intel do
+      url "${intel.url}"
+      sha256 "${intel.sha256}"
+    end''',
+      if (arm != null)
+        '''
+    on_arm do
+      url "${arm.url}"
+      sha256 "${arm.sha256}"
+    end''',
+    ];
+    return '  on_$platform do\n${blocks.join('\n')}\n  end';
+  }
+
+  final platforms = <String>[
+    for (final platform in const ['macos', 'linux']) ?platformBlock(platform),
+  ];
   final kegOnly = config.versioned ? '\n  keg_only :versioned_formula\n' : '';
   // Homebrew strips the single top-level directory of the archive, so the
   // staging directory holds the bundle's own `bin/` and `lib/`. The launcher
@@ -99,17 +155,7 @@ String generateConfigurableHomebrewFormula({
       '''
     libexec.install Dir["*"]
     bin.install_symlink libexec/"bin/${config.executableName}"''',
-    PayloadKind.executable =>
-      '''
-    if OS.mac? && Hardware::CPU.arm?
-      bin.install "${artifact('macos', 'arm64')}" => "${config.executableName}"
-    elsif OS.mac? && Hardware::CPU.intel?
-      bin.install "${artifact('macos', 'x64')}" => "${config.executableName}"
-    elsif OS.linux? && Hardware::CPU.intel?
-      bin.install "${artifact('linux', 'x64')}" => "${config.executableName}"
-    elsif OS.linux? && Hardware::CPU.arm?
-      bin.install "${artifact('linux', 'arm64')}" => "${config.executableName}"
-    end''',
+    PayloadKind.executable => _executableInstall(config, find),
   };
 
   return '''
@@ -118,27 +164,7 @@ class ${config.className} < Formula
   homepage "${config.homepage}"
   version "${config.version}"$kegOnly
 
-  on_macos do
-    on_arm do
-      url "${macArm.url}"
-      sha256 "${macArm.sha256}"
-    end
-    on_intel do
-      url "${macX64.url}"
-      sha256 "${macX64.sha256}"
-    end
-  end
-
-  on_linux do
-    on_intel do
-      url "${linuxX64.url}"
-      sha256 "${linuxX64.sha256}"
-    end
-    on_arm do
-      url "${linuxArm.url}"
-      sha256 "${linuxArm.sha256}"
-    end
-  end
+${platforms.join('\n\n')}
 
   def install
 $install
