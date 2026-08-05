@@ -351,9 +351,11 @@ jobs:
         run: |
           fixture=packages/shipworld/test/fixtures/flutter_app
           mkdir -p "$fixture/formula-artifacts"
+          # The fixture target declares a directory payload, so its Homebrew
+          # artifacts are archives rather than bare executables.
           for name in shipworld-fixture-macos-arm64 shipworld-fixture-macos-x64 \
             shipworld-fixture-linux-arm64 shipworld-fixture-linux-x64; do
-            printf '%s\n' "$name" > "$fixture/formula-artifacts/$name"
+            printf '%s\n' "$name" > "$fixture/formula-artifacts/$name.tar.gz"
           done
           printf 'archive\n' > "$fixture/ShipworldFixture.zip"
           dart run packages/shipworld/bin/shipworld.dart package homebrew formula fixture \
