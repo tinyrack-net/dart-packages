@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.5
+
+- Generate a Homebrew Formula from the platforms a target actually builds. The
+  four platform/architecture pairs were hardcoded, so a product whose
+  toolchain cannot reach one of them — a Flutter workspace has no Linux arm64
+  SDK — could not produce a Formula at all: generation failed while hashing an
+  artifact that was never built. The new `homebrew.platforms` key lists what a
+  target ships and defaults to all four, so existing configurations are
+  unchanged. `on_macos`, `on_linux`, `on_arm`, and `on_intel` blocks, and the
+  `executable` install chain, are now rendered from the artifacts supplied
+  rather than assumed.
+
 ## 0.2.4
 
 - Generate a Homebrew Formula that matches the target's `payload.kind`. A

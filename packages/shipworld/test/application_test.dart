@@ -59,11 +59,11 @@ void main() {
     );
     addTearDown(() => temporary.delete(recursive: true));
     // The fixture target declares a directory payload, so its Homebrew
-    // artifacts are archives rather than bare executables.
+    // artifacts are archives rather than bare executables, and it builds
+    // three of the four platforms.
     for (final name in const [
       'shipworld-fixture-macos-arm64.tar.gz',
       'shipworld-fixture-macos-x64.tar.gz',
-      'shipworld-fixture-linux-arm64.tar.gz',
       'shipworld-fixture-linux-x64.tar.gz',
     ]) {
       await File(p.join(temporary.path, name)).writeAsString(name);
@@ -100,6 +100,8 @@ void main() {
         contains('shipworld-fixture-macos-arm64.tar.gz'),
         contains('libexec.install Dir["*"]'),
         contains('bin.install_symlink libexec/"bin/shipworld_fixture"'),
+        // The unbuilt platform is absent rather than referenced and missing.
+        isNot(contains('shipworld-fixture-linux-arm64')),
       ),
     );
     expect(

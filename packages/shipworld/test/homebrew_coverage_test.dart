@@ -118,6 +118,93 @@ void main() {
     expect(formula, isNot(contains('libexec')));
   });
 
+  test('a Formula claims only the platforms that were built', () {
+    final formula = generateConfigurableHomebrewFormula(
+      config: const HomebrewFormulaConfig(
+        className: 'Tool',
+        description: 'A tool',
+        homepage: 'https://example.com',
+        version: '1.2.3',
+        executableName: 'tool',
+        payload: PayloadKind.directory,
+      ),
+      artifacts: _fullArtifactSet()
+          .where(
+            (item) =>
+                !(item.platform == 'linux' && item.architecture == 'arm64'),
+          )
+          .toList(),
+    );
+
+    expect(formula, contains('on_macos do'));
+    expect(formula, contains('on_linux do'));
+    expect(formula, contains('https://example.com/linux-x64.tar.gz'));
+    // Referencing an artifact the release does not carry is what made the
+    // old renderer unusable for a product missing one platform.
+    expect(formula, isNot(contains('https://example.com/linux-arm.tar.gz')));
+    // macOS keeps both architectures, so its on_arm block must survive.
+    expect(RegExp('on_arm do').allMatches(formula), hasLength(1));
+  });
+
+  test('a single-platform Formula omits the other platform entirely', () {
+    final formula = generateConfigurableHomebrewFormula(
+      config: const HomebrewFormulaConfig(
+        className: 'Tool',
+        description: 'A tool',
+        homepage: 'https://example.com',
+        version: '1.2.3',
+        executableName: 'tool',
+      ),
+      artifacts: _fullArtifactSet()
+          .where((item) => item.platform == 'linux')
+          .toList(),
+    );
+
+    expect(formula, isNot(contains('on_macos')));
+    expect(formula, contains('on_linux do'));
+    expect(formula, contains('if OS.linux? && Hardware::CPU.intel?'));
+    expect(formula, contains('elsif OS.linux? && Hardware::CPU.arm?'));
+    // The chain must start with `if`, never a dangling `elsif`.
+    expect(formula, isNot(contains('OS.mac?')));
+  });
+
+  test('an executable install chain starts with if for any platform set', () {
+    final formula = generateConfigurableHomebrewFormula(
+      config: const HomebrewFormulaConfig(
+        className: 'Tool',
+        description: 'A tool',
+        homepage: 'https://example.com',
+        version: '1.2.3',
+        executableName: 'tool',
+      ),
+      artifacts: _fullArtifactSet()
+          .where(
+            (item) => item.platform == 'linux' && item.architecture == 'x64',
+          )
+          .toList(),
+    );
+
+    expect(formula, contains('    if OS.linux? && Hardware::CPU.intel?'));
+    expect(formula, isNot(contains('elsif')));
+    expect(formula, contains('bin.install "tool-linux-x64" => "tool"'));
+  });
+
+  test('a Formula without artifacts is rejected', () {
+    expect(
+      () => generateConfigurableHomebrewFormula(
+        config: const HomebrewFormulaConfig(
+          className: 'Tool',
+          description: 'A tool',
+          homepage: 'https://example.com',
+          version: '1.2.3',
+          executableName: 'tool',
+        ),
+        artifacts: const <HomebrewArtifact>[],
+      ),
+      throwsA(isA<ShipworldException>()),
+    );
+  });
+
   test('only a bundle artifact carries an archive extension', () {
     expect(homebrewArtifactExtension(PayloadKind.executable), '');
     expect(homebrewArtifactExtension(PayloadKind.directory), '.tar.gz');

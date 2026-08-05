@@ -258,10 +258,26 @@ final class HomebrewTargetConfig {
   const HomebrewTargetConfig({
     required this.formulaClass,
     required this.artifactPrefix,
+    this.platforms = defaultHomebrewPlatforms,
   });
+
+  /// Every platform Homebrew can install on, in Formula order.
+  static const List<String> defaultHomebrewPlatforms = <String>[
+    'macos-arm64',
+    'macos-x64',
+    'linux-arm64',
+    'linux-x64',
+  ];
 
   final String formulaClass;
   final String artifactPrefix;
+
+  /// The `<platform>-<arch>` pairs this target actually builds.
+  ///
+  /// A product whose toolchain cannot reach one of them — a Flutter workspace
+  /// has no Linux arm64 SDK, for instance — lists only what it ships, and the
+  /// Formula omits the rest rather than referencing a missing artifact.
+  final List<String> platforms;
 }
 
 /// One independently versioned package or application.
@@ -703,10 +719,39 @@ HomebrewTargetConfig? _parseHomebrew(
 ) {
   if (target['homebrew'] == null) return null;
   final map = _map(target['homebrew'], '$label.homebrew');
-  _onlyKeys(map, const {'formula-class', 'artifact-prefix'}, '$label.homebrew');
+  _onlyKeys(map, const {
+    'formula-class',
+    'artifact-prefix',
+    'platforms',
+  }, '$label.homebrew');
+  final platforms = map['platforms'] == null
+      ? HomebrewTargetConfig.defaultHomebrewPlatforms
+      : _stringList(map['platforms'], '$label.homebrew.platforms');
+  if (platforms.isEmpty) {
+    throw ShipworldException(
+      '$label.homebrew.platforms must list at least one platform',
+      code: 'invalid_config',
+    );
+  }
+  for (final platform in platforms) {
+    if (!HomebrewTargetConfig.defaultHomebrewPlatforms.contains(platform)) {
+      throw ShipworldException(
+        'Unknown Homebrew platform $platform in $label.homebrew.platforms; '
+        'expected one of '
+        '${HomebrewTargetConfig.defaultHomebrewPlatforms.join(', ')}',
+        code: 'invalid_config',
+      );
+    }
+  }
   return HomebrewTargetConfig(
     formulaClass: _requiredString(map, 'formula-class', '$label.homebrew'),
     artifactPrefix: _requiredString(map, 'artifact-prefix', '$label.homebrew'),
+    // Kept in the declared Formula order rather than the caller's, so two
+    // configs listing the same platforms render byte-identical Formulae.
+    platforms: <String>[
+      for (final platform in HomebrewTargetConfig.defaultHomebrewPlatforms)
+        if (platforms.contains(platform)) platform,
+    ],
   );
 }
 

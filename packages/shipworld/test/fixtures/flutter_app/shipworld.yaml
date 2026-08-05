@@ -45,5 +45,11 @@ targets:
       rpm:
         requires: [gtk3]
     homebrew:
+      # Deliberately not all four: the fixture stands in for a product whose
+      # toolchain cannot build every platform Homebrew supports.
+      platforms:
+        - macos-arm64
+        - macos-x64
+        - linux-x64
       formula-class: ShipworldFixture
       artifact-prefix: shipworld-fixture

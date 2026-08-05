@@ -626,12 +626,12 @@ final _formulaCommand = buildCommand(
     final payload = target.payload?.kind ?? PayloadKind.executable;
     final extension = homebrewArtifactExtension(payload);
     final artifacts = <HomebrewArtifact>[];
-    for (final entry in const [
-      ('macos', 'arm64'),
-      ('macos', 'x64'),
-      ('linux', 'arm64'),
-      ('linux', 'x64'),
-    ]) {
+    for (final platform in homebrew.platforms) {
+      final separator = platform.lastIndexOf('-');
+      final entry = (
+        platform.substring(0, separator),
+        platform.substring(separator + 1),
+      );
       final fileName =
           '${homebrew.artifactPrefix}-${entry.$1}-${entry.$2}$extension';
       final filePath = p.join(artifactsDir, fileName);

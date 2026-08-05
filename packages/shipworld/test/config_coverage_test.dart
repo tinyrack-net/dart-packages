@@ -370,4 +370,80 @@ targets:
 
     await expectLater(loadShipworldConfig(path), throwsCode('invalid_config'));
   });
+
+  group('homebrew platforms', () {
+    Future<String> configWith(String platforms) => writeConfig('''
+schema: 1
+remote: origin
+batch-commit: "release: {targets}"
+targets:
+  app:
+    kind: cli-application
+    root: app
+    version:
+      source: pubspec.yaml
+    tag: "app-v{version}"
+    commit: "release: app {version}"
+    branch: main
+    product:
+      name: app
+      display-name: App
+      description: An app
+      executable: app
+      homepage: https://example.com
+      repository: example/app
+    homebrew:
+      formula-class: App
+      artifact-prefix: app
+$platforms
+''');
+
+    test('defaults to every platform when omitted', () async {
+      final config = await loadShipworldConfig(await configWith(''));
+
+      expect(config.target('app').homebrew?.platforms, <String>[
+        'macos-arm64',
+        'macos-x64',
+        'linux-arm64',
+        'linux-x64',
+      ]);
+    });
+
+    test('keeps the declared Formula order, not the listed one', () async {
+      // Two configs naming the same platforms must render byte-identical
+      // Formulae, so the caller's ordering is discarded.
+      final config = await loadShipworldConfig(
+        await configWith('''
+      platforms:
+        - linux-x64
+        - macos-arm64'''),
+      );
+
+      expect(config.target('app').homebrew?.platforms, <String>[
+        'macos-arm64',
+        'linux-x64',
+      ]);
+    });
+
+    test('rejects an unknown platform', () async {
+      final path = await configWith('''
+      platforms:
+        - linux-riscv''');
+
+      await expectLater(
+        loadShipworldConfig(path),
+        throwsCode('invalid_config'),
+      );
+    });
+
+    test('rejects an empty platform list', () async {
+      final path = await configWith('''
+      platforms: []''');
+
+      await expectLater(
+        loadShipworldConfig(path),
+        throwsCode('invalid_config'),
+      );
+    });
+  });
 }

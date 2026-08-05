@@ -25,9 +25,9 @@ shipworld package linux deb app --input build/linux \
   --output dist/app_1.2.3_amd64.deb --arch amd64 --tool /usr/local/bin/nfpm
 shipworld package linux rpm app --input build/linux \
   --output dist/app-1.2.3.x86_64.rpm --arch x86_64
-# --artifacts-dir holds one file per platform, named for the target's
-# payload kind: `app-macos-arm64` for `executable`, `app-macos-arm64.tar.gz`
-# for `directory`, and likewise for macos-x64, linux-arm64, and linux-x64.
+# --artifacts-dir holds one file per platform in `homebrew.platforms`, named
+# for the target's payload kind: `app-macos-arm64` for `executable`,
+# `app-macos-arm64.tar.gz` for `directory`.
 shipworld package homebrew formula app --artifacts-dir dist \
   --output dist/app.rb --versioned-output dist/app@1.2.3.rb
 shipworld package homebrew cask app --archive dist/App.zip \
