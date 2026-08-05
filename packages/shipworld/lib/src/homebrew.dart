@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 
+import 'config.dart';
 import 'error.dart';
 
 /// One downloadable Homebrew artifact.
@@ -29,6 +30,7 @@ final class HomebrewFormulaConfig {
     required this.homepage,
     required this.version,
     required this.executableName,
+    this.payload = PayloadKind.executable,
     this.versioned = false,
   });
 
@@ -37,8 +39,25 @@ final class HomebrewFormulaConfig {
   final String homepage;
   final String version;
   final String executableName;
+
+  /// Shape of the downloaded artifact.
+  ///
+  /// [PayloadKind.executable] is one bare file installed directly as the
+  /// binary. [PayloadKind.directory] is an archive holding the executable and
+  /// the libraries it loads at run time, which must stay next to it.
+  final PayloadKind payload;
+
   final bool versioned;
 }
+
+/// Archive suffix a Homebrew artifact carries for [kind].
+///
+/// A bare executable is downloaded as-is; a bundle has to be an archive so
+/// that its sibling libraries survive the trip.
+String homebrewArtifactExtension(PayloadKind kind) => switch (kind) {
+  PayloadKind.executable => '',
+  PayloadKind.directory => '.tar.gz',
+};
 
 Future<String> calculateSha256(String filePath) async {
   final content = await File(filePath).readAsBytes();
@@ -71,6 +90,27 @@ String generateConfigurableHomebrewFormula({
   final linuxArm = details('linux', 'arm64');
   final linuxX64 = details('linux', 'x64');
   final kegOnly = config.versioned ? '\n  keg_only :versioned_formula\n' : '';
+  // Homebrew strips the single top-level directory of the archive, so the
+  // staging directory holds the bundle's own `bin/` and `lib/`. The launcher
+  // is symlinked rather than copied because its RPATH is relative to the real
+  // path of the executable, which keeps `lib/` reachable through the link.
+  final install = switch (config.payload) {
+    PayloadKind.directory =>
+      '''
+    libexec.install Dir["*"]
+    bin.install_symlink libexec/"bin/${config.executableName}"''',
+    PayloadKind.executable =>
+      '''
+    if OS.mac? && Hardware::CPU.arm?
+      bin.install "${artifact('macos', 'arm64')}" => "${config.executableName}"
+    elsif OS.mac? && Hardware::CPU.intel?
+      bin.install "${artifact('macos', 'x64')}" => "${config.executableName}"
+    elsif OS.linux? && Hardware::CPU.intel?
+      bin.install "${artifact('linux', 'x64')}" => "${config.executableName}"
+    elsif OS.linux? && Hardware::CPU.arm?
+      bin.install "${artifact('linux', 'arm64')}" => "${config.executableName}"
+    end''',
+  };
 
   return '''
 class ${config.className} < Formula
@@ -101,15 +141,7 @@ class ${config.className} < Formula
   end
 
   def install
-    if OS.mac? && Hardware::CPU.arm?
-      bin.install "${artifact('macos', 'arm64')}" => "${config.executableName}"
-    elsif OS.mac? && Hardware::CPU.intel?
-      bin.install "${artifact('macos', 'x64')}" => "${config.executableName}"
-    elsif OS.linux? && Hardware::CPU.intel?
-      bin.install "${artifact('linux', 'x64')}" => "${config.executableName}"
-    elsif OS.linux? && Hardware::CPU.arm?
-      bin.install "${artifact('linux', 'arm64')}" => "${config.executableName}"
-    end
+$install
   end
 
   test do

@@ -80,6 +80,49 @@ void main() {
     expect(formula, isNot(contains('keg_only')));
   });
 
+  test('a directory payload installs the bundle and symlinks the launcher', () {
+    final formula = generateConfigurableHomebrewFormula(
+      config: const HomebrewFormulaConfig(
+        className: 'Tool',
+        description: 'A tool',
+        homepage: 'https://example.com',
+        version: '1.2.3',
+        executableName: 'tool',
+        payload: PayloadKind.directory,
+      ),
+      artifacts: _fullArtifactSet(),
+    );
+
+    expect(formula, contains('libexec.install Dir["*"]'));
+    expect(formula, contains('bin.install_symlink libexec/"bin/tool"'));
+    // Installing the archive name as the binary would install a tarball.
+    expect(formula, isNot(contains('bin.install "tool-macos-arm64"')));
+    expect(formula, isNot(contains('Hardware::CPU')));
+    expect(formula, contains('system "#{bin}/tool", "--version"'));
+  });
+
+  test('an executable payload keeps installing the bare file', () {
+    final formula = generateConfigurableHomebrewFormula(
+      config: const HomebrewFormulaConfig(
+        className: 'Tool',
+        description: 'A tool',
+        homepage: 'https://example.com',
+        version: '1.2.3',
+        executableName: 'tool',
+        payload: PayloadKind.executable,
+      ),
+      artifacts: _fullArtifactSet(),
+    );
+
+    expect(formula, contains('bin.install "tool-macos-arm64" => "tool"'));
+    expect(formula, isNot(contains('libexec')));
+  });
+
+  test('only a bundle artifact carries an archive extension', () {
+    expect(homebrewArtifactExtension(PayloadKind.executable), '');
+    expect(homebrewArtifactExtension(PayloadKind.directory), '.tar.gz');
+  });
+
   test('generateConfigurableHomebrewFormula emits keg_only when versioned', () {
     final formula = generateConfigurableHomebrewFormula(
       config: const HomebrewFormulaConfig(

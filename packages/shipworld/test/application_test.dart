@@ -58,11 +58,13 @@ void main() {
       'shipworld-formula-',
     );
     addTearDown(() => temporary.delete(recursive: true));
+    // The fixture target declares a directory payload, so its Homebrew
+    // artifacts are archives rather than bare executables.
     for (final name in const [
-      'shipworld-fixture-macos-arm64',
-      'shipworld-fixture-macos-x64',
-      'shipworld-fixture-linux-arm64',
-      'shipworld-fixture-linux-x64',
+      'shipworld-fixture-macos-arm64.tar.gz',
+      'shipworld-fixture-macos-x64.tar.gz',
+      'shipworld-fixture-linux-arm64.tar.gz',
+      'shipworld-fixture-linux-x64.tar.gz',
     ]) {
       await File(p.join(temporary.path, name)).writeAsString(name);
     }
@@ -93,7 +95,12 @@ void main() {
     expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
     expect(
       await File(current).readAsString(),
-      contains('class ShipworldFixture'),
+      allOf(
+        contains('class ShipworldFixture'),
+        contains('shipworld-fixture-macos-arm64.tar.gz'),
+        contains('libexec.install Dir["*"]'),
+        contains('bin.install_symlink libexec/"bin/shipworld_fixture"'),
+      ),
     );
     expect(
       await File(versioned).readAsString(),

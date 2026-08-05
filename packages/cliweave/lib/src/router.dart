@@ -1370,6 +1370,7 @@ final class CompletionConfiguration {
   const CompletionConfiguration({
     this.includeAliases,
     this.includeHiddenRoutes,
+    this.includeHiddenFlags,
   });
 
   /// Whether aliases are included in rendered help.
@@ -1377,6 +1378,14 @@ final class CompletionConfiguration {
 
   /// Whether hidden routes are included.
   final bool? includeHiddenRoutes;
+
+  /// Whether hidden flags are proposed.
+  ///
+  /// Defaults to false, matching help output. A flag is usually hidden
+  /// because naming it would encourage a use its owner does not want, such as
+  /// passing a secret on the command line, and a completion proposal is as
+  /// much of an invitation as a help entry.
+  final bool? includeHiddenFlags;
 }
 
 /// Localization configuration; dotweave supplies `defaultLocale` + `loadText`.
@@ -1516,6 +1525,7 @@ final class CompletionConfig {
   const CompletionConfig({
     required this.includeAliases,
     required this.includeHiddenRoutes,
+    required this.includeHiddenFlags,
   });
 
   /// Whether aliases are included in rendered help.
@@ -1523,6 +1533,9 @@ final class CompletionConfig {
 
   /// Whether hidden routes are included.
   final bool includeHiddenRoutes;
+
+  /// Whether hidden flags are proposed.
+  final bool includeHiddenFlags;
 }
 
 /// Resolved localization configuration after `withDefaults`.
@@ -1619,6 +1632,7 @@ ResolvedApplicationConfiguration _withDefaults(
         config.completion?.includeAliases ??
         documentationConfig.useAliasInUsageLine,
     includeHiddenRoutes: config.completion?.includeHiddenRoutes ?? false,
+    includeHiddenFlags: config.completion?.includeHiddenFlags ?? false,
   );
   final localizationConfig = LocalizationConfig(
     defaultLocale: config.localization?.defaultLocale ?? 'en',

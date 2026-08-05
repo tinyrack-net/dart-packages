@@ -63,6 +63,13 @@ dart run shipworld package linux appimage example \
 Homebrew Formula generation accepts `--versioned-output` when a tap publishes
 both the current Formula and a `keg_only :versioned_formula` variant.
 
+The Formula follows the target's `payload.kind`. An `executable` target reads
+one bare file per platform, named `<artifact-prefix>-<platform>-<arch>`, and
+installs it directly as the binary. A `directory` target reads
+`<artifact-prefix>-<platform>-<arch>.tar.gz`, installs the unpacked bundle
+into `libexec`, and symlinks the launcher into `bin`, which is what an
+executable that loads sibling libraries at run time needs.
+
 See [configuration](doc/configuration.md), the [CLI reference](doc/cli.md),
 and the [standalone repository handoff](doc/separation.md).
 

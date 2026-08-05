@@ -1222,6 +1222,95 @@ void main() {
       );
     });
   });
+
+  group('hidden flag completion', () {
+    Application application({bool? includeHiddenFlags}) {
+      return _application(
+        buildCommand(
+          docs: const CommandDocs(brief: 'run'),
+          parameters: CommandParameters(
+            flags: {
+              'apiKey': ParsedFlag(
+                brief: 'Secret',
+                parse: stringParser,
+                optional: true,
+                hidden: true,
+              ),
+              'method': ParsedFlag(
+                brief: 'Method',
+                parse: stringParser,
+                optional: true,
+              ),
+            },
+            aliases: const {'k': 'apiKey', 'm': 'method'},
+            positional: const TuplePositionalParameters([]),
+          ),
+          func: (context, flags, positional) => null,
+        ),
+        scanner: const ScannerConfiguration(
+          caseStyle: ScannerCaseStyle.allowKebabForCamel,
+        ),
+        completion: CompletionConfiguration(
+          includeAliases: true,
+          includeHiddenFlags: includeHiddenFlags,
+        ),
+      );
+    }
+
+    test('a hidden flag is not proposed by default', () async {
+      final values = await proposeCompletions(application(), [
+        '--',
+      ], _context().context);
+
+      final completions = values.map((value) => value.completion);
+      expect(completions, contains('--method'));
+      expect(completions, isNot(contains('--api-key')));
+    });
+
+    test('a hidden alias is not proposed by default', () async {
+      final values = await proposeCompletions(application(), [
+        '-',
+      ], _context().context);
+
+      final completions = values.map((value) => value.completion);
+      expect(completions, contains('-m'));
+      expect(completions, isNot(contains('-k')));
+    });
+
+    test('a hidden alias is not appended to a shorthand run', () async {
+      final values = await proposeCompletions(application(), [
+        '-m',
+      ], _context().context);
+
+      expect(values.map((value) => value.completion), isNot(contains('-mk')));
+    });
+
+    test('includeHiddenFlags opts back in', () async {
+      final long = await proposeCompletions(
+        application(includeHiddenFlags: true),
+        ['--'],
+        _context().context,
+      );
+      final short = await proposeCompletions(
+        application(includeHiddenFlags: true),
+        ['-'],
+        _context().context,
+      );
+
+      expect(long.map((value) => value.completion), contains('--api-key'));
+      expect(short.map((value) => value.completion), contains('-k'));
+    });
+
+    test('an explicitly typed hidden alias still completes', () async {
+      // Hidden means undocumented, not disabled: a user who already knows the
+      // flag must still be able to finish typing it.
+      final values = await proposeCompletions(application(), [
+        '-k',
+      ], _context().context);
+
+      expect(values.map((value) => value.completion), contains('-k'));
+    });
+  });
 }
 
 ApplicationText? _noText(String locale) => null;
