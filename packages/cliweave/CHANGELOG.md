@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.3
+
+- Stop proposing hidden flags during shell completion. Help already filtered
+  them, but completion did not, so a flag hidden precisely because naming it
+  invites a bad habit — passing a secret on the command line, for instance —
+  was still offered at the prompt under both its long name and its alias.
+  Hidden remains undocumented rather than disabled: a flag the user has
+  already typed still completes. Set
+  `CompletionConfiguration.includeHiddenFlags` to restore the old behaviour.
+
 ## 0.2.2
 
 - Fix shell completion on Windows PowerShell 5.1, where pressing Tab at the

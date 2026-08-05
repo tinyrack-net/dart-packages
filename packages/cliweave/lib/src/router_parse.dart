@@ -1235,12 +1235,21 @@ final class _ArgumentScanner {
       );
     }
     final completions = <InputCompletion>[];
+    // An alias inherits the visibility of the flag it points at, so a hidden
+    // flag stays out of completion under either spelling.
+    bool proposable(String alias) {
+      final named = resolvedAliases[alias];
+      return named != null &&
+          (!named.flag.hidden || completionConfig.includeHiddenFlags);
+    }
+
     if (!_treatInputsAsArguments) {
       final shorthandMatch = _flagShorthandPattern.firstMatch(partial);
       if (completionConfig.includeAliases) {
         if (partial == '' || partial == '-') {
           final incompleteAliases = aliases.entries.where(
-            (entry) => !_isFlagSatisfiedByInputs(entry.value),
+            (entry) =>
+                !_isFlagSatisfiedByInputs(entry.value) && proposable(entry.key),
           );
           for (final entry in incompleteAliases) {
             final flag = resolvedAliases[entry.key];
@@ -1279,6 +1288,9 @@ final class _ArgumentScanner {
           }
           final lastAlias = partialAliases.isEmpty ? null : partialAliases.last;
           if (lastAlias != null) {
+            // Echoes back an alias the user already typed rather than
+            // proposing a new one, so hiding does not apply: a hidden flag is
+            // undocumented, not disabled.
             final namedFlag = resolvedAliases[lastAlias];
             if (namedFlag != null) {
               completions.add(
@@ -1299,7 +1311,9 @@ final class _ArgumentScanner {
           }
 
           final incompleteAliases = aliases.entries.where(
-            (entry) => !satisfiedIncludingPartial(entry.value),
+            (entry) =>
+                !satisfiedIncludingPartial(entry.value) &&
+                proposable(entry.key),
           );
           for (final entry in incompleteAliases) {
             final flag = resolvedAliases[entry.key];
@@ -1327,6 +1341,10 @@ final class _ArgumentScanner {
         }
         var incompleteFlags = flags.entries
             .where((entry) => !_isFlagSatisfiedByInputs(entry.key))
+            .where(
+              (entry) =>
+                  !entry.value.hidden || completionConfig.includeHiddenFlags,
+            )
             .map((entry) => (entry.key, entry.value))
             .toList();
         if (config.caseStyle == ScannerCaseStyle.allowKebabForCamel) {
