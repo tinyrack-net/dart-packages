@@ -623,6 +623,8 @@ final _formulaCommand = buildCommand(
       target.versionPath(loaded.config.repoRoot),
     )).split('+').first;
     final artifactsDir = flags.artifactsDir;
+    final payload = target.payload?.kind ?? PayloadKind.executable;
+    final extension = homebrewArtifactExtension(payload);
     final artifacts = <HomebrewArtifact>[];
     for (final entry in const [
       ('macos', 'arm64'),
@@ -630,7 +632,8 @@ final _formulaCommand = buildCommand(
       ('linux', 'arm64'),
       ('linux', 'x64'),
     ]) {
-      final fileName = '${homebrew.artifactPrefix}-${entry.$1}-${entry.$2}';
+      final fileName =
+          '${homebrew.artifactPrefix}-${entry.$1}-${entry.$2}$extension';
       final filePath = p.join(artifactsDir, fileName);
       artifacts.add(
         HomebrewArtifact(
@@ -654,6 +657,7 @@ final _formulaCommand = buildCommand(
         homepage: product.homepage!,
         version: version,
         executableName: product.executable,
+        payload: payload,
         versioned: versioned,
       );
     }

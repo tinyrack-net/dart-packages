@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.4
+
+- Generate a Homebrew Formula that matches the target's `payload.kind`. A
+  `directory` target ships an executable plus the libraries it loads at run
+  time, but the Formula still emitted `bin.install "<bare file>"`, which can
+  only install a single file. Such a target now reads
+  `<artifact-prefix>-<platform>-<arch>.tar.gz`, installs the unpacked bundle
+  into `libexec`, and symlinks the launcher into `bin` — the executable's
+  RPATH resolves against its real path, so the sibling libraries stay
+  reachable through the link. An `executable` target is unchanged.
+
 ## 0.2.3
 
 - Fixed the Cask `depends_on macos:` stanza to use the symbol form. Homebrew
