@@ -45,3 +45,25 @@ For `dartage`, `dart test -x interop` is the offline run. Install the Node
 fixture dependencies in `packages/dartage/test/interop` with
 `pnpm install --frozen-lockfile`, then run `dart test -t interop` from
 `packages/dartage` for reference-implementation interoperability.
+
+## Merging
+
+Everything reaches `main` through a pull request and a merge queue. Nobody
+bypasses the queue, so `gh pr merge --admin` and a direct push both fail.
+
+Mark a pull request ready with `gh pr merge <number> --squash --auto`
+("Merge when ready"). It enters the queue once its checks pass and any review
+threads are resolved, CI re-runs against `main` merged with the entry, and it
+squashes onto `main` only if that run is green. A queued entry that fails is
+dropped back out, so watch for a pull request that silently leaves the queue —
+a dependency published between the two runs is the usual cause, since
+`pubspec.lock` is deliberately not committed.
+
+`Quality Gate` is the only status check `main` requires. It succeeds only when
+every other job in `ci.yml` succeeds, which means:
+
+- Renaming a job or a matrix leg is safe; renaming `Quality Gate` is not. The
+  queue reports the new name while branch protection still waits for the old
+  one, and the entry is evicted an hour later with no useful error.
+- A new job must be added to `quality-gate`'s `needs`. One left out is exempt
+  from the gate, and nothing reports the omission.
