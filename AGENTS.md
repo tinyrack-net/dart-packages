@@ -51,8 +51,9 @@ fixture dependencies in `packages/dartage/test/interop` with
 Everything reaches `main` through a pull request and a merge queue. Nobody
 bypasses the queue, so `gh pr merge --admin` and a direct push both fail.
 
-Mark a pull request ready with `gh pr merge <number> --squash --auto`
-("Merge when ready"). It enters the queue once its checks pass and any review
+Mark a pull request ready with `gh pr merge <number> --auto` ("Merge when
+ready"). Pass no merge method: the queue sets it, and `--squash` only earns a
+warning. It enters the queue once its checks pass and any review
 threads are resolved, CI re-runs against `main` merged with the entry, and it
 squashes onto `main` only if that run is green. A queued entry that fails is
 dropped back out, so watch for a pull request that silently leaves the queue —
