@@ -5,14 +5,22 @@ on:
     branches:
       - main
   pull_request:
+  merge_group:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # A cancelled merge-queue check reads as a failure and ejects the pull
+  # request from the queue, so those runs always finish.
+  cancel-in-progress: ${{ github.event_name != 'merge_group' }}
 
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -32,6 +40,7 @@ jobs:
           - macos-26
           - windows-2025
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -47,8 +56,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Every name here is a required status check on main, so renaming one
-          # leaves pull requests unmergeable until protection is updated too.
+          # These names are no longer required status checks, so renaming one
+          # only changes what the run displays. `Quality Gate` is the single
+          # check main requires, and renaming that one does break merging.
           - name: bash-zsh-fish
             os: ubuntu-latest
             shells: bash,zsh,fish
@@ -67,6 +77,7 @@ jobs:
             os: windows-2025
             shells: powershell5
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -93,6 +104,7 @@ jobs:
           - macos-26
           - windows-2025
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -111,6 +123,7 @@ jobs:
           - ubuntu-latest
           - windows-2025
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -133,6 +146,7 @@ jobs:
   coverage:
     name: Package coverage (95% minimum)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -151,6 +165,7 @@ jobs:
   shipworld-coverage:
     name: shipworld coverage (95% minimum)
     runs-on: windows-2025
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -168,6 +183,7 @@ jobs:
   package-quality:
     name: Package quality
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -193,6 +209,7 @@ jobs:
           - macos-26
           - windows-2025
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -205,6 +222,7 @@ jobs:
   shipworld-quality:
     name: shipworld quality
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
@@ -370,3 +388,31 @@ jobs:
             --output "$fixture/shipworld-fixture-cask.rb"
           ruby -c "$fixture/shipworld-fixture.rb"
           ruby -c "$fixture/shipworld-fixture-cask.rb"
+
+  quality-gate:
+    name: Quality Gate
+    # A job that a failed dependency skips still publishes a check run, and
+    # branch protection reads a skipped one as a pass, so the gate has to run
+    # unconditionally to stay fail-closed.
+    if: always()
+    needs:
+      # Every job above belongs here. One left out is silently exempt from the
+      # only status check main requires.
+      - analyze
+      - cliweave
+      - cliweave-shell-e2e
+      - dartage
+      - dartage-interop
+      - coverage
+      - shipworld-coverage
+      - package-quality
+      - shipworld
+      - shipworld-quality
+      - shipworld-flutter-payload
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every quality job to succeed
+        env:
+          QUALITY_RESULTS: ${{ toJSON(needs) }}
+        run: jq -e 'all(.[]; .result == "success")' <<< "$QUALITY_RESULTS"
