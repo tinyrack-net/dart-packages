@@ -27,6 +27,7 @@ jobs:
     outputs:
       cliweave: ${{ steps.detect.outputs.cliweave }}
       dartage: ${{ steps.detect.outputs.dartage }}
+      lua_tool_runtime: ${{ steps.detect.outputs.lua_tool_runtime }}
       ptyworld: ${{ steps.detect.outputs.ptyworld }}
       shipworld: ${{ steps.detect.outputs.shipworld }}
     steps:
@@ -231,6 +232,38 @@ jobs:
         working-directory: packages/dartage
       - run: dart pub publish --dry-run
         working-directory: packages/dartage
+
+  lua-tool-runtime:
+    name: lua_tool_runtime (${{ matrix.os }})
+    needs: affected
+    if: needs.affected.outputs.lua_tool_runtime == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            coverage: true
+          - os: macos-26
+          - os: windows-2025
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-workspace
+      - if: ${{ !matrix.coverage }}
+        run: dart test
+        working-directory: packages/lua_tool_runtime
+      - if: matrix.coverage
+        run: dart run tool/verify_coverage.dart lua_tool_runtime
+      - if: matrix.coverage
+        run: dart doc
+        working-directory: packages/lua_tool_runtime
+      - if: ${{ always() && matrix.coverage }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-lua-tool-runtime
+          path: coverage
+          if-no-files-found: error
 
   ptyworld:
     name: ptyworld (${{ matrix.os }})
@@ -499,6 +532,7 @@ jobs:
       - dartage
       - dartage-interop
       - dartage-quality
+      - lua-tool-runtime
       - ptyworld
       - shipworld
       - shipworld-quality
