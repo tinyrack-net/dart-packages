@@ -39,6 +39,7 @@ Future<void> main(List<String> arguments) async {
   const allPackages = [
     _PackageCoverage(name: 'cliweave', testArguments: ['-x', 'e2e']),
     _PackageCoverage(name: 'dartage', testArguments: ['-x', 'interop']),
+    _PackageCoverage(name: 'lua_tool_runtime', testArguments: []),
     _PackageCoverage(name: 'ptyworld', testArguments: []),
     _PackageCoverage(name: 'shipworld', testArguments: []),
   ];

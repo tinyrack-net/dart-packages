@@ -7,11 +7,15 @@ public packages.
 
 - `packages/cliweave` is a general-purpose typed CLI framework.
 - `packages/dartage` is a pure-Dart age v1 implementation.
-- `packages/ptyworld` is cross-platform pseudo-terminal process support. It is
-  the only package here that builds native code: `hook/build.dart` compiles
-  `src/ptyworld.c` into a C native asset on Linux, macOS, and Windows. It is
-  not published to pub.dev yet, so it is the one package with no `dart doc` or
+- `packages/lua_tool_runtime` is a sandboxed Lua subprocess runtime for tool
+  orchestration. It vendors Lua 5.5.1 and stages a native helper on Linux,
+  macOS, and Windows. It is not published to pub.dev, so it has no
   `dart pub publish --dry-run` check; consumers pin it by commit SHA.
+- `packages/ptyworld` is cross-platform pseudo-terminal process support. It is
+  one of the native packages here: `hook/build.dart` compiles `src/ptyworld.c`
+  into a C native asset on Linux, macOS, and Windows. It is not published to
+  pub.dev yet, so it has no `dart doc` or `dart pub publish --dry-run` check;
+  consumers pin it by commit SHA.
 - `packages/shipworld` is reusable release, signing, and desktop-packaging
   tooling. It is published to pub.dev from this workspace via the
   `shipworld-v*` tag trigger, and it consumes `cliweave` from the workspace.
@@ -30,8 +34,9 @@ For every changed package, run:
 - `dart pub publish --dry-run`
 
 From the repository root, run `dart run tool/verify_coverage.dart` to check the
-95% line-coverage gate (each package independently). `cliweave`, `dartage`, and
-`ptyworld` are checked on Linux; `shipworld` is checked on **Windows**
+95% line-coverage gate (each package independently). `cliweave`, `dartage`,
+`lua_tool_runtime`, and `ptyworld` are checked on Linux; `shipworld` is checked
+on **Windows**
 (`dart run tool/verify_coverage.dart shipworld`), because its Windows SDK-tool
 discovery is guarded by `Platform.isWindows` and only executes on a Windows
 runner. Passing no package names runs all four (use that only on Windows).

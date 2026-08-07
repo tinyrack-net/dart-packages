@@ -12,6 +12,11 @@ const _packages = [
   ),
   WorkspacePackage(name: 'dartage', path: 'packages/dartage', dependencies: {}),
   WorkspacePackage(
+    name: 'lua_tool_runtime',
+    path: 'packages/lua_tool_runtime',
+    dependencies: {},
+  ),
+  WorkspacePackage(
     name: 'ptyworld',
     path: 'packages/ptyworld',
     dependencies: {},
@@ -101,6 +106,7 @@ void main() {
     expect(packages.map((package) => package.name), [
       'cliweave',
       'dartage',
+      'lua_tool_runtime',
       'ptyworld',
       'shipworld',
     ]);

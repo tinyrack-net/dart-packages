@@ -9,6 +9,7 @@ environment:
 workspace:
   - packages/cliweave
   - packages/dartage
+  - packages/lua_tool_runtime
   - packages/ptyworld
   - packages/shipworld
 
