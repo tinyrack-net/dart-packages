@@ -72,6 +72,7 @@ Future<LuaHostDistribution> stageLuaToolRuntime({
         Directory.current.absolute.path,
         '.dart_tool',
         'lua_tool_runtime',
+        _packageSourceIdentity(root),
         '${Platform.operatingSystem}-${buildMode.name}',
       );
   final configure = await runner.run('cmake', [
@@ -116,6 +117,14 @@ Future<LuaHostDistribution> stageLuaToolRuntime({
     hostPath: stagedHost.path,
     bootstrapPath: p.join(data.path, 'bootstrap.lua'),
   );
+}
+
+String _packageSourceIdentity(String packageRoot) {
+  final checkout = p.basename(
+    p.dirname(p.dirname(p.normalize(p.absolute(packageRoot)))),
+  );
+  final safe = checkout.replaceAll(RegExp('[^A-Za-z0-9._-]'), '_');
+  return safe.isEmpty ? 'lua_tool_runtime' : safe;
 }
 
 /// Resolves this package independently of pub-cache or workspace layout.

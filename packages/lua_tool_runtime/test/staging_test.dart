@@ -78,6 +78,50 @@ void main() {
     expect(command.executable, contains('lua-tool-runtime-host'));
     expect(command.arguments.single, contains('bootstrap.lua'));
   });
+
+  test('isolates the default CMake cache by package source identity', () async {
+    final root = await Directory.systemTemp.createTemp('lua-stage-sources-');
+    final destination = await Directory.systemTemp.createTemp(
+      'lua-stage-destination-',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    addTearDown(() => destination.delete(recursive: true));
+    final firstRoot = _fakePackageRoot(root, 'dart-packages-first');
+    final secondRoot = _fakePackageRoot(root, 'dart-packages-second');
+    final firstRunner = FakeBuildRunner();
+    final secondRunner = FakeBuildRunner();
+    final previousCurrent = Directory.current;
+    Directory.current = root;
+    try {
+      await stageLuaToolRuntime(
+        destination: p.join(destination.path, 'first'),
+        packageRoot: firstRoot,
+        runner: firstRunner,
+      );
+      await stageLuaToolRuntime(
+        destination: p.join(destination.path, 'second'),
+        packageRoot: secondRoot,
+        runner: secondRunner,
+      );
+    } finally {
+      Directory.current = previousCurrent;
+    }
+
+    final firstBuild = firstRunner.commands.first[4];
+    final secondBuild = secondRunner.commands.first[4];
+    expect(firstBuild, isNot(secondBuild));
+    expect(firstBuild, contains('dart-packages-first'));
+    expect(secondBuild, contains('dart-packages-second'));
+  });
+}
+
+String _fakePackageRoot(Directory parent, String checkout) {
+  final root = Directory(
+    p.join(parent.path, checkout, 'packages', 'lua_tool_runtime'),
+  )..createSync(recursive: true);
+  final native = Directory(p.join(root.path, 'native'))..createSync();
+  File(p.join(native.path, 'bootstrap.lua')).writeAsStringSync('bootstrap');
+  return root.path;
 }
 
 final class FakeBuildRunner implements LuaBuildCommandRunner {
