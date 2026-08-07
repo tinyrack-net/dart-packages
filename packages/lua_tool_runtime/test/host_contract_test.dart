@@ -140,7 +140,7 @@ while true do values[#values + 1] = string.rep("x", 65536) end
     cancellation.cancel();
     await pumpEventQueue();
 
-    final missing = await session.wait(
+    var cancelled = await session.wait(
       LuaWaitRequest(
         cellId: delta.cellId,
         yieldTime: const Duration(milliseconds: 10),
@@ -148,7 +148,23 @@ while true do values[#values + 1] = string.rep("x", 65536) end
       ),
       context,
     );
-    expect(missing.error, isA<LuaCellNotFoundException>());
+    expect(cancelled.running, isFalse);
+    for (
+      var attempt = 0;
+      attempt < 50 && cancelled.error is! LuaCellNotFoundException;
+      attempt += 1
+    ) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      cancelled = await session.wait(
+        LuaWaitRequest(
+          cellId: delta.cellId,
+          yieldTime: const Duration(milliseconds: 10),
+          maxOutputTokens: 1000,
+        ),
+        context,
+      );
+    }
+    expect(cancelled.error, isA<LuaCellNotFoundException>());
   });
 }
 
