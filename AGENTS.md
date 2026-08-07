@@ -30,15 +30,16 @@ For every changed package, run:
 - `dart pub publish --dry-run`
 
 From the repository root, run `dart run tool/verify_coverage.dart` to check the
-95% line-coverage gate (each package independently). `cliweave` and `dartage`
-are checked on Linux (`dart run tool/verify_coverage.dart cliweave dartage`);
-`shipworld` is checked on **Windows** (`dart run tool/verify_coverage.dart
-shipworld`), because its Windows SDK-tool discovery is guarded by
-`Platform.isWindows` and only executes on a Windows runner. `ptyworld` is
-checked on Linux in its own job (`dart run tool/verify_coverage.dart ptyworld`)
-so that a C toolchain failure is not mistaken for a coverage regression in the
-pure-Dart packages. Passing no package names runs all four (use that only on
-Windows).
+95% line-coverage gate (each package independently). `cliweave`, `dartage`, and
+`ptyworld` are checked on Linux; `shipworld` is checked on **Windows**
+(`dart run tool/verify_coverage.dart shipworld`), because its Windows SDK-tool
+discovery is guarded by `Platform.isWindows` and only executes on a Windows
+runner. Passing no package names runs all four (use that only on Windows).
+
+In CI this is not a separate job: one leg of each package's test matrix runs
+`verify_coverage.dart` instead of `dart test`, because the script already runs
+the same suite with the same exclusions. Adding a plain `dart test` step back to
+that leg only doubles its runtime.
 
 `ptyworld` covers its operating-system failure branches by substituting
 `PtyBindings` through `PtyProcess.withBindings`. A fake must also stub
@@ -75,10 +76,34 @@ a dependency published between the two runs is the usual cause, since
 `pubspec.lock` is deliberately not committed.
 
 `Quality Gate` is the only status check `main` requires. It succeeds only when
-every other job in `ci.yml` succeeds, which means:
+every other job in `ci.yml` either succeeds or is skipped as unaffected, which
+means:
 
 - Renaming a job or a matrix leg is safe; renaming `Quality Gate` is not. The
   queue reports the new name while branch protection still waits for the old
   one, and the entry is evicted an hour later with no useful error.
 - A new job must be added to `quality-gate`'s `needs`. One left out is exempt
   from the gate, and nothing reports the omission.
+
+## Affected packages
+
+A pull request only runs the jobs for the packages it touches. The `affected`
+job runs `tool/affected_packages.dart`, which derives the workspace graph from
+the pubspecs and emits one boolean output per member, closed over dependents:
+changing `cliweave` also runs `shipworld`, which consumes it. `push` to `main`
+and `merge_group` skip the diff and run everything, because the queue resolves
+dependencies against a moving `main` with no committed `pubspec.lock`.
+
+A path that the tool does not recognise runs the full suite. Keep that
+direction: a new top-level directory should cost extra CI, never silently exempt
+itself. Only root `*.md` and `LICENSE` are treated as affecting nothing.
+
+The gate accepts a skipped job, which is safe for exactly one reason: every
+gated job's `if:` reads `needs.affected` and nothing else, and the gate asserts
+`affected` itself succeeded. Give one of those jobs a second `needs` and a skip
+starts being able to mean "an upstream job failed" instead.
+
+A new job therefore needs two things, not one: an entry in `quality-gate`'s
+`needs`, and — if it is specific to a package — an
+`if: needs.affected.outputs.<package> == 'true'` condition. Repository-wide jobs
+such as `analyze` stay ungated.

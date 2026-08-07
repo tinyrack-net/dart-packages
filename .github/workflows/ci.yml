@@ -17,41 +17,97 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'merge_group' }}
 
 jobs:
-  analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  # Every package job is gated on this one, and only on this one. `Quality Gate`
+  # relies on that: it accepts a skipped job only because a skip cannot mean
+  # anything other than "this package was untouched".
+  affected:
+    name: Affected packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      cliweave: ${{ steps.detect.outputs.cliweave }}
+      dartage: ${{ steps.detect.outputs.dartage }}
+      ptyworld: ${{ steps.detect.outputs.ptyworld }}
+      shipworld: ${{ steps.detect.outputs.shipworld }}
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
         with:
-          sdk: 3.12.2
-      - run: dart pub get
+          # `git diff` below needs the pull request's base commit, which a
+          # shallow clone does not have.
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-workspace
+        with:
+          # `tool/affected_packages.dart` imports nothing outside `dart:`, so it
+          # runs straight from the checkout and keeps this job off the critical
+          # path.
+          pub-get: "false"
+      - id: detect
+        name: Detect affected packages
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --name-only "$BASE_SHA...$HEAD_SHA" > changed-files.txt
+            cat changed-files.txt
+            dart run tool/affected_packages.dart --changed-files changed-files.txt
+          else
+            # `push` to main and `merge_group` always run everything. The queue
+            # re-resolves dependencies against a moving `main` with no committed
+            # `pubspec.lock`, so a narrowed run there is exactly the one that
+            # would miss a break.
+            dart run tool/affected_packages.dart --all
+          fi
+
+  analyze:
+    name: Analyze
+    # Repository-wide and cheap, so it is not gated on the affected packages.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-workspace
       - run: dart format --output=none --set-exit-if-changed .
       - run: dart analyze --fatal-infos
+      # The root workspace package's own tests: the coverage parser and the
+      # affected-package graph that gates every job below.
+      - run: dart test
 
   cliweave:
     name: cliweave (${{ matrix.os }})
+    needs: affected
+    if: needs.affected.outputs.cliweave == 'true'
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-26
-          - windows-2025
+        include:
+          - os: ubuntu-24.04
+            coverage: true
+          - os: macos-26
+          - os: windows-2025
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
-      - run: dart test
+      - uses: ./.github/actions/setup-workspace
+      - if: ${{ !matrix.coverage }}
+        run: dart test
         working-directory: packages/cliweave
+      # `verify_coverage.dart` runs the same suite with the same exclusions, so
+      # the coverage leg replaces the plain run instead of repeating it.
+      - if: matrix.coverage
+        run: dart run tool/verify_coverage.dart cliweave
+      - if: ${{ always() && matrix.coverage }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-cliweave
+          path: coverage
+          if-no-files-found: error
 
   cliweave-shell-e2e:
     name: cliweave completion e2e (${{ matrix.name }})
+    needs: affected
+    if: needs.affected.outputs.cliweave == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -60,7 +116,7 @@ jobs:
           # only changes what the run displays. `Quality Gate` is the single
           # check main requires, and renaming that one does break merging.
           - name: bash-zsh-fish
-            os: ubuntu-latest
+            os: ubuntu-24.04
             shells: bash,zsh,fish
           - name: powershell
             os: windows-2025
@@ -80,47 +136,69 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
       - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install --yes fish zsh
       - if: runner.os == 'macOS'
         run: brew install fish
-      - run: dart pub get
+      - uses: ./.github/actions/setup-workspace
       - run: dart test -t e2e
         working-directory: packages/cliweave
         env:
           CLIWEAVE_E2E_SHELLS: ${{ matrix.shells }}
           CLIWEAVE_E2E_SHELL_BASH: ${{ matrix.bash }}
 
+  cliweave-quality:
+    name: cliweave quality
+    needs: affected
+    if: needs.affected.outputs.cliweave == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-workspace
+      - run: dart doc
+        working-directory: packages/cliweave
+      - run: dart pub publish --dry-run
+        working-directory: packages/cliweave
+
   dartage:
     name: dartage (${{ matrix.os }})
+    needs: affected
+    if: needs.affected.outputs.dartage == 'true'
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-26
-          - windows-2025
+        include:
+          - os: ubuntu-24.04
+            coverage: true
+          - os: macos-26
+          - os: windows-2025
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
-      - run: dart test -x interop
+      - uses: ./.github/actions/setup-workspace
+      - if: ${{ !matrix.coverage }}
+        run: dart test -x interop
         working-directory: packages/dartage
+      - if: matrix.coverage
+        run: dart run tool/verify_coverage.dart dartage
+      - if: ${{ always() && matrix.coverage }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-dartage
+          path: coverage
+          if-no-files-found: error
 
   dartage-interop:
     name: dartage interop (${{ matrix.os }})
+    needs: affected
+    if: needs.affected.outputs.dartage == 'true'
     strategy:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-24.04
           - windows-2025
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
@@ -134,149 +212,143 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: packages/dartage/test/interop/pnpm-lock.yaml
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
+      - uses: ./.github/actions/setup-workspace
       - run: pnpm install --frozen-lockfile
         working-directory: packages/dartage/test/interop
       - run: dart test -t interop
         working-directory: packages/dartage
 
-  coverage:
-    name: Package coverage (95% minimum)
-    runs-on: ubuntu-latest
+  dartage-quality:
+    name: dartage quality
+    needs: affected
+    if: needs.affected.outputs.dartage == 'true'
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
-      - run: dart test test/lcov_test.dart
-      - run: dart run tool/verify_coverage.dart cliweave dartage
-      - if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: package-coverage
-          path: coverage
-          if-no-files-found: error
-
-  shipworld-coverage:
-    name: shipworld coverage (95% minimum)
-    runs-on: windows-2025
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
-      - run: dart run tool/verify_coverage.dart shipworld
-      - if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: shipworld-coverage
-          path: coverage
-          if-no-files-found: error
+      - uses: ./.github/actions/setup-workspace
+      - run: dart doc
+        working-directory: packages/dartage
+      - run: dart pub publish --dry-run
+        working-directory: packages/dartage
 
   ptyworld:
     name: ptyworld (${{ matrix.os }})
+    needs: affected
+    if: needs.affected.outputs.ptyworld == 'true'
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-26
-          - windows-2025
+        include:
+          - os: ubuntu-24.04
+            coverage: true
+          - os: macos-26
+          - os: windows-2025
     runs-on: ${{ matrix.os }}
     # The suite spawns real terminals and waits on child processes; the Windows
     # ConPTY cases are the slowest in this repository.
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
       # No C toolchain setup: `hook/build.dart` finds clang/gcc on Linux, the
       # Xcode command line tools on macOS, and MSVC through vswhere on Windows.
       # `-lutil` and <pty.h> come from libc6-dev, present on the Ubuntu image.
-      - run: dart pub get
-      - run: dart test
+      - uses: ./.github/actions/setup-workspace
+      - if: ${{ !matrix.coverage }}
+        run: dart test
         working-directory: packages/ptyworld
-
-  ptyworld-coverage:
-    name: ptyworld coverage (95% minimum)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
-      - run: dart run tool/verify_coverage.dart ptyworld
-      - if: always()
+      - if: matrix.coverage
+        run: dart run tool/verify_coverage.dart ptyworld
+      - if: ${{ always() && matrix.coverage }}
         uses: actions/upload-artifact@v7
         with:
-          name: ptyworld-coverage
+          name: coverage-ptyworld
           path: coverage
           if-no-files-found: error
 
-  package-quality:
-    name: Package quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
-      - run: dart doc
-        working-directory: packages/cliweave
-      - run: dart pub publish --dry-run
-        working-directory: packages/cliweave
-      - run: dart doc
-        working-directory: packages/dartage
-      - run: dart pub publish --dry-run
-        working-directory: packages/dartage
-
   shipworld:
     name: shipworld (${{ matrix.os }})
+    needs: affected
+    if: needs.affected.outputs.shipworld == 'true'
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-26
-          - windows-2025
+        include:
+          - os: ubuntu-24.04
+          - os: macos-26
+          # Coverage is measured on Windows: shipworld's Windows SDK-tool
+          # discovery is guarded by `Platform.isWindows`, so those branches only
+          # execute here and the 95% gate is only reachable on this leg.
+          - os: windows-2025
+            coverage: true
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
-      - run: dart test
+      - uses: ./.github/actions/setup-workspace
+      - if: ${{ !matrix.coverage }}
+        run: dart test
         working-directory: packages/shipworld
+      - if: matrix.coverage
+        run: dart run tool/verify_coverage.dart shipworld
+      - if: ${{ always() && matrix.coverage }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-shipworld
+          path: coverage
+          if-no-files-found: error
 
   shipworld-quality:
     name: shipworld quality
-    runs-on: ubuntu-latest
+    needs: affected
+    if: needs.affected.outputs.shipworld == 'true'
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.12.2
-      - run: dart pub get
+      - uses: ./.github/actions/setup-workspace
       - run: dart pub global activate pana 0.23.14
       - run: dart run packages/shipworld/tool/validate_standalone.dart
 
+  shipworld-homebrew-render:
+    name: shipworld homebrew render
+    needs: affected
+    if: needs.affected.outputs.shipworld == 'true'
+    # Formula and Cask rendering only reads artifact names and hashes, so it
+    # runs against fabricated files and does not wait on a Flutter build.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-workspace
+      - name: Validate Formula and Cask rendering
+        run: |
+          fixture=packages/shipworld/test/fixtures/flutter_app
+          mkdir -p "$fixture/formula-artifacts"
+          # The fixture target declares a directory payload, so its Homebrew
+          # artifacts are archives rather than bare executables, and it lists
+          # three platforms rather than all four.
+          for name in shipworld-fixture-macos-arm64 shipworld-fixture-macos-x64 \
+            shipworld-fixture-linux-x64; do
+            printf '%s\n' "$name" > "$fixture/formula-artifacts/$name.tar.gz"
+          done
+          printf 'archive\n' > "$fixture/ShipworldFixture.zip"
+          dart run packages/shipworld/bin/shipworld.dart package homebrew formula fixture \
+            --config "$fixture/shipworld.yaml" \
+            --artifacts-dir "$fixture/formula-artifacts" \
+            --output "$fixture/shipworld-fixture.rb"
+          dart run packages/shipworld/bin/shipworld.dart package homebrew cask fixture \
+            --config "$fixture/shipworld.yaml" \
+            --archive "$fixture/ShipworldFixture.zip" \
+            --url https://example.invalid/ShipworldFixture.zip \
+            --output "$fixture/shipworld-fixture-cask.rb"
+          ruby -c "$fixture/shipworld-fixture.rb"
+          ruby -c "$fixture/shipworld-fixture-cask.rb"
+
   shipworld-flutter-payload:
     name: shipworld flutter payload (${{ matrix.platform }})
+    needs: affected
+    if: needs.affected.outputs.shipworld == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -297,6 +369,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+      # This job uses the Dart SDK bundled with Flutter rather than the shared
+      # workspace setup, so the fixture builds against one toolchain.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -407,30 +481,6 @@ jobs:
           sudo dpkg -i "$root/dist/shipworld-fixture.deb"
           test -x /usr/bin/shipworld_fixture
           sudo dpkg -r shipworld-fixture
-      - name: Validate Formula and Cask rendering
-        if: matrix.platform == 'linux'
-        run: |
-          fixture=packages/shipworld/test/fixtures/flutter_app
-          mkdir -p "$fixture/formula-artifacts"
-          # The fixture target declares a directory payload, so its Homebrew
-          # artifacts are archives rather than bare executables, and it lists
-          # three platforms rather than all four.
-          for name in shipworld-fixture-macos-arm64 shipworld-fixture-macos-x64 \
-            shipworld-fixture-linux-x64; do
-            printf '%s\n' "$name" > "$fixture/formula-artifacts/$name.tar.gz"
-          done
-          printf 'archive\n' > "$fixture/ShipworldFixture.zip"
-          dart run packages/shipworld/bin/shipworld.dart package homebrew formula fixture \
-            --config "$fixture/shipworld.yaml" \
-            --artifacts-dir "$fixture/formula-artifacts" \
-            --output "$fixture/shipworld-fixture.rb"
-          dart run packages/shipworld/bin/shipworld.dart package homebrew cask fixture \
-            --config "$fixture/shipworld.yaml" \
-            --archive "$fixture/ShipworldFixture.zip" \
-            --url https://example.invalid/ShipworldFixture.zip \
-            --output "$fixture/shipworld-fixture-cask.rb"
-          ruby -c "$fixture/shipworld-fixture.rb"
-          ruby -c "$fixture/shipworld-fixture-cask.rb"
 
   quality-gate:
     name: Quality Gate
@@ -441,23 +491,30 @@ jobs:
     needs:
       # Every job above belongs here. One left out is silently exempt from the
       # only status check main requires.
+      - affected
       - analyze
       - cliweave
       - cliweave-shell-e2e
+      - cliweave-quality
       - dartage
       - dartage-interop
-      - coverage
+      - dartage-quality
       - ptyworld
-      - ptyworld-coverage
-      - shipworld-coverage
-      - package-quality
       - shipworld
       - shipworld-quality
+      - shipworld-homebrew-render
       - shipworld-flutter-payload
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Require every quality job to succeed
+      - name: Require every quality job to succeed or be skipped
         env:
           QUALITY_RESULTS: ${{ toJSON(needs) }}
-        run: jq -e 'all(.[]; .result == "success")' <<< "$QUALITY_RESULTS"
+        run: |
+          # `affected` must have succeeded. Given that, no other job can be
+          # skipped for any reason except its own package being untouched:
+          # `needs.affected` is the only thing their `if:` conditions read. Add
+          # a second `needs` to one of them and this stops being true.
+          jq -e '.affected.result == "success"' <<< "$QUALITY_RESULTS"
+          jq -e 'all(.[]; .result == "success" or .result == "skipped")' \
+            <<< "$QUALITY_RESULTS"
