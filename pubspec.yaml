@@ -1,12 +1,15 @@
 name: dart_packages_workspace
 publish_to: none
 
+# `ptyworld` requires 3.12.2 for `hooks` 2.x and `code_assets` 1.2. The other
+# members stay at ^3.12.0 so their published SDK floor is unchanged.
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.12.2
 
 workspace:
   - packages/cliweave
   - packages/dartage
+  - packages/ptyworld
   - packages/shipworld
 
 dev_dependencies:

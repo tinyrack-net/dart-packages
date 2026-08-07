@@ -33,10 +33,13 @@ Future<void> main(List<String> arguments) async {
 
   // `shipworld` is checked on a Windows runner because its Windows SDK-tool
   // discovery is guarded by `Platform.isWindows`; the others are checked on
-  // Linux. Passing package names restricts the run to those packages.
+  // Linux. `ptyworld` runs its own job because it builds a C native asset, so
+  // a toolchain failure there must not be confused with a coverage regression
+  // in the pure-Dart packages. Passing package names restricts the run.
   const allPackages = [
     _PackageCoverage(name: 'cliweave', testArguments: ['-x', 'e2e']),
     _PackageCoverage(name: 'dartage', testArguments: ['-x', 'interop']),
+    _PackageCoverage(name: 'ptyworld', testArguments: []),
     _PackageCoverage(name: 'shipworld', testArguments: []),
   ];
   final packages = arguments.isEmpty

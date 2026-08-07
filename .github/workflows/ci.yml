@@ -180,6 +180,49 @@ jobs:
           path: coverage
           if-no-files-found: error
 
+  ptyworld:
+    name: ptyworld (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-26
+          - windows-2025
+    runs-on: ${{ matrix.os }}
+    # The suite spawns real terminals and waits on child processes; the Windows
+    # ConPTY cases are the slowest in this repository.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      # No C toolchain setup: `hook/build.dart` finds clang/gcc on Linux, the
+      # Xcode command line tools on macOS, and MSVC through vswhere on Windows.
+      # `-lutil` and <pty.h> come from libc6-dev, present on the Ubuntu image.
+      - run: dart pub get
+      - run: dart test
+        working-directory: packages/ptyworld
+
+  ptyworld-coverage:
+    name: ptyworld coverage (95% minimum)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.12.2
+      - run: dart pub get
+      - run: dart run tool/verify_coverage.dart ptyworld
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ptyworld-coverage
+          path: coverage
+          if-no-files-found: error
+
   package-quality:
     name: Package quality
     runs-on: ubuntu-latest
@@ -404,6 +447,8 @@ jobs:
       - dartage
       - dartage-interop
       - coverage
+      - ptyworld
+      - ptyworld-coverage
       - shipworld-coverage
       - package-quality
       - shipworld

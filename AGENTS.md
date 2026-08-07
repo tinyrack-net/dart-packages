@@ -7,6 +7,11 @@ public packages.
 
 - `packages/cliweave` is a general-purpose typed CLI framework.
 - `packages/dartage` is a pure-Dart age v1 implementation.
+- `packages/ptyworld` is cross-platform pseudo-terminal process support. It is
+  the only package here that builds native code: `hook/build.dart` compiles
+  `src/ptyworld.c` into a C native asset on Linux, macOS, and Windows. It is
+  not published to pub.dev yet, so it is the one package with no `dart doc` or
+  `dart pub publish --dry-run` check; consumers pin it by commit SHA.
 - `packages/shipworld` is reusable release, signing, and desktop-packaging
   tooling. It is published to pub.dev from this workspace via the
   `shipworld-v*` tag trigger, and it consumes `cliweave` from the workspace.
@@ -29,8 +34,17 @@ From the repository root, run `dart run tool/verify_coverage.dart` to check the
 are checked on Linux (`dart run tool/verify_coverage.dart cliweave dartage`);
 `shipworld` is checked on **Windows** (`dart run tool/verify_coverage.dart
 shipworld`), because its Windows SDK-tool discovery is guarded by
-`Platform.isWindows` and only executes on a Windows runner. Passing no package
-names runs all three (use that only on Windows).
+`Platform.isWindows` and only executes on a Windows runner. `ptyworld` is
+checked on Linux in its own job (`dart run tool/verify_coverage.dart ptyworld`)
+so that a C toolchain failure is not mistaken for a coverage regression in the
+pure-Dart packages. Passing no package names runs all four (use that only on
+Windows).
+
+`ptyworld` covers its operating-system failure branches by substituting
+`PtyBindings` through `PtyProcess.withBindings`. A fake must also stub
+`attachFinalizer`/`detachFinalizer`: handing a placeholder handle to the real
+`NativeFinalizer` frees a fabricated pointer during a later collection and
+crashes the test isolate.
 
 For `shipworld`, also run `dart run packages/shipworld/tool/validate_standalone.dart`,
 which copies the package out of the workspace and runs `pub get`, analyze, test,

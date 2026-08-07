@@ -1,0 +1,38 @@
+name: ptyworld
+description: >-
+  Cross-platform pseudo-terminal processes for Dart: spawn a child in a real
+  PTY on Linux, macOS, and Windows, stream its raw output, queue ordered
+  non-blocking input, resize the window, and terminate the process tree.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+repository: https://github.com/tinyrack-net/dart-packages
+issue_tracker: https://github.com/tinyrack-net/dart-packages/issues
+topics:
+  - pty
+  - terminal
+  - process
+  - ffi
+
+environment:
+  sdk: ^3.12.2
+
+platforms:
+  linux:
+  macos:
+  windows:
+
+dependencies:
+  # `code_assets`, `hooks`, and `native_toolchain_c` must stay runtime
+  # dependencies, not dev dependencies: consuming Dart and Flutter builds
+  # execute `hook/build.dart` after dependency resolution, so moving them
+  # breaks the native asset for every consumer.
+  code_assets: ^1.2.1
+  ffi: ^2.2.0
+  hooks: ^2.0.2
+  meta: ^1.16.0
+  native_toolchain_c: ^0.19.2
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.31.0
