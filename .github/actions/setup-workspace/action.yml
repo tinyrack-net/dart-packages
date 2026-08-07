@@ -1,0 +1,39 @@
+name: Set up the Dart workspace
+description: >
+  Installs the pinned Dart SDK, restores the pub cache, and resolves the
+  workspace. Every job that needs Dart uses this so the SDK version is pinned in
+  one place.
+
+inputs:
+  pub-get:
+    description: Resolve workspace dependencies. Set to false for a job that
+      only runs a `dart:`-only script and does not need the packages.
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: dart-lang/setup-dart@v1
+      with:
+        sdk: 3.12.2
+
+    # `pubspec.lock` is deliberately not committed, so this is a download
+    # warm-up rather than a reproducible restore: a partial hit still leaves
+    # `pub get` fetching only what moved. The key tracks the pubspecs because
+    # that is the closest thing to a manifest this workspace has.
+    #
+    # A job that resolves nothing must not touch this cache. A cache key is
+    # immutable once written, and the `affected` job is both the first to start
+    # and the first to finish, so letting it save an unpopulated `PUB_CACHE`
+    # would claim the key and leave every real job with an empty hit until the
+    # pubspecs change.
+    - if: inputs.pub-get == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.PUB_CACHE }}
+        key: pub-${{ runner.os }}-3.12.2-${{ hashFiles('**/pubspec.yaml') }}
+        restore-keys: pub-${{ runner.os }}-3.12.2-
+
+    - if: inputs.pub-get == 'true'
+      run: dart pub get
+      shell: bash
