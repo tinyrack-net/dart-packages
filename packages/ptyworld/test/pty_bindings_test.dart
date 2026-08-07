@@ -6,6 +6,7 @@ import 'package:ptyworld/ptyworld.dart';
 import 'package:ptyworld/src/pty_bindings.dart';
 import 'package:test/test.dart';
 
+// Scratch edit: verifies that a ptyworld-only change narrows the CI run.
 /// Drives [PtyProcess] through operating-system failures that a healthy
 /// pseudo-terminal never produces.
 ///
