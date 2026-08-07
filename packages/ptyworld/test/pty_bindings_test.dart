@@ -199,4 +199,10 @@ void main() {
     bindings.reportExit(0);
     expect(await process.exitCode, 0);
   });
+
+  // Scratch: deliberately failing. Confirms the gate stays red when a gated
+  // job fails, rather than being waved through by the skipped-job allowance.
+  test('scratch deliberate failure', () {
+    expect(1, 2);
+  });
 }
