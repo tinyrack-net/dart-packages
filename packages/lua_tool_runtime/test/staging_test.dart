@@ -37,6 +37,41 @@ void main() {
     );
   });
 
+  test(
+    'uses the supplied CMake executable for every native build step',
+    () async {
+      final root = await Directory.systemTemp.createTemp('lua-stage-cmake-');
+      final destination = await Directory.systemTemp.createTemp(
+        'lua-stage-cmake-output-',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      addTearDown(() => destination.delete(recursive: true));
+      final native = Directory(p.join(root.path, 'native'))..createSync();
+      File(p.join(native.path, 'bootstrap.lua')).writeAsStringSync('bootstrap');
+      final runner = FakeBuildRunner();
+      final cmakeExecutable = p.join(
+        'C:',
+        'Program Files',
+        'CMake',
+        'cmake.exe',
+      );
+
+      await stageLuaToolRuntime(
+        destination: destination.path,
+        packageRoot: root.path,
+        buildDirectory: p.join(root.path, 'build'),
+        cmakeExecutable: cmakeExecutable,
+        runner: runner,
+      );
+
+      expect(runner.commands, hasLength(2));
+      expect(
+        runner.commands.map((command) => command.first),
+        everyElement(cmakeExecutable),
+      );
+    },
+  );
+
   test('rejects a failed native build and invalid CLI modes', () async {
     final runner = FakeBuildRunner(failAt: 1);
     await expectLater(

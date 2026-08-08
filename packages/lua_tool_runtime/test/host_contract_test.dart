@@ -9,15 +9,20 @@ import 'package:test/test.dart';
 
 void main() {
   late Directory distributionDirectory;
+  late Directory buildDirectory;
   late LuaHostCommand command;
 
   setUpAll(() async {
     distributionDirectory = await Directory.systemTemp.createTemp(
       'lua-tool-runtime-contract-',
     );
+    buildDirectory = await Directory.systemTemp.createTemp(
+      'lua-tool-runtime-build-',
+    );
     final distribution = await stageLuaToolRuntime(
       destination: distributionDirectory.path,
       buildMode: LuaBuildMode.debug,
+      buildDirectory: buildDirectory.path,
     );
     command = LuaHostCommand(
       executable: distribution.hostPath,
@@ -25,7 +30,10 @@ void main() {
     );
   });
 
-  tearDownAll(() => distributionDirectory.delete(recursive: true));
+  tearDownAll(() async {
+    await distributionDirectory.delete(recursive: true);
+    await buildDirectory.delete(recursive: true);
+  });
 
   test('runs parallel tools in a sandbox and retains JSON null', () async {
     final dispatcher = ParallelDispatcher();

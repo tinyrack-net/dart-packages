@@ -5,10 +5,13 @@ import 'package:lua_tool_runtime/lua_tool_runtime.dart';
 Future<void> main(List<String> arguments) async {
   final destination = _value(arguments, '--destination');
   final rawMode = _value(arguments, '--build-mode') ?? 'release';
+  final cmakeExecutable = _value(arguments, '--cmake-executable') ?? 'cmake';
+  final buildDirectory = _value(arguments, '--build-directory');
   if (destination == null) {
     stderr.writeln(
       'usage: dart run lua_tool_runtime:stage '
-      '--destination DIR [--build-mode debug|release]',
+      '--destination DIR [--build-mode debug|release] '
+      '[--cmake-executable PATH] [--build-directory DIR]',
     );
     exitCode = 64;
     return;
@@ -17,6 +20,8 @@ Future<void> main(List<String> arguments) async {
     await stageLuaToolRuntime(
       destination: destination,
       buildMode: LuaBuildMode.parse(rawMode),
+      cmakeExecutable: cmakeExecutable,
+      buildDirectory: buildDirectory,
     );
   } on Object catch (error) {
     stderr.writeln(error);
