@@ -21,6 +21,12 @@ dart run lua_tool_runtime:stage \
   --build-mode release
 ```
 
+Pass `--cmake-executable PATH` when CMake is supplied by a parent build system
+instead of being available on `PATH`. The Dart API exposes the same choice as
+the optional `cmakeExecutable` argument to `stageLuaToolRuntime`. Parent build
+systems can also pass `--build-directory DIR` to keep native intermediates in
+their own build tree; this is especially useful for Windows path-length limits.
+
 The destination contains `lua-tool-runtime-host` (or the Windows `.exe`) and a
 `lua_tool_runtime` data directory. Include both in the application or CLI
 bundle and sign the helper with the containing product.

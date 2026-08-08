@@ -1,3 +1,8 @@
+## 0.1.1
+
+- Allow native-host staging to use an explicitly supplied CMake executable and
+  build directory.
+
 ## 0.1.0
 
 - Initial release with sandboxed Lua 5.5.1 execution, resumable cells, parallel

@@ -61,6 +61,7 @@ final class LuaHostBuildException implements Exception {
 Future<LuaHostDistribution> stageLuaToolRuntime({
   required String destination,
   LuaBuildMode buildMode = LuaBuildMode.release,
+  String cmakeExecutable = 'cmake',
   String? packageRoot,
   String? buildDirectory,
   LuaBuildCommandRunner runner = const IoLuaBuildCommandRunner(),
@@ -75,7 +76,7 @@ Future<LuaHostDistribution> stageLuaToolRuntime({
         _packageSourceIdentity(root),
         '${Platform.operatingSystem}-${buildMode.name}',
       );
-  final configure = await runner.run('cmake', [
+  final configure = await runner.run(cmakeExecutable, [
     '-S',
     p.join(root, 'native'),
     '-B',
@@ -85,7 +86,7 @@ Future<LuaHostDistribution> stageLuaToolRuntime({
   if (configure != 0) {
     throw LuaHostBuildException('CMake configure exited with $configure.');
   }
-  final compile = await runner.run('cmake', [
+  final compile = await runner.run(cmakeExecutable, [
     '--build',
     build,
     '--config',
