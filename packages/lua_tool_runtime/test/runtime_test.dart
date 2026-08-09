@@ -32,7 +32,17 @@ void main() {
     final pending = session.execute(
       const LuaExecuteRequest(
         source: 'text(tools.echo({value="hello"}).output)',
-        tools: [LuaToolDefinition(name: 'echo', description: 'Echo')],
+        tools: [
+          LuaToolDefinition(
+            name: 'echo',
+            description: 'Echo',
+            kind: 'function',
+            namespace: 'sample',
+            exposure: 'nested',
+            inputSchema: {'type': 'object'},
+            outputSchema: {'type': 'string'},
+          ),
+        ],
         yieldTime: Duration(seconds: 1),
         maxOutputTokens: 1000,
       ),
@@ -40,6 +50,18 @@ void main() {
     );
     await pumpEventQueue();
     final cellId = launcher.process.writtenFrame(0)['cell_id']! as String;
+    final initPayload = Map<String, Object?>.from(
+      launcher.process.writtenFrame(0)['payload']! as Map,
+    );
+    expect((initPayload['tools'] as List).single, {
+      'name': 'echo',
+      'description': 'Echo',
+      'kind': 'function',
+      'namespace': 'sample',
+      'exposure': 'nested',
+      'input_schema': {'type': 'object'},
+      'output_schema': {'type': 'string'},
+    });
 
     launcher.process.emitFrame(cellId, 1, 'tool_batch', {
       'calls': [
@@ -400,6 +422,7 @@ void main() {
       process.emitFrame(cellId, 3, 'completed', {'store': <String, Object?>{}});
       var delta = await pending;
       final output = StringBuffer(delta.output);
+      final notifications = <Object?>[...delta.notifications];
       if (delta.running) {
         delta = await session.wait(
           LuaWaitRequest(
@@ -410,8 +433,12 @@ void main() {
           LuaExecutionContext(dispatcher: dispatcher),
         );
         output.write(delta.output);
+        notifications.addAll(delta.notifications);
       }
-      expect(output.toString(), contains('{"ok":true}'));
+      expect(notifications, [
+        <String, Object?>{'ok': true},
+      ]);
+      expect(output.toString(), isNot(contains('{"ok":true}')));
 
       final invalid = startInvalidOutput(session, launcher);
       expect((await invalid).error, isA<LuaProtocolException>());
@@ -507,7 +534,7 @@ final class RecordingDispatcher implements LuaToolDispatcher<String> {
   Future<LuaToolResult<String>> invoke(LuaToolInvocation invocation) async {
     calls.add('${invocation.name}:${invocation.arguments['value']}');
     return const LuaToolResult(
-      output: 'hello',
+      value: 'hello',
       resources: [
         LuaOpaqueResource(
           value: 'resource-value',

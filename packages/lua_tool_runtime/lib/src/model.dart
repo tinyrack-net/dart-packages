@@ -46,7 +46,11 @@ final class LuaToolDefinition {
   const LuaToolDefinition({
     required this.name,
     required this.description,
+    this.kind = 'function',
+    this.namespace,
+    this.exposure = 'nested',
     this.inputSchema = const <String, Object?>{},
+    this.outputSchema,
   });
 
   /// Dispatcher name.
@@ -55,8 +59,20 @@ final class LuaToolDefinition {
   /// Human-readable behavior.
   final String description;
 
+  /// Wire-level tool kind.
+  final String kind;
+
+  /// Provider namespace, when the tool is namespaced.
+  final String? namespace;
+
+  /// How the owning harness exposes this tool.
+  final String exposure;
+
   /// JSON Schema for the argument table.
   final Map<String, Object?> inputSchema;
+
+  /// JSON Schema produced by the tool, when declared.
+  final Map<String, Object?>? outputSchema;
 }
 
 /// Starts a fresh Lua cell.
@@ -144,14 +160,16 @@ final class LuaOpaqueResource<T extends Object> {
 final class LuaToolResult<T extends Object> {
   /// Creates a tool result.
   const LuaToolResult({
-    required this.output,
+    required this.value,
     this.isError = false,
     this.resources = const [],
     this.content = const <Map<String, Object?>>[],
+    this.structuredContent,
+    this.meta = const <String, Object?>{},
   });
 
-  /// Textual result.
-  final String output;
+  /// Natural string, scalar, list, or object returned to Lua.
+  final Object? value;
 
   /// Whether the tool reported an error.
   final bool isError;
@@ -161,6 +179,12 @@ final class LuaToolResult<T extends Object> {
 
   /// Additional JSON-compatible content blocks.
   final List<Map<String, Object?>> content;
+
+  /// Provider-owned structured result.
+  final Object? structuredContent;
+
+  /// Provider metadata retained with the result.
+  final Map<String, Object?> meta;
 }
 
 /// Dispatches tools without coupling the runtime to an agent implementation.
@@ -198,6 +222,7 @@ final class LuaCellDelta<T extends Object> {
     this.error,
     this.resources = const [],
     this.emittedResources = const [],
+    this.notifications = const <Object?>[],
   });
 
   /// Session-local cell identifier.
@@ -220,6 +245,9 @@ final class LuaCellDelta<T extends Object> {
 
   /// Resources explicitly emitted with `image`, `audio`, or `generated_image`.
   final List<LuaOpaqueResource<T>> emittedResources;
+
+  /// Immediate notification values drained separately from normal output.
+  final List<Object?> notifications;
 }
 
 /// Base type for classified Lua runtime failures.

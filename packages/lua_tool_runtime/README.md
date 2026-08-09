@@ -44,8 +44,22 @@ final session = runtime.createSession();
 
 final delta = await session.execute(
   const LuaExecuteRequest(
-    source: 'text(tools.read({path="README.md"}).output)',
-    tools: [LuaToolDefinition(name: 'read', description: 'Read a file')],
+    source: 'text(tools.read({path="README.md"}))',
+    tools: [
+      LuaToolDefinition(
+        name: 'read',
+        description: 'Read a file',
+        namespace: 'files',
+        inputSchema: {
+          'type': 'object',
+          'properties': {
+            'path': {'type': 'string'},
+          },
+          'required': ['path'],
+        },
+        outputSchema: {'type': 'string'},
+      ),
+    ],
     yieldTime: Duration(seconds: 10),
     maxOutputTokens: 10000,
   ),
@@ -55,7 +69,12 @@ final delta = await session.execute(
 
 `LuaToolDispatcher<T>` remains responsible for authorization and actual tool
 execution. The runtime preserves `T` without serializing it and only gives Lua
-a cell-scoped handle.
+a cell-scoped handle. Nested tools return strings, numbers, booleans, lists, and
+objects directly to Lua. Enriched results retain their `value`, `content`,
+`structured_content`, `_meta`, error state, and opaque attachment handles.
+`notify(value)` is drained through `LuaCellDelta.notifications`, separately from
+normal output. An unawaited timer is detached and does not keep the cell alive;
+calling `await` on its task makes it part of the cell lifetime.
 
 ## Testing
 
