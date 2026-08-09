@@ -213,6 +213,7 @@ local function await_task(task)
   if type(task) ~= 'table' or not task.id or tasks[task.id] ~= task then
     error('await expects a task returned by spawn', 2)
   end
+  task.detached = false
   if task.done then
     if task.error then error(task.error, 2) end
     return table.unpack(task.values, 1, task.values.n)
@@ -269,6 +270,7 @@ safe_env.set_timeout = function(fn, milliseconds)
     coroutine.yield({kind = 'sleep', milliseconds = milliseconds or 0})
     if not cancelled_timers[timer.id] then fn() end
   end)
+  timer.detached = true
   return timer
 end
 safe_env.ALL_TOOLS = init.tools or {}
@@ -297,8 +299,16 @@ end
 while true do
   local calls, call_tasks = {}, {}
   while #runnable > 0 do
-    local current = table.remove(runnable, 1)
+    local selected = 1
+    for index, candidate in ipairs(runnable) do
+      if not candidate.task.detached then selected = index; break end
+    end
+    local current = table.remove(runnable, selected)
     local task = current.task
+    if task.detached and #calls > 0 then
+      table.insert(runnable, 1, current)
+      break
+    end
     local resumed = table.pack(coroutine.resume(task.coroutine, table.unpack(current.values, 1, current.values.n)))
     if not resumed[1] or coroutine.status(task.coroutine) == 'dead' then
       finish_task(task, resumed)
@@ -332,6 +342,11 @@ while true do
     end
   end
   if #calls > 0 then
+    local attached_live = false
+    for _, task in pairs(tasks) do
+      if not task.done and not task.detached then attached_live = true; break end
+    end
+    if not attached_live then send('completed', {store=session_store}); return end
     send('tool_batch', {calls = calls})
     local response = receive('tool_results')
     if response.type == 'terminate' then send('terminated', {store=session_store}); return end

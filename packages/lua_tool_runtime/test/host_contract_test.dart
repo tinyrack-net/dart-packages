@@ -47,7 +47,7 @@ void main() {
 local first = spawn(function() return tools.echo({value="a"}) end)
 local second = spawn(function() return tools.echo({value="b"}) end)
 local values = await_all({first, second})
-text(values[1][1].output .. values[2][1].output)
+text(values[1][1] .. values[2][1])
 text(tostring(io) .. ":" .. tostring(os) .. ":" .. tostring(package))
 store("null-value", NULL)
 local cyclic = {}; cyclic.self = cyclic
@@ -89,6 +89,44 @@ text(tostring(pcall(function() store("cyclic", cyclic) end)))
     );
     expect(stored.output, contains('null'));
   });
+
+  test(
+    'pending timers do not keep an otherwise completed cell alive',
+    () async {
+      final runtime = _runtime(command);
+      addTearDown(runtime.close);
+      final session = runtime.createSession();
+      final elapsed = Stopwatch()..start();
+      var delta = await session.execute(
+        const LuaExecuteRequest(
+          source: '''
+set_timeout(function() text("late") end, 60000)
+text("done")
+''',
+          yieldTime: Duration(seconds: 5),
+          maxOutputTokens: 1000,
+        ),
+        LuaExecutionContext(dispatcher: ParallelDispatcher()),
+        workingDirectory: Directory.current.path,
+      );
+      final output = StringBuffer(delta.output);
+      while (delta.running) {
+        delta = await session.wait(
+          LuaWaitRequest(
+            cellId: delta.cellId,
+            yieldTime: const Duration(seconds: 1),
+            maxOutputTokens: 1000,
+          ),
+          LuaExecutionContext(dispatcher: ParallelDispatcher()),
+        );
+        output.write(delta.output);
+      }
+      expect(delta.running, isFalse);
+      expect(output.toString(), contains('done'));
+      expect(output.toString(), isNot(contains('late')));
+      expect(elapsed.elapsed, lessThan(const Duration(seconds: 10)));
+    },
+  );
 
   test('classifies compile errors and memory exhaustion', () async {
     final runtime = _runtime(command);
@@ -193,7 +231,7 @@ final class ParallelDispatcher implements LuaToolDispatcher<String> {
     if (active > maximumActive) maximumActive = active;
     await Future<void>.delayed(const Duration(milliseconds: 20));
     active -= 1;
-    return LuaToolResult(output: invocation.arguments['value']! as String);
+    return LuaToolResult(value: invocation.arguments['value']! as String);
   }
 }
 

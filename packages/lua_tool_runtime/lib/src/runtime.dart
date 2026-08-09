@@ -238,6 +238,7 @@ final class _LuaCell<T extends Object> {
   final Set<String> _emittedHandles = {};
   final Set<String> _drainedHandles = {};
   final Set<String> _drainedEmittedHandles = {};
+  final List<Object?> _notifications = [];
   late final StreamSubscription<String> _subscription;
   LuaExecutionContext<T> context;
   final DateTime startedAt;
@@ -274,7 +275,11 @@ final class _LuaCell<T extends Object> {
         {
           'name': tool.name,
           'description': tool.description,
+          'kind': tool.kind,
+          'namespace': ?tool.namespace,
+          'exposure': tool.exposure,
           'input_schema': tool.inputSchema,
+          'output_schema': ?tool.outputSchema,
         },
     ],
     'store': store,
@@ -363,8 +368,10 @@ final class _LuaCell<T extends Object> {
   void _acceptOutput(Map<String, Object?> payload) {
     final kind = payload['kind']?.toString();
     final value = payload['value'];
-    if (kind == 'text' || kind == 'notify') {
+    if (kind == 'text') {
       _append(value is String ? value : jsonEncode(value));
+    } else if (kind == 'notify') {
+      _notifications.add(value);
     } else if (kind == 'image' ||
         kind == 'audio' ||
         kind == 'generated_image') {
@@ -428,19 +435,24 @@ final class _LuaCell<T extends Object> {
           'byte_size': resource.byteSize,
         });
       }
+      final enriched =
+          result.resources.isNotEmpty ||
+          result.content.isNotEmpty ||
+          result.structuredContent != null ||
+          result.meta.isNotEmpty ||
+          result.isError;
       return {
         'request_id': requestId,
-        'value': {
-          'output': result.output,
-          'is_error': result.isError,
-          'attachments': descriptors,
-          'content': [
-            {'type': 'text', 'text': result.output},
-            ...result.content,
-            for (final descriptor in descriptors)
-              {'type': 'attachment', ...descriptor},
-          ],
-        },
+        'value': enriched
+            ? <String, Object?>{
+                'value': result.value,
+                'is_error': result.isError,
+                'attachments': descriptors,
+                'content': result.content,
+                'structured_content': result.structuredContent,
+                '_meta': result.meta,
+              }
+            : result.value,
       };
     } on Object catch (error) {
       return _toolError(requestId, '$error');
@@ -502,6 +514,8 @@ final class _LuaCell<T extends Object> {
     if (identical(_changed, changed) && changed.isCompleted) {
       _changed = Completer<void>();
     }
+    final notifications = List<Object?>.of(_notifications);
+    _notifications.clear();
     return LuaCellDelta<T>(
       cellId: id,
       output: drain(maxTokens),
@@ -515,6 +529,7 @@ final class _LuaCell<T extends Object> {
         for (final handle in _emittedHandles)
           if (_drainedEmittedHandles.add(handle)) _resources[handle]!,
       ],
+      notifications: notifications,
     );
   }
 
