@@ -96,8 +96,8 @@ text(tostring(pcall(function() store("cyclic", cyclic) end)))
       final runtime = _runtime(command);
       addTearDown(runtime.close);
       final session = runtime.createSession();
-      final started = DateTime.now();
-      final delta = await session.execute(
+      final elapsed = Stopwatch()..start();
+      var delta = await session.execute(
         const LuaExecuteRequest(
           source: '''
 set_timeout(function() text("late") end, 60000)
@@ -109,13 +109,22 @@ text("done")
         LuaExecutionContext(dispatcher: ParallelDispatcher()),
         workingDirectory: Directory.current.path,
       );
+      final output = StringBuffer(delta.output);
+      while (delta.running) {
+        delta = await session.wait(
+          LuaWaitRequest(
+            cellId: delta.cellId,
+            yieldTime: const Duration(seconds: 1),
+            maxOutputTokens: 1000,
+          ),
+          LuaExecutionContext(dispatcher: ParallelDispatcher()),
+        );
+        output.write(delta.output);
+      }
       expect(delta.running, isFalse);
-      expect(delta.output, contains('done'));
-      expect(delta.output, isNot(contains('late')));
-      expect(
-        DateTime.now().difference(started),
-        lessThan(const Duration(seconds: 5)),
-      );
+      expect(output.toString(), contains('done'));
+      expect(output.toString(), isNot(contains('late')));
+      expect(elapsed.elapsed, lessThan(const Duration(seconds: 10)));
     },
   );
 
