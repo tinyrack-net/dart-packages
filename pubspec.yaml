@@ -12,6 +12,7 @@ workspace:
   - packages/lua_tool_runtime
   - packages/ptyworld
   - packages/shipworld
+  - packages/vtworld
 
 dev_dependencies:
   test: ^1.26.0

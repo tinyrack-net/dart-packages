@@ -1,0 +1,3491 @@
+{
+  "revision": "904ae935269eef5ec6a1415b64463c3d02eff1eb",
+  "source": "src/common/input/Keyboard.test.ts",
+  "cases": [
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On macOS platforms should return \\x1b[1;3A for alt+up",
+      "name": "Keyboard evaluateKeyEscapeSequence On macOS platforms should return \\x1b[1;3A for alt+up",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 38,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": true,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3A"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On macOS platforms should return \\x1b[1;3B for alt+down",
+      "name": "Keyboard evaluateKeyEscapeSequence On macOS platforms should return \\x1b[1;3B for alt+down",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 40,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": true,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3B"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On macOS platforms should return \\x1b[1;3C for alt+right",
+      "name": "Keyboard evaluateKeyEscapeSequence On macOS platforms should return \\x1b[1;3C for alt+right",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 39,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": true,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3C"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On macOS platforms should return \\x1b[1;3D for alt+left",
+      "name": "Keyboard evaluateKeyEscapeSequence On macOS platforms should return \\x1b[1;3D for alt+left",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 37,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": true,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3D"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On macOS platforms should return undefined for alt+a",
+      "name": "Keyboard evaluateKeyEscapeSequence On macOS platforms should return undefined for alt+a",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 65,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": true,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b[1;3A for alt+up",
+      "name": "Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b[1;3A for alt+up",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 38,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3A"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b[1;3B for alt+down",
+      "name": "Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b[1;3B for alt+down",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 40,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3B"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b[1;3C for alt+right",
+      "name": "Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b[1;3C for alt+right",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 39,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3C"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b[1;3D for alt+left",
+      "name": "Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b[1;3D for alt+left",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 37,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3D"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b\\x00 for ctrl+alt+space",
+      "name": "Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b\\x00 for ctrl+alt+space",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 32,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b\u0000"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b\\x20 for alt+space",
+      "name": "Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1b\\x20 for alt+space",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 32,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b "
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1ba for alt+a",
+      "name": "Keyboard evaluateKeyEscapeSequence On non-macOS platforms should return \\x1ba for alt+a",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 65,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001ba"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should handle lowercase letters",
+      "name": "Keyboard evaluateKeyEscapeSequence should handle lowercase letters",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 65,
+            "code": "",
+            "key": "a",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "a"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 189,
+            "code": "",
+            "key": "-",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "-"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should handle mobile arrow events",
+      "name": "Keyboard evaluateKeyEscapeSequence should handle mobile arrow events",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "UIKeyInputUpArrow",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[A"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "UIKeyInputUpArrow",
+            "type": ""
+          },
+          "applicationCursorMode": true,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bOA"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "UIKeyInputLeftArrow",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[D"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "UIKeyInputLeftArrow",
+            "type": ""
+          },
+          "applicationCursorMode": true,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bOD"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "UIKeyInputRightArrow",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[C"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "UIKeyInputRightArrow",
+            "type": ""
+          },
+          "applicationCursorMode": true,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bOC"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "UIKeyInputDownArrow",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[B"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "UIKeyInputDownArrow",
+            "type": ""
+          },
+          "applicationCursorMode": true,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bOB"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should handle uppercase letters",
+      "name": "Keyboard evaluateKeyEscapeSequence should handle uppercase letters",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 65,
+            "code": "",
+            "key": "A",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "A"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 49,
+            "code": "",
+            "key": "!",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "!"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x08 for ctrl+backspace",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x08 for ctrl+backspace",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 8,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\b"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[1;3A for alt+up",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[1;3A for alt+up",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 38,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3A"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[1;3B for alt+down",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[1;3B for alt+down",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 40,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3B"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[3;2~ for shift+delete",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[3;2~ for shift+delete",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 46,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[3;2~"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[3;2~ for shift+delete#2",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[3;2~ for shift+delete",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 46,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[3;2~"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[3;3~ for alt+delete",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[3;3~ for alt+delete",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 46,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[3;3~"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[3;3~ for alt+delete#2",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[3;3~ for alt+delete",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 46,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[3;3~"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[3;5~ for ctrl+delete",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[3;5~ for ctrl+delete",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 46,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[3;5~"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[5A for ctrl+up",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[5A for ctrl+up",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 38,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;5A"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[5B for ctrl+down",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[5B for ctrl+down",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 40,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;5B"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[5C for ctrl+right",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[5C for ctrl+right",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 39,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;5C"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b[5D for ctrl+left",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b[5D for ctrl+left",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 37,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;5D"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b\\r for alt+enter",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b\\r for alt+enter",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 13,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b\r"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b\\x08 for ctrl+alt+backspace",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b\\x08 for ctrl+alt+backspace",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 8,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b\b"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b\\x1b for alt+esc",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b\\x1b for alt+esc",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 27,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b\u001b"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return \\x1b\\x7f for alt+backspace",
+      "name": "Keyboard evaluateKeyEscapeSequence should return \\x1b\\x7f for alt+backspace",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 8,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequence for ctrl+@",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequence for ctrl+@",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 50,
+            "code": "Digit2",
+            "key": "@",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u0000"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequence for ctrl+^",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequence for ctrl+^",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 54,
+            "code": "Digit6",
+            "key": "^",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001e"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequence for ctrl+_",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequence for ctrl+_",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 189,
+            "code": "Minus",
+            "key": "_",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001f"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequence for ctrl+alt+a",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequence for ctrl+alt+a",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 65,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b\u0001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+'",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+'",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 222,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b'"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 222,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+,",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+,",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 188,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b,"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 188,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b<"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+-",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+-",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 189,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b-"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 189,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b_"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+.",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+.",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 190,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b."
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 190,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b>"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+/",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+/",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 191,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b/"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 191,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b?"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+0",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+0",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 48,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b0"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 48,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+1",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+1",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 49,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b1"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 49,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b!"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+2",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+2",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 50,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b2"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 50,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b@"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+3",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+3",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 51,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b3"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 51,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b#"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+4",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+4",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 52,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b4"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 52,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b$"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+5",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+5",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 53,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b5"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 53,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b%"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+6",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+6",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 54,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b6"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 54,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b^"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+7",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+7",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 55,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b7"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 55,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b&"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+8",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+8",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 56,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b8"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 56,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b*"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+9",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+9",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 57,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b9"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 57,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b("
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+;",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+;",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 186,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b;"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 186,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b:"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+=",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+=",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 187,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b="
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 187,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b+"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+[",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+[",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 219,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b["
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 219,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b{"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+\\",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+\\",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 220,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b\\"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 220,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b|"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+]",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+]",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 221,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b]"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 221,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+shift+letter combinations",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+shift+letter combinations",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 65,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bA"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 72,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bH"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 90,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bZ"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 65,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001ba"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 72,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bh"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 90,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bz"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+~",
+      "name": "Keyboard evaluateKeyEscapeSequence should return proper sequences for alt+~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 192,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b`"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 192,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b~"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return the correct escape sequence for modified F1-F12 keys",
+      "name": "Keyboard evaluateKeyEscapeSequence should return the correct escape sequence for modified F1-F12 keys",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 112,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;2P"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 113,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;2Q"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 114,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;2R"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 115,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;2S"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 116,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[15;2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 117,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[17;2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 118,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[18;2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 119,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[19;2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 120,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[20;2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 121,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[21;2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 122,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[23;2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 123,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[24;2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 112,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3P"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 113,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3Q"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 114,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3R"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 115,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;3S"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 116,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[15;3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 117,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[17;3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 118,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[18;3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 119,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[19;3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 120,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[20;3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 121,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[21;3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 122,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[23;3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 123,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[24;3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 112,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;5P"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 113,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;5Q"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 114,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;5R"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 115,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[1;5S"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 116,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[15;5~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 117,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[17;5~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 118,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[18;5~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 119,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[19;5~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 120,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[20;5~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 121,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[21;5~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 122,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[23;5~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 123,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[24;5~"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence should return the correct escape sequence for unmodified keys",
+      "name": "Keyboard evaluateKeyEscapeSequence should return the correct escape sequence for unmodified keys",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 8,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": ""
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 9,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\t"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 13,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\r"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 27,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 33,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[5~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 34,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[6~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 35,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[F"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 36,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[H"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 37,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[D"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 38,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[A"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 39,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[C"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 40,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[B"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 45,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[2~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 46,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[3~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 112,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bOP"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 113,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bOQ"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 114,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bOR"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 115,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001bOS"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 116,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[15~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 117,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[17~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 118,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[18~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 119,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[19~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 120,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[20~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 121,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[21~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 122,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[23~"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 123,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": false,
+          "macOptionIsMeta": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001b[24~"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence with macOptionIsMeta should return \\x1b\\x1b for alt+enter",
+      "name": "Keyboard evaluateKeyEscapeSequence with macOptionIsMeta should return \\x1b\\x1b for alt+enter",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 13,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": true,
+          "macOptionIsMeta": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b\r"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unit:src/common/input/Keyboard.test.ts:Keyboard evaluateKeyEscapeSequence with macOptionIsMeta should return \\x1ba for alt+a",
+      "name": "Keyboard evaluateKeyEscapeSequence with macOptionIsMeta should return \\x1ba for alt+a",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 65,
+            "code": "",
+            "key": "",
+            "type": ""
+          },
+          "applicationCursorMode": false,
+          "isMac": true,
+          "macOptionIsMeta": true,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\u001ba"
+          }
+        }
+      ]
+    }
+  ]
+}

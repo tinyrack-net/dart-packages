@@ -1,0 +1,4195 @@
+{
+  "revision": "904ae935269eef5ec6a1415b64463c3d02eff1eb",
+  "source": "src/common/input/KittyKeyboard.test.ts",
+  "cases": [
+    {
+      "name": "KittyKeyboard shouldUseProtocol should return false when flags are 0",
+      "evaluations": []
+    },
+    {
+      "name": "KittyKeyboard shouldUseProtocol should return true when any flag is set",
+      "evaluations": []
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) shift+letter sends plain character in DISAMBIGUATE mode",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "A",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "A"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) alt=3 (1+2) still uses CSI u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) ctrl=5 (1+4)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) super/meta=9 (1+8)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": true,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;9u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) ctrl+shift=6 (1+4+1)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;6u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) ctrl+alt=7 (1+4+2)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;7u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) ctrl+alt+shift=8 (1+4+2+1)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": true,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;8u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) ctrl+super=13 (1+4+8)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": true,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;13u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) all four modifiers=16 (1+1+2+4+8)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": true,
+            "shiftKey": true,
+            "metaKey": true,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;16u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier encoding (value = 1 + modifiers) no modifiers omits modifier field",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Escape",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[27u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Escape → CSI 27 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Escape",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[27u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Enter → legacy \\r",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\r"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Tab → legacy \\t",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Tab",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\t"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Backspace → legacy \\x7f",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Backspace",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Space → plain space (text-generating key)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": " ",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": " "
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Shift+Tab → CSI 9;2 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Tab",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[9;2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Ctrl+Enter → CSI 13;5 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[13;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Alt+Escape → CSI 27;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Escape",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[27;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Ctrl+Backspace → CSI 127;5 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Backspace",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[127;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Ctrl+Space → CSI 32;5 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": " ",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[32;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate C0 control keys with DISAMBIGUATE_ESCAPE_CODES Alt+Space → CSI 32;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": " ",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[32;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate navigation keys Insert → CSI 2 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Insert",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[2~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate navigation keys Delete → CSI 3 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Delete",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[3~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate navigation keys PageUp → CSI 5 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "PageUp",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[5~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate navigation keys PageDown → CSI 6 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "PageDown",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[6~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate navigation keys Home → CSI H",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Home",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[H"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate navigation keys End → CSI F",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "End",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[F"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate navigation keys Shift+PageUp → CSI 5;2 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "PageUp",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[5;2~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate navigation keys Ctrl+Home → CSI 1;5 H",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Home",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[1;5H"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate arrow keys ArrowUp → CSI A",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "ArrowUp",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[A"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate arrow keys ArrowDown → CSI B",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "ArrowDown",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[B"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate arrow keys ArrowRight → CSI C",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "ArrowRight",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[C"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate arrow keys ArrowLeft → CSI D",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "ArrowLeft",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[D"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate arrow keys Shift+ArrowUp → CSI 1;2 A",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "ArrowUp",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[1;2A"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate arrow keys Ctrl+ArrowLeft → CSI 1;5 D",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "ArrowLeft",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[1;5D"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate arrow keys Ctrl+Shift+ArrowRight → CSI 1;6 C",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "ArrowRight",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[1;6C"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F1 → CSI P (SS3 form)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F1",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001bOP"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F2 → CSI Q (SS3 form)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F2",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001bOQ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F3 → CSI R (SS3 form)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F3",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001bOR"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F4 → CSI S (SS3 form)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F4",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001bOS"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F5 → CSI 15 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F5",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[15~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F6 → CSI 17 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F6",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[17~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F7 → CSI 18 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F7",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[18~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F8 → CSI 19 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F8",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[19~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F9 → CSI 20 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F9",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[20~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F10 → CSI 21 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F10",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[21~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F11 → CSI 23 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F11",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[23~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 F12 → CSI 24 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F12",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[24~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 Shift+F1 → CSI 1;2 P",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F1",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[1;2P"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate function keys F1-F12 Ctrl+F5 → CSI 15;5 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F5",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[15;5~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate extended function keys F13-F35 (Private Use Area) F13 → CSI 57376 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F13",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57376u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate extended function keys F13-F35 (Private Use Area) F14 → CSI 57377 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F14",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57377u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate extended function keys F13-F35 (Private Use Area) F20 → CSI 57383 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F20",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57383u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate extended function keys F13-F35 (Private Use Area) F24 → CSI 57387 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "F24",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57387u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) Numpad0 → CSI 57399 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "Numpad0",
+            "key": "0",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57399u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) Numpad1 → CSI 57400 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "Numpad1",
+            "key": "1",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57400u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) Numpad9 → CSI 57408 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "Numpad9",
+            "key": "9",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57408u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) NumpadDecimal → CSI 57409 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumpadDecimal",
+            "key": ".",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57409u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) NumpadDivide → CSI 57410 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumpadDivide",
+            "key": "/",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57410u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) NumpadMultiply → CSI 57411 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumpadMultiply",
+            "key": "*",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57411u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) NumpadSubtract → CSI 57412 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumpadSubtract",
+            "key": "-",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57412u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) NumpadAdd → CSI 57413 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumpadAdd",
+            "key": "+",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57413u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) NumpadEnter → CSI 57414 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumpadEnter",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57414u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) NumpadEqual → CSI 57415 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumpadEqual",
+            "key": "=",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57415u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate numpad keys (Private Use Area) Ctrl+Numpad5 → CSI 57404;5 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "Numpad5",
+            "key": "5",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57404;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) Left Shift → CSI 57441 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ShiftLeft",
+            "key": "Shift",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57441;2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) Right Shift → CSI 57447 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ShiftRight",
+            "key": "Shift",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57447;2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) Left Control → CSI 57442 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ControlLeft",
+            "key": "Control",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57442;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) Right Control → CSI 57448 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ControlRight",
+            "key": "Control",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57448;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) Left Alt → CSI 57443 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "AltLeft",
+            "key": "Alt",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57443;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) Right Alt → CSI 57449 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "AltRight",
+            "key": "Alt",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57449;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) Left Meta/Super → CSI 57444 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": true,
+            "keyCode": 0,
+            "code": "MetaLeft",
+            "key": "Meta",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57444;9u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) Right Meta/Super → CSI 57450 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": true,
+            "keyCode": 0,
+            "code": "MetaRight",
+            "key": "Meta",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57450;9u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) CapsLock → CSI 57358 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "CapsLock",
+            "key": "CapsLock",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57358u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) NumLock → CSI 57360 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumLock",
+            "key": "NumLock",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57360u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier keys (Private Use Area) ScrollLock → CSI 57359 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ScrollLock",
+            "key": "ScrollLock",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57359u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) UTF-8 text press event",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Escape key press event (default, no suffix)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Escape",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[27u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Enter key press event → legacy \\r",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\r"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Tab key press event → legacy \\t",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Tab",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\t"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Backspace key press event → legacy \\x7f",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Backspace",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) press event when modifiers present",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) UTF-8 text repeat event",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Escape key repeat event → :2 suffix",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Escape",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[27;1:2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Enter key repeat event → legacy \\r",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\r"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Tab key repeat event → legacy \\t",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Tab",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "\t"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Backspace key repeat event → legacy \\x7f",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Backspace",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) release event → :3 suffix",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;1:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Escape key release event → :3 suffix",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Escape",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[27;1:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Enter key release event is not reported",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Tab key release event is not reported",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Tab",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) Backspace key release event is not reported",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Backspace",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) release with modifier → mod:3",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;5:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) repeat with modifier → mod:2",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;4:2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) functional key release → CSI code;1:3 ~",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Delete",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[3;1:3~"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate event types (press/repeat/release) modifier key release includes its own bit cleared",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ShiftLeft",
+            "key": "Shift",
+            "type": "keydown"
+          },
+          "flags": 11,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57441;1:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_EVENT_TYPES flag without DISAMBIGUATE_ESCAPE_CODES press event is not swallowed when modifiers present",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 2,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_EVENT_TYPES flag without DISAMBIGUATE_ESCAPE_CODES repeat event is not swallowed when modifiers present",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 2,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;5:2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_EVENT_TYPES flag without DISAMBIGUATE_ESCAPE_CODES release event is reported as CSI u sequence",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 2,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;5:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier-only reporting does not report modifier press without REPORT_ALL_KEYS_AS_ESCAPE_CODES",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ShiftLeft",
+            "key": "Shift",
+            "type": "keydown"
+          },
+          "flags": 2,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier-only reporting does not report modifier release without REPORT_ALL_KEYS_AS_ESCAPE_CODES",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ShiftLeft",
+            "key": "Shift",
+            "type": "keydown"
+          },
+          "flags": 2,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier-only reporting does not report CapsLock press without REPORT_ALL_KEYS_AS_ESCAPE_CODES",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "CapsLock",
+            "key": "CapsLock",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "CapsLock",
+            "key": "CapsLock",
+            "type": "keydown"
+          },
+          "flags": 2,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "CapsLock",
+            "key": "CapsLock",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier-only reporting does not report NumLock press without REPORT_ALL_KEYS_AS_ESCAPE_CODES",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "NumLock",
+            "key": "NumLock",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier-only reporting does not report ScrollLock press without REPORT_ALL_KEYS_AS_ESCAPE_CODES",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "ScrollLock",
+            "key": "ScrollLock",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate modifier-only reporting does not report CapsLock release without REPORT_ALL_KEYS_AS_ESCAPE_CODES",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "CapsLock",
+            "key": "CapsLock",
+            "type": "keydown"
+          },
+          "flags": 2,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag lowercase letter → CSI codepoint u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag uppercase letter uses lowercase codepoint",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "A",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag digit → CSI codepoint u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "5",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[53u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag punctuation → CSI codepoint u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": ".",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[46u"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": ",",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[44u"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": ";",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[59u"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "/",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[47u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag brackets → CSI codepoint u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "[",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[91u"
+          }
+        },
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "]",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[93u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag space → CSI 32 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": " ",
+            "type": "keydown"
+          },
+          "flags": 8,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[32u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Enter key press event → CSI 13 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[13u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Tab key press event → CSI 9 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Tab",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[9u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Backspace key press event → CSI 127 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Backspace",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[127u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Enter key repeat event → CSI 13;1:2 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[13;1:2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Tab key repeat event → CSI 9;1:2 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Tab",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[9;1:2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Backspace key repeat event → CSI 127;1:2 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Backspace",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 2,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[127;1:2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Enter key release event → CSI 13;1:3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Enter",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[13;1:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Tab key release event → CSI 9;1:3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Tab",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[9;1:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALL_KEYS_AS_ESCAPE_CODES flag with REPORT_EVENT_TYPES Backspace key release event → CSI 127;1:3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Backspace",
+            "type": "keydown"
+          },
+          "flags": 10,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[127;1:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ASSOCIATED_TEXT flag regular key includes text codepoint",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 24,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;;97u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ASSOCIATED_TEXT flag shifted key includes shifted text",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "A",
+            "type": "keydown"
+          },
+          "flags": 24,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;2;65u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ASSOCIATED_TEXT flag Ctrl+key omits text (control code)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 24,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;5u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ASSOCIATED_TEXT flag functional key has no text",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Escape",
+            "type": "keydown"
+          },
+          "flags": 24,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[27u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ASSOCIATED_TEXT flag release event has no text",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 26,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;1:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ASSOCIATED_TEXT flag digit with text",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "5",
+            "type": "keydown"
+          },
+          "flags": 24,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[53;;53u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ASSOCIATED_TEXT flag Shift+digit shows shifted symbol",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "Digit5",
+            "key": "%",
+            "type": "keydown"
+          },
+          "flags": 24,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[53;2;37u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALTERNATE_KEYS flag Shift+a includes shifted key → CSI 97:65 ; 2 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyA",
+            "key": "A",
+            "type": "keydown"
+          },
+          "flags": 12,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97:65;2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALTERNATE_KEYS flag unshifted key has no alternate",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyA",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 12,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALTERNATE_KEYS flag Shift+5 includes shifted key → CSI 53:37 ; 2 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "Digit5",
+            "key": "%",
+            "type": "keydown"
+          },
+          "flags": 12,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[53:37;2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALTERNATE_KEYS flag functional keys have no shifted alternate",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Escape",
+            "type": "keydown"
+          },
+          "flags": 12,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[27;2u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALTERNATE_KEYS with REPORT_ASSOCIATED_TEXT Shift+a → CSI 97:65 ; 2 ; 65 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyA",
+            "key": "A",
+            "type": "keydown"
+          },
+          "flags": 28,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97:65;2;65u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate REPORT_ALTERNATE_KEYS with REPORT_ASSOCIATED_TEXT Shift+a release → CSI 97:65 ; 2:3 u (no text)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyA",
+            "key": "A",
+            "type": "keydown"
+          },
+          "flags": 30,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97:65;2:3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate release events without REPORT_EVENT_TYPES should not generate key sequence for release events",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 3,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate edge cases shift+letter sends plain character in DISAMBIGUATE mode",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "A",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "A"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate edge cases ctrl+shift+a sends lowercase codepoint 97",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": true,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "A",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;6u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate edge cases Dead key produces no output",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Dead",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate edge cases Unidentified key produces no output",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Unidentified",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate edge cases PrintScreen → CSI 57361 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "PrintScreen",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57361u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate edge cases Pause → CSI 57362 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "Pause",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57362u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate edge cases ContextMenu → CSI 57363 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "ContextMenu",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57363u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate media keys (Private Use Area) MediaPlayPause → CSI 57430 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "MediaPlayPause",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57430u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate media keys (Private Use Area) MediaStop → CSI 57432 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "MediaStop",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57432u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate media keys (Private Use Area) MediaTrackNext → CSI 57435 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "MediaTrackNext",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57435u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate media keys (Private Use Area) MediaTrackPrevious → CSI 57436 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "MediaTrackPrevious",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57436u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate media keys (Private Use Area) AudioVolumeDown → CSI 57438 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "AudioVolumeDown",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57438u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate media keys (Private Use Area) AudioVolumeUp → CSI 57439 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "AudioVolumeUp",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57439u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate media keys (Private Use Area) AudioVolumeMute → CSI 57440 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "",
+            "key": "AudioVolumeMute",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[57440u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+f (key=ƒ) → CSI 102;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyF",
+            "key": "ƒ",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[102;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+b (key=∫) → CSI 98;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyB",
+            "key": "∫",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[98;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+d (key=∂) → CSI 100;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyD",
+            "key": "∂",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[100;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+n dead key (key=Dead, code=KeyN) → CSI 110;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyN",
+            "key": "Dead",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[110;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+e dead key (key=Dead, code=KeyE) → CSI 101;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyE",
+            "key": "Dead",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[101;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+u dead key (key=Dead, code=KeyU) → CSI 117;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyU",
+            "key": "Dead",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[117;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+5 (key=∞) → CSI 53;3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "Digit5",
+            "key": "∞",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[53;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+Shift+f (key=Ï) → CSI 102;4 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": true,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyF",
+            "key": "Ï",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[102;4u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Ctrl+Opt+f (key=ƒ) → CSI 102;7 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": true,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyF",
+            "key": "ƒ",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[102;7u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) does not unwind when macOptionAsAlt is false (Linux Alt is a chord)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyA",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) does not unwind on Linux AZERTY (key=a, code=KeyQ) — uses ev.key not ev.code",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyQ",
+            "key": "a",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[97;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) does not unwind when macOptionAsAlt is false even with composed key",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyF",
+            "key": "ƒ",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": false,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[402;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) does not unwind when altKey is false",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": false,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyF",
+            "key": "ƒ",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": false,
+            "key": "ƒ"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) falls through when ev.code is not Key*/Digit* (Opt+;)",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "Semicolon",
+            "key": "…",
+            "type": "keydown"
+          },
+          "flags": 1,
+          "eventType": 1,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[8230;3u"
+          }
+        }
+      ]
+    },
+    {
+      "name": "KittyKeyboard evaluate macOS Option as Alt (macOptionIsMeta) Opt+f release with REPORT_EVENT_TYPES → CSI 102;3:3 u",
+      "evaluations": [
+        {
+          "event": {
+            "altKey": true,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "metaKey": false,
+            "keyCode": 0,
+            "code": "KeyF",
+            "key": "ƒ",
+            "type": "keydown"
+          },
+          "flags": 3,
+          "eventType": 3,
+          "macOptionAsAlt": true,
+          "result": {
+            "type": 0,
+            "cancel": true,
+            "key": "\u001b[102;3:3u"
+          }
+        }
+      ]
+    }
+  ]
+}
