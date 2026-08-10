@@ -37,6 +37,9 @@ final class WriteBuffer extends DisposableStore {
   int _pendingData = 0;
   int _bufferOffset = 0;
   bool _isSyncWriting = false;
+
+  /// Whether an [_innerWrite] chunk is still awaiting its parser handler.
+  bool _isAsyncWriting = false;
   int _syncCalls = 0;
   bool _didUserInput = false;
 
@@ -51,8 +54,16 @@ final class WriteBuffer extends DisposableStore {
   /// Processes all queued chunks without yielding to the event loop.
   ///
   /// Like xterm.js, this cannot wait for asynchronous parser handlers.
+  ///
+  /// It also cannot run *during* one. xterm.js' parser is synchronous and
+  /// resumable, so a flush that lands mid-handler simply parses; this port's
+  /// parser is genuinely asynchronous and refuses to be re-entered, so the
+  /// flush would throw and abandon the chunk it was holding. A caller such as
+  /// a terminal resize fires on any frame, including one where a handler is
+  /// still awaiting, so the queue is left to the pending inner write instead.
+  /// The chunks stay queued and reach the parser in order once it resumes.
   void flushSync() {
-    if (isDisposed || _isSyncWriting) return;
+    if (isDisposed || _isSyncWriting || _isAsyncWriting) return;
     _isSyncWriting = true;
     var didProcess = false;
     while (_writeBuffer.isNotEmpty) {
@@ -86,7 +97,9 @@ final class WriteBuffer extends DisposableStore {
     _writeBuffer.add(data);
     _callbacks.add(null);
     _syncCalls++;
-    if (_isSyncWriting) return;
+    // Queued above, so a parser still awaiting a handler parses this in order
+    // when it resumes rather than being re-entered here. See [flushSync].
+    if (_isSyncWriting || _isAsyncWriting) return;
     _isSyncWriting = true;
     while (_writeBuffer.isNotEmpty) {
       final chunk = _writeBuffer.removeAt(0);
@@ -142,9 +155,13 @@ final class WriteBuffer extends DisposableStore {
       final data = _writeBuffer[_bufferOffset];
       final result = _action(data, promiseResult);
       if (result is Future<bool>) {
+        // The parser now owns this chunk until the handler resolves, and it
+        // cannot be re-entered meanwhile. See [flushSync].
+        _isAsyncWriting = true;
         unawaited(
           result.then(
             (resolved) {
+              _isAsyncWriting = false;
               if (isDisposed) return;
               if (_clock.elapsedMilliseconds - startTime >=
                   _writeTimeoutMilliseconds) {
@@ -154,6 +171,7 @@ final class WriteBuffer extends DisposableStore {
               }
             },
             onError: (Object error, StackTrace stackTrace) {
+              _isAsyncWriting = false;
               scheduleMicrotask(
                 () => Error.throwWithStackTrace(error, stackTrace),
               );
