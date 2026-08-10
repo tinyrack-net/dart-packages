@@ -1,0 +1,1222 @@
+{
+  "revision": "904ae935269eef5ec6a1415b64463c3d02eff1eb",
+  "source": "src/common/input/Win32InputMode.test.ts",
+  "cases": [
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent basic key encoding letter key press",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "a",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;97;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent basic key encoding letter key release",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "a",
+        "type": "keydown"
+      },
+      "isKeyDown": false,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;97;0;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent basic key encoding digit key",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 49,
+        "code": "Digit1",
+        "key": "1",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[49;2;49;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent basic key encoding Enter key",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 13,
+        "code": "Enter",
+        "key": "Enter",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[13;28;13;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent basic key encoding Escape key",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 27,
+        "code": "Escape",
+        "key": "Escape",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[27;1;27;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent basic key encoding Space key",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 32,
+        "code": "Space",
+        "key": " ",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[32;57;32;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent modifier encoding shift",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "A",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;65;1;16;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent modifier encoding ctrl left",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "a",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;1;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent modifier encoding ctrl right",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 17,
+        "code": "ControlRight",
+        "key": "Control",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[17;29;0;1;260;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent modifier encoding alt left",
+      "event": {
+        "altKey": true,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "a",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;97;1;2;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent modifier encoding alt right",
+      "event": {
+        "altKey": true,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 18,
+        "code": "AltRight",
+        "key": "Alt",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[18;56;0;1;257;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent modifier encoding multiple modifiers",
+      "event": {
+        "altKey": true,
+        "ctrlKey": true,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "A",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;65;1;26;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent function keys F1",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 112,
+        "code": "F1",
+        "key": "F1",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[112;59;0;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent function keys F5",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 116,
+        "code": "F5",
+        "key": "F5",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[116;63;0;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent function keys F12",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 123,
+        "code": "F12",
+        "key": "F12",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[123;88;0;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent function keys Ctrl+F1",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 112,
+        "code": "F1",
+        "key": "F1",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[112;59;0;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) ArrowUp",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 38,
+        "code": "ArrowUp",
+        "key": "ArrowUp",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[38;72;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) ArrowDown",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 40,
+        "code": "ArrowDown",
+        "key": "ArrowDown",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[40;80;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) ArrowLeft",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 37,
+        "code": "ArrowLeft",
+        "key": "ArrowLeft",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[37;75;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) ArrowRight",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 39,
+        "code": "ArrowRight",
+        "key": "ArrowRight",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[39;77;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) Home",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 36,
+        "code": "Home",
+        "key": "Home",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[36;71;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) End",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 35,
+        "code": "End",
+        "key": "End",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[35;79;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) PageUp",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 33,
+        "code": "PageUp",
+        "key": "PageUp",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[33;73;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) PageDown",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 34,
+        "code": "PageDown",
+        "key": "PageDown",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[34;81;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) Insert",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 45,
+        "code": "Insert",
+        "key": "Insert",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[45;82;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) Delete",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 46,
+        "code": "Delete",
+        "key": "Delete",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[46;83;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) Tab",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 9,
+        "code": "Tab",
+        "key": "Tab",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[9;15;9;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent navigation keys (ENHANCED_KEY) Backspace",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 8,
+        "code": "Backspace",
+        "key": "Backspace",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[8;14;8;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent numpad keys Numpad0",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 96,
+        "code": "Numpad0",
+        "key": "0",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[96;82;48;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent numpad keys NumpadEnter (ENHANCED)",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 13,
+        "code": "NumpadEnter",
+        "key": "Enter",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[13;28;13;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent numpad keys NumpadAdd",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 107,
+        "code": "NumpadAdd",
+        "key": "+",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[107;78;43;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent numpad keys NumpadSubtract",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 109,
+        "code": "NumpadSubtract",
+        "key": "-",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[109;74;45;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent numpad keys NumpadMultiply",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 106,
+        "code": "NumpadMultiply",
+        "key": "*",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[106;55;42;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent numpad keys NumpadDivide (ENHANCED)",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 111,
+        "code": "NumpadDivide",
+        "key": "/",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[111;53;47;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent numpad keys NumpadDecimal",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 110,
+        "code": "NumpadDecimal",
+        "key": ".",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[110;83;46;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent unicode character printable",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "a",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;97;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent unicode character shifted",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "A",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;65;1;16;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent unicode character non-printable is 0",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 38,
+        "code": "ArrowUp",
+        "key": "ArrowUp",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[38;72;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent unicode character extended ASCII",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 69,
+        "code": "KeyE",
+        "key": "é",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[69;18;233;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent unicode character symbol",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 52,
+        "code": "Digit4",
+        "key": "$",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[52;5;36;1;16;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent ctrl+letter control characters Ctrl+A produces 0x01",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "a",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;1;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent ctrl+letter control characters Ctrl+C produces 0x03 (ETX)",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 67,
+        "code": "KeyC",
+        "key": "c",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[67;46;3;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent ctrl+letter control characters Ctrl+Z produces 0x1A",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 90,
+        "code": "KeyZ",
+        "key": "z",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[90;44;26;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent ctrl+letter control characters Ctrl+Shift+A (uppercase) produces 0x01",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "A",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;1;1;24;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent ctrl+letter control characters Ctrl+Shift+C (uppercase) produces 0x03",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 67,
+        "code": "KeyC",
+        "key": "C",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[67;46;3;1;24;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent ctrl+letter control characters Ctrl+Alt+C does not produce control char",
+      "event": {
+        "altKey": true,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 67,
+        "code": "KeyC",
+        "key": "c",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[67;46;99;1;10;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent scan codes letter A",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "a",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;97;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent scan codes Escape",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 27,
+        "code": "Escape",
+        "key": "Escape",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[27;1;27;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent sequence format valid CSI format",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 65,
+        "code": "KeyA",
+        "key": "a",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[65;30;97;1;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent standalone modifier keys ShiftLeft",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 16,
+        "code": "ShiftLeft",
+        "key": "Shift",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[16;42;0;1;16;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent standalone modifier keys ShiftRight",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 16,
+        "code": "ShiftRight",
+        "key": "Shift",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[16;54;0;1;16;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent standalone modifier keys ControlLeft",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 17,
+        "code": "ControlLeft",
+        "key": "Control",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[17;29;0;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent standalone modifier keys ControlRight",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 17,
+        "code": "ControlRight",
+        "key": "Control",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[17;29;0;1;260;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent standalone modifier keys AltLeft",
+      "event": {
+        "altKey": true,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 18,
+        "code": "AltLeft",
+        "key": "Alt",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[18;56;0;1;2;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent standalone modifier keys AltRight",
+      "event": {
+        "altKey": true,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 18,
+        "code": "AltRight",
+        "key": "Alt",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[18;56;0;1;257;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent standalone modifier keys modifier release",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 16,
+        "code": "ShiftLeft",
+        "key": "Shift",
+        "type": "keydown"
+      },
+      "isKeyDown": false,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[16;42;0;0;0;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent problem keys from spec Ctrl+Space",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 32,
+        "code": "Space",
+        "key": " ",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[32;57;32;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent problem keys from spec Shift+Enter",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": true,
+        "metaKey": false,
+        "keyCode": 13,
+        "code": "Enter",
+        "key": "Enter",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[13;28;13;1;16;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent problem keys from spec Ctrl+Break",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 19,
+        "code": "Pause",
+        "key": "Pause",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[19;69;0;1;264;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent problem keys from spec Ctrl+Alt+/",
+      "event": {
+        "altKey": true,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 191,
+        "code": "Slash",
+        "key": "/",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[191;53;47;1;10;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent problem keys from spec Ctrl+Enter produces LF (0x0A)",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 13,
+        "code": "Enter",
+        "key": "Enter",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[13;28;10;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent problem keys from spec Ctrl+Backspace produces DEL (0x7F)",
+      "event": {
+        "altKey": false,
+        "ctrlKey": true,
+        "shiftKey": false,
+        "metaKey": false,
+        "keyCode": 8,
+        "code": "Backspace",
+        "key": "Backspace",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[8;14;127;1;8;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent meta key MetaLeft",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": true,
+        "keyCode": 91,
+        "code": "MetaLeft",
+        "key": "Meta",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[91;0;0;1;256;1_"
+      }
+    },
+    {
+      "name": "Win32InputMode evaluateKeyboardEvent meta key MetaRight",
+      "event": {
+        "altKey": false,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "metaKey": true,
+        "keyCode": 92,
+        "code": "MetaRight",
+        "key": "Meta",
+        "type": "keydown"
+      },
+      "isKeyDown": true,
+      "result": {
+        "type": 0,
+        "cancel": true,
+        "key": "\u001b[92;0;0;1;256;1_"
+      }
+    }
+  ]
+}

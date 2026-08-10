@@ -1,0 +1,27 @@
+{
+  "revision": "904ae935269eef5ec6a1415b64463c3d02eff1eb",
+  "license": "MIT",
+  "source": "addons/addon-image/fixture/testimages",
+  "cases": [
+    {"file":"w3c_home_256.gif","mime":"image/gif","width":72,"height":48,"blob":"d1397217874eab94c66585d0ade4db5763054683"},
+    {"file":"w3c_home_256.jpg","mime":"image/jpeg","width":72,"height":48,"blob":"553fff8690d19ada71578dcd98e9d359334a0b1d"},
+    {"file":"w3c_home_256.png","mime":"image/png","width":72,"height":48,"blob":"98c97ae3827ce9f087a31519c0f3ead06013e52e"},
+    {"file":"w3c_home_2.gif","mime":"image/gif","width":72,"height":48,"blob":"91b9a78aea5e71ded7c6c3f9d880aed7c48740aa"},
+    {"file":"w3c_home_2.jpg","mime":"image/jpeg","width":72,"height":48,"blob":"1ad9777588dca56b6d3a2a2a62fdd6c889825c68"},
+    {"file":"w3c_home_2.png","mime":"image/png","width":72,"height":48,"blob":"5d1f8f472266a5572e387314e42578387579da7c"},
+    {"file":"w3c_home_animation.gif","mime":"image/gif","width":72,"height":48,"blob":"2b1d3f0077205186293c279269fe54d8b6799b9b"},
+    {"file":"w3c_home.gif","mime":"image/gif","width":72,"height":48,"blob":"f4702b9abcf6cf19a13fe57f5e6d681d7655e681"},
+    {"file":"w3c_home_gray.gif","mime":"image/gif","width":72,"height":48,"blob":"33d32db7479a0d6af53d085fa8e0b77549f5c0a0"},
+    {"file":"w3c_home_gray.jpg","mime":"image/jpeg","width":72,"height":48,"blob":"65bcac5d726d56698b4470f2ba8edbfe75b393e6"},
+    {"file":"w3c_home_gray.png","mime":"image/png","width":72,"height":48,"blob":"758e35c64869e7d9f4931a7c04b6ab61a083b0a1"},
+    {"file":"w3c_home.jpg","mime":"image/jpeg","width":72,"height":48,"blob":"1d5180a31aa309ad53b09724a27e323d82155f27"},
+    {"file":"w3c_home.png","mime":"image/png","width":72,"height":48,"blob":"c541c20dcd1b1f3611bfe4d66e5a469930083d23"},
+    {"file":"w3c_home_noexif.jpg","mime":"image/jpeg","width":72,"height":48,"blob":"a46c97ce668f3ace815465d0128252974e20a9de"},
+    {"file":"spinfox.png","mime":"image/png","width":148,"height":148,"blob":"def6b8ce4949fb1be9ecf890d8a59ffb4b9236a5"},
+    {"file":"iphone_hdr_YES.jpg","mime":"image/jpeg","width":3264,"height":2448,"blob":"d49cdaa07fbf3541554bed2f4f5265904425c974"},
+    {"file":"nikon-e950.jpg","mime":"image/jpeg","width":800,"height":600,"blob":"1222114f3299f218a54573fba10a6706c3e28cc0"},
+    {"file":"agfa-makernotes.jpg","mime":"image/jpeg","width":8,"height":8,"blob":"509e7ebcfc440c49edbaaef52550e8c0302630c3"},
+    {"file":"sony-alpha-6000.jpg","mime":"image/jpeg","width":6000,"height":4000,"blob":"eb5d8ac7e52cc5b867619258f0ef04d5de057851"},
+    {"file":"dice.qoi","mime":"image/qoi","width":800,"height":600,"blob":"bbc8154fc8fe3c7ff92103ae1ebd74bdac2ddda7"}
+  ]
+}

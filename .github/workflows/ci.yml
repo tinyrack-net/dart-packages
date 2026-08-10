@@ -30,6 +30,7 @@ jobs:
       lua_tool_runtime: ${{ steps.detect.outputs.lua_tool_runtime }}
       ptyworld: ${{ steps.detect.outputs.ptyworld }}
       shipworld: ${{ steps.detect.outputs.shipworld }}
+      vtworld: ${{ steps.detect.outputs.vtworld }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -515,6 +516,50 @@ jobs:
           test -x /usr/bin/shipworld_fixture
           sudo dpkg -r shipworld-fixture
 
+  vtworld:
+    name: vtworld (${{ matrix.os }})
+    needs: affected
+    if: needs.affected.outputs.vtworld == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            coverage: true
+          - os: macos-26
+          - os: windows-2025
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-workspace
+      - if: ${{ !matrix.coverage }}
+        run: dart test
+        working-directory: packages/vtworld
+      - if: matrix.coverage
+        run: dart run tool/verify_coverage.dart vtworld
+      - if: ${{ always() && matrix.coverage }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-vtworld
+          path: coverage
+          if-no-files-found: error
+
+  vtworld-quality:
+    name: vtworld quality
+    needs: affected
+    if: needs.affected.outputs.vtworld == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-workspace
+      # No `dart pub publish --dry-run`: the package sets `publish_to: none`
+      # and consumers pin it by commit SHA. It builds no native asset, so
+      # unlike `ptyworld` its documentation is still checked.
+      - run: dart doc
+        working-directory: packages/vtworld
+
   quality-gate:
     name: Quality Gate
     # A job that a failed dependency skips still publishes a check run, and
@@ -538,6 +583,8 @@ jobs:
       - shipworld-quality
       - shipworld-homebrew-render
       - shipworld-flutter-payload
+      - vtworld
+      - vtworld-quality
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

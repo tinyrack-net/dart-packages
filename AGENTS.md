@@ -34,12 +34,15 @@ For every changed package, run:
 - `dart pub publish --dry-run`
 
 From the repository root, run `dart run tool/verify_coverage.dart` to check the
-95% line-coverage gate (each package independently). `cliweave`, `dartage`,
-`lua_tool_runtime`, and `ptyworld` are checked on Linux; `shipworld` is checked
+95% line-coverage gate (each package independently). A package may set its own
+floor through `_PackageCoverage.minimumLineCoverage`, and one that does records
+why where it is set; `vtworld` is at 90% because the lines it misses are the
+ones its Flutter half covers. `cliweave`, `dartage`, `lua_tool_runtime`,
+`ptyworld`, and `vtworld` are checked on Linux; `shipworld` is checked
 on **Windows**
 (`dart run tool/verify_coverage.dart shipworld`), because its Windows SDK-tool
 discovery is guarded by `Platform.isWindows` and only executes on a Windows
-runner. Passing no package names runs all four (use that only on Windows).
+runner. Passing no package names runs all six (use that only on Windows).
 
 In CI this is not a separate job: one leg of each package's test matrix runs
 `verify_coverage.dart` instead of `dart test`, because the script already runs

@@ -1,0 +1,3199 @@
+{
+  "revision": "904ae935269eef5ec6a1415b64463c3d02eff1eb",
+  "source": "addons/addon-ligatures/src/fontLigatures/index.test.ts",
+  "cases": [
+    {
+      "font": "Fira Code",
+      "input": "abc",
+      "glyphs": [
+        133,
+        145,
+        146
+      ],
+      "ranges": []
+    },
+    {
+      "font": "Fira Code",
+      "input": ".=",
+      "glyphs": [
+        1614,
+        1081
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "..=",
+      "glyphs": [
+        1614,
+        1614,
+        1083
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ".-",
+      "glyphs": [
+        1614,
+        1080
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ":=",
+      "glyphs": [
+        1614,
+        1055
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "=:=",
+      "glyphs": [
+        1614,
+        1614,
+        1483
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "=!=",
+      "glyphs": [
+        1614,
+        1614,
+        1484
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "__",
+      "glyphs": [
+        1614,
+        1099
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "==",
+      "glyphs": [
+        1614,
+        1485
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "!=",
+      "glyphs": [
+        1614,
+        1058
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "===",
+      "glyphs": [
+        1614,
+        1614,
+        1486
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "!==",
+      "glyphs": [
+        1614,
+        1614,
+        1059
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "=/=",
+      "glyphs": [
+        1614,
+        1614,
+        1491
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<-<",
+      "glyphs": [
+        1614,
+        1614,
+        1513
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<<-",
+      "glyphs": [
+        1614,
+        1614,
+        1522
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<--",
+      "glyphs": [
+        1614,
+        1614,
+        1511
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<-",
+      "glyphs": [
+        1614,
+        1510
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<->",
+      "glyphs": [
+        1614,
+        1614,
+        1512
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "->",
+      "glyphs": [
+        1614,
+        1064
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "-->",
+      "glyphs": [
+        1614,
+        1614,
+        1063
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "->>",
+      "glyphs": [
+        1614,
+        1614,
+        1065
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ">->",
+      "glyphs": [
+        1614,
+        1614,
+        1493
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<=<",
+      "glyphs": [
+        1614,
+        1614,
+        1519
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<<=",
+      "glyphs": [
+        1614,
+        1614,
+        1523
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<==",
+      "glyphs": [
+        1614,
+        1614,
+        1517
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<=>",
+      "glyphs": [
+        1614,
+        1614,
+        1518
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "=>",
+      "glyphs": [
+        1614,
+        1488
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "==>",
+      "glyphs": [
+        1614,
+        1614,
+        1487
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "=>>",
+      "glyphs": [
+        1614,
+        1614,
+        1489
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ">=>",
+      "glyphs": [
+        1614,
+        1614,
+        1495
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ">>=",
+      "glyphs": [
+        1614,
+        1614,
+        1498
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ">>-",
+      "glyphs": [
+        1614,
+        1614,
+        1497
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ">-",
+      "glyphs": [
+        1614,
+        1492
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<~>",
+      "glyphs": [
+        1614,
+        1614,
+        1526
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "-<",
+      "glyphs": [
+        1614,
+        1066
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "-<<",
+      "glyphs": [
+        1614,
+        1614,
+        1067
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "=<<",
+      "glyphs": [
+        1614,
+        1614,
+        1490
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<~~",
+      "glyphs": [
+        1614,
+        1614,
+        1527
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<~",
+      "glyphs": [
+        1614,
+        1525
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "~~",
+      "glyphs": [
+        1614,
+        1534
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "~>",
+      "glyphs": [
+        1614,
+        1533
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "~~>",
+      "glyphs": [
+        1614,
+        1614,
+        1535
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<<<",
+      "glyphs": [
+        1614,
+        1614,
+        1524
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<<",
+      "glyphs": [
+        1614,
+        1521
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<=",
+      "glyphs": [
+        1614,
+        1516
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<>",
+      "glyphs": [
+        1614,
+        1520
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ">=",
+      "glyphs": [
+        1614,
+        1494
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ">>",
+      "glyphs": [
+        1614,
+        1496
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ">>>",
+      "glyphs": [
+        1614,
+        1614,
+        1499
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "{.",
+      "glyphs": [
+        1001,
+        977
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "{|",
+      "glyphs": [
+        1614,
+        1049
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "[|",
+      "glyphs": [
+        1614,
+        1050
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<:",
+      "glyphs": [
+        1614,
+        1506
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ":>",
+      "glyphs": [
+        1614,
+        1056
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "|]",
+      "glyphs": [
+        1614,
+        1474
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "|}",
+      "glyphs": [
+        1614,
+        1473
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ".}",
+      "glyphs": [
+        977,
+        1002
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<|||",
+      "glyphs": [
+        1614,
+        1614,
+        1614,
+        1504
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<||",
+      "glyphs": [
+        1614,
+        1614,
+        1503
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<|",
+      "glyphs": [
+        1614,
+        1502
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<|>",
+      "glyphs": [
+        1614,
+        1614,
+        1505
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "|>",
+      "glyphs": [
+        1614,
+        1477
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "||>",
+      "glyphs": [
+        1614,
+        1614,
+        1472
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "|||>",
+      "glyphs": [
+        1614,
+        1614,
+        1614,
+        1470
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<$",
+      "glyphs": [
+        1614,
+        1507
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<$>",
+      "glyphs": [
+        1614,
+        1614,
+        1508
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "$>",
+      "glyphs": [
+        1614,
+        1479
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<+",
+      "glyphs": [
+        1614,
+        1514
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<+>",
+      "glyphs": [
+        1614,
+        1614,
+        1515
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "+>",
+      "glyphs": [
+        1614,
+        1482
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<*",
+      "glyphs": [
+        1614,
+        1500
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<*>",
+      "glyphs": [
+        1614,
+        1614,
+        1501
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "*>",
+      "glyphs": [
+        1614,
+        1047
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "/*",
+      "glyphs": [
+        1614,
+        1092
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "*/",
+      "glyphs": [
+        1614,
+        1048
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "///",
+      "glyphs": [
+        1614,
+        1614,
+        1097
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "//",
+      "glyphs": [
+        1614,
+        1096
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "</",
+      "glyphs": [
+        1614,
+        1528
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "<!--",
+      "glyphs": [
+        1614,
+        1614,
+        1614,
+        1509
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "</>",
+      "glyphs": [
+        1614,
+        1614,
+        1529
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "/>",
+      "glyphs": [
+        1614,
+        1095
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "0xff",
+      "glyphs": [
+        895,
+        270,
+        166,
+        166
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "10x10",
+      "glyphs": [
+        896,
+        895,
+        270,
+        896,
+        895
+      ],
+      "ranges": [
+        [
+          1,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "9:45",
+      "glyphs": [
+        904,
+        998,
+        899,
+        900
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "[:]",
+      "glyphs": [
+        1003,
+        998,
+        1004
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ";;",
+      "glyphs": [
+        1614,
+        1091
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "::",
+      "glyphs": [
+        1614,
+        1052
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ":::",
+      "glyphs": [
+        1614,
+        1614,
+        1053
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "..",
+      "glyphs": [
+        1614,
+        1082
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "...",
+      "glyphs": [
+        1614,
+        1614,
+        1085
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "..<",
+      "glyphs": [
+        1614,
+        1614,
+        1084
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "!!",
+      "glyphs": [
+        1614,
+        1057
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "??",
+      "glyphs": [
+        1614,
+        1090
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "%%",
+      "glyphs": [
+        1614,
+        1536
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "&&",
+      "glyphs": [
+        1614,
+        1468
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "||",
+      "glyphs": [
+        1614,
+        1469
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "?.",
+      "glyphs": [
+        1614,
+        1089
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "?:",
+      "glyphs": [
+        1614,
+        1087
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "++",
+      "glyphs": [
+        1614,
+        1480
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "+++",
+      "glyphs": [
+        1614,
+        1614,
+        1481
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "--",
+      "glyphs": [
+        1614,
+        1061
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "---",
+      "glyphs": [
+        1614,
+        1614,
+        1062
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "**",
+      "glyphs": [
+        1614,
+        1045
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "***",
+      "glyphs": [
+        1614,
+        1614,
+        1046
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "~=",
+      "glyphs": [
+        1614,
+        1532
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "~-",
+      "glyphs": [
+        1614,
+        1531
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "www",
+      "glyphs": [
+        1614,
+        1614,
+        271
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "-~",
+      "glyphs": [
+        1614,
+        1068
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "~@",
+      "glyphs": [
+        1614,
+        1530
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "^=",
+      "glyphs": [
+        1614,
+        1478
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "?=",
+      "glyphs": [
+        1614,
+        1088
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "/=",
+      "glyphs": [
+        1614,
+        1093
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "/==",
+      "glyphs": [
+        1614,
+        1614,
+        1094
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "-|",
+      "glyphs": [
+        1614,
+        1060
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "_|_",
+      "glyphs": [
+        1614,
+        1614,
+        1098
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "|-",
+      "glyphs": [
+        1614,
+        1475
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "|=",
+      "glyphs": [
+        1614,
+        1476
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "||=",
+      "glyphs": [
+        1614,
+        1614,
+        1471
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "#!",
+      "glyphs": [
+        1614,
+        1071
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "#=",
+      "glyphs": [
+        1614,
+        1075
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "##",
+      "glyphs": [
+        1614,
+        1072
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "###",
+      "glyphs": [
+        1614,
+        1614,
+        1073
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "####",
+      "glyphs": [
+        1614,
+        1614,
+        1614,
+        1074
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "#{",
+      "glyphs": [
+        1614,
+        1069
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "#[",
+      "glyphs": [
+        1614,
+        1070
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "]#",
+      "glyphs": [
+        1614,
+        1051
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "#(",
+      "glyphs": [
+        1614,
+        1076
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "#?",
+      "glyphs": [
+        1614,
+        1077
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "#_",
+      "glyphs": [
+        1614,
+        1078
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "#_(",
+      "glyphs": [
+        1614,
+        1614,
+        1079
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "::=",
+      "glyphs": [
+        1614,
+        1614,
+        1054
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": ".?",
+      "glyphs": [
+        1614,
+        1086
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Fira Code",
+      "input": "===>",
+      "glyphs": [
+        1614,
+        1614,
+        1486,
+        1148
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<-",
+      "glyphs": [
+        31,
+        3127
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<--",
+      "glyphs": [
+        31,
+        3129,
+        3139
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<---",
+      "glyphs": [
+        31,
+        3129,
+        3150,
+        3139
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<-----",
+      "glyphs": [
+        31,
+        3129,
+        3150,
+        3139,
+        3151,
+        3151
+      ],
+      "ranges": [
+        [
+          0,
+          6
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "->",
+      "glyphs": [
+        3126,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "-->",
+      "glyphs": [
+        3140,
+        3128,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "--->",
+      "glyphs": [
+        3140,
+        3150,
+        3128,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "----->",
+      "glyphs": [
+        3153,
+        3153,
+        3140,
+        3150,
+        3128,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          6
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<->",
+      "glyphs": [
+        31,
+        3149,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<-->",
+      "glyphs": [
+        31,
+        3129,
+        3128,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<--->",
+      "glyphs": [
+        31,
+        3129,
+        3150,
+        3128,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          5
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<----->",
+      "glyphs": [
+        31,
+        3129,
+        3150,
+        3150,
+        3150,
+        3128,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          7
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<=",
+      "glyphs": [
+        3094,
+        3095
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<==",
+      "glyphs": [
+        31,
+        3158,
+        3168
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<===",
+      "glyphs": [
+        31,
+        3158,
+        3179,
+        3168
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<=====",
+      "glyphs": [
+        31,
+        3158,
+        3179,
+        3168,
+        3180,
+        3180
+      ],
+      "ranges": [
+        [
+          0,
+          6
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "=>",
+      "glyphs": [
+        3155,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "==>",
+      "glyphs": [
+        3169,
+        3157,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "===>",
+      "glyphs": [
+        3169,
+        3179,
+        3157,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "=====>",
+      "glyphs": [
+        3182,
+        3182,
+        3169,
+        3179,
+        3157,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          6
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<=>",
+      "glyphs": [
+        31,
+        3178,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<==>",
+      "glyphs": [
+        31,
+        3158,
+        3157,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<===>",
+      "glyphs": [
+        31,
+        3158,
+        3179,
+        3157,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          5
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<=====>",
+      "glyphs": [
+        31,
+        3158,
+        3179,
+        3179,
+        3179,
+        3157,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          7
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<!--",
+      "glyphs": [
+        31,
+        3184,
+        3130,
+        3139
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<!---",
+      "glyphs": [
+        31,
+        3184,
+        3130,
+        3150,
+        3139
+      ],
+      "ranges": [
+        [
+          0,
+          5
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<!-----",
+      "glyphs": [
+        31,
+        3184,
+        3130,
+        3150,
+        3139,
+        3151,
+        3151
+      ],
+      "ranges": [
+        [
+          0,
+          7
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "a:b",
+      "glyphs": [
+        68,
+        29,
+        69
+      ],
+      "ranges": []
+    },
+    {
+      "font": "Iosevka",
+      "input": "a::b",
+      "glyphs": [
+        68,
+        3012,
+        3013,
+        69
+      ],
+      "ranges": [
+        [
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "a:::b",
+      "glyphs": [
+        68,
+        3012,
+        3010,
+        3013,
+        69
+      ],
+      "ranges": [
+        [
+          1,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": ":=",
+      "glyphs": [
+        3011,
+        32
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": ":-",
+      "glyphs": [
+        3011,
+        16
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": ":+",
+      "glyphs": [
+        3011,
+        14
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "=:",
+      "glyphs": [
+        32,
+        3011
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "-:",
+      "glyphs": [
+        16,
+        3011
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "+:",
+      "glyphs": [
+        14,
+        3011
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<*",
+      "glyphs": [
+        31,
+        3023
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "*>",
+      "glyphs": [
+        3023,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<*>",
+      "glyphs": [
+        31,
+        3023,
+        33
+      ],
+      "ranges": [
+        [
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<**>",
+      "glyphs": [
+        31,
+        3023,
+        3023,
+        33
+      ],
+      "ranges": [
+        [
+          1,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "<****>",
+      "glyphs": [
+        31,
+        3023,
+        3023,
+        3023,
+        3023,
+        33
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ],
+        [
+          3,
+          6
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "==",
+      "glyphs": [
+        3083,
+        3084
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "!=",
+      "glyphs": [
+        3098,
+        3084
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "===",
+      "glyphs": [
+        3083,
+        3085,
+        3084
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "!==",
+      "glyphs": [
+        3099,
+        3085,
+        3084
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "====",
+      "glyphs": [
+        3083,
+        3085,
+        3085,
+        3084
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Iosevka",
+      "input": "!===",
+      "glyphs": [
+        3100,
+        3085,
+        3085,
+        3084
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<!--",
+      "glyphs": [
+        775,
+        775,
+        775,
+        643
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "-->",
+      "glyphs": [
+        779,
+        779,
+        628
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<--",
+      "glyphs": [
+        776,
+        776,
+        627
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "->>",
+      "glyphs": [
+        780,
+        780,
+        626
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<<-",
+      "glyphs": [
+        777,
+        777,
+        625
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "->",
+      "glyphs": [
+        781,
+        623
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<-",
+      "glyphs": [
+        778,
+        624
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "=>",
+      "glyphs": [
+        793,
+        666
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<=>",
+      "glyphs": [
+        785,
+        785,
+        760
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<==>",
+      "glyphs": [
+        786,
+        786,
+        786,
+        771
+      ],
+      "ranges": [
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "==>",
+      "glyphs": [
+        787,
+        787,
+        672
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<==",
+      "glyphs": [
+        788,
+        788,
+        671
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": ">>=",
+      "glyphs": [
+        791,
+        791,
+        758
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "=<<",
+      "glyphs": [
+        792,
+        792,
+        759
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "--",
+      "glyphs": [
+        667,
+        667
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": ":=",
+      "glyphs": [
+        29,
+        761
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "=:=",
+      "glyphs": [
+        789,
+        789,
+        665
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "==",
+      "glyphs": [
+        794,
+        641
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "!==",
+      "glyphs": [
+        782,
+        782,
+        646
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "!=",
+      "glyphs": [
+        783,
+        629
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<=",
+      "glyphs": [
+        790,
+        630
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": ">=",
+      "glyphs": [
+        792,
+        631
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "//",
+      "glyphs": [
+        621,
+        664
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "/**",
+      "glyphs": [
+        18,
+        753,
+        753
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "/*",
+      "glyphs": [
+        18,
+        753
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "*/",
+      "glyphs": [
+        754,
+        18
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "&&",
+      "glyphs": [
+        633,
+        775
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": ".&",
+      "glyphs": [
+        17,
+        755
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "||",
+      "glyphs": [
+        634,
+        635
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "!!",
+      "glyphs": [
+        769,
+        770
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "::",
+      "glyphs": [
+        772,
+        773
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": ">>",
+      "glyphs": [
+        637,
+        638
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "<<",
+      "glyphs": [
+        639,
+        640
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "¯\\_(ツ)_/¯",
+      "glyphs": [
+        113,
+        765,
+        66,
+        767,
+        613,
+        768,
+        66,
+        766,
+        113
+      ],
+      "ranges": [
+        [
+          0,
+          3
+        ],
+        [
+          3,
+          6
+        ],
+        [
+          6,
+          9
+        ]
+      ]
+    },
+    {
+      "font": "Monoid",
+      "input": "__",
+      "glyphs": [
+        763,
+        764
+      ],
+      "ranges": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "font": "Ubuntu Mono",
+      "input": "==>",
+      "glyphs": [
+        32,
+        32,
+        33
+      ],
+      "ranges": []
+    }
+  ]
+}

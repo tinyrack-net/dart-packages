@@ -109,6 +109,7 @@ void main() {
       'lua_tool_runtime',
       'ptyworld',
       'shipworld',
+      'vtworld',
     ]);
     // The one intra-workspace edge in this repository. If a second appears,
     // the reverse closure above starts doing more work on its own.

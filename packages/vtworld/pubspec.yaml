@@ -1,0 +1,27 @@
+name: vtworld
+description: >-
+  Headless xterm-compatible terminal emulation for Dart: parse pseudo-terminal
+  output into a cell grid with scrollback, an alternate buffer, and DEC private
+  modes, then serialize that state back to ANSI so a reconnecting client is
+  restored to the screen it left.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+repository: https://github.com/tinyrack-net/dart-packages
+issue_tracker: https://github.com/tinyrack-net/dart-packages/issues
+topics:
+  - terminal
+  - vt100
+  - ansi
+  - emulator
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  web: ^1.1.1
+
+dev_dependencies:
+  characters: ^1.4.1
+  lints: ^6.0.0
+  test: ^1.31.0
