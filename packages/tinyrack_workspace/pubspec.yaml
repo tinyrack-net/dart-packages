@@ -1,6 +1,6 @@
 name: tinyrack_workspace
 description: Reusable workspace policy checks for Tinyrack package consumers.
-version: 0.1.0
+version: 0.2.0
 publish_to: none
 resolution: workspace
 repository: https://github.com/tinyrack-net/dart-packages

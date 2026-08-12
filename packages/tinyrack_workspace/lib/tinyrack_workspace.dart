@@ -3,4 +3,5 @@ library;
 
 export 'src/application.dart' show runTinyrackWorkspace;
 export 'src/coverage_policy.dart';
+export 'src/lcov_merger.dart';
 export 'src/source_policy.dart';
