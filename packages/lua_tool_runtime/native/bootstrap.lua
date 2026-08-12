@@ -4,7 +4,7 @@
 -- with `safe_env` below and therefore cannot reach these locals or Lua's I/O,
 -- process, package, debug, or dynamic-library facilities.
 
-local protocol_version = 1
+local protocol_version = 2
 local input = io.stdin
 local output = io.stdout
 local traceback = debug.traceback
@@ -168,13 +168,16 @@ local function send(kind, payload)
   output:flush()
 end
 
+local input_sequence = 1
 local function receive(expected)
   local line = input:read('*l')
   if not line then error('host input closed') end
   local frame = json_decode(line)
-  if frame.version ~= protocol_version or frame.cell_id ~= cell_id then
+  if frame.version ~= protocol_version or frame.cell_id ~= cell_id or
+      frame.sequence_id ~= input_sequence then
     error('protocol identity mismatch')
   end
+  input_sequence = input_sequence + 1
   if expected and frame.type ~= expected and frame.type ~= 'terminate' then
     error('unexpected protocol frame: ' .. tostring(frame.type))
   end
@@ -184,13 +187,15 @@ end
 local first_line = input:read('*l')
 if not first_line then return end
 local ok_init, initial = pcall(json_decode, first_line)
-if not ok_init or initial.version ~= protocol_version or initial.type ~= 'init' then
-  output:write('{"version":1,"cell_id":"unknown","sequence_id":1,"type":"error","payload":{"message":"invalid init frame"}}\n')
+if not ok_init or initial.version ~= protocol_version or
+    initial.sequence_id ~= 0 or initial.type ~= 'invoke' then
+  output:write('{"version":2,"cell_id":"unknown","sequence_id":1,"type":"error","payload":{"message":"invalid invoke frame"}}\n')
   output:flush()
   return
 end
 cell_id = initial.cell_id
 local init = initial.payload
+local bundle = init.bundle or {}
 
 local tasks, runnable, waiting, next_task = {}, {}, {}, 0
 local session_store = init.store or {}
@@ -232,16 +237,35 @@ setmetatable(tools, {__index = function(_, name)
   return function(arguments) return tools.call(name, arguments) end
 end, __metatable = false})
 
+local host = {}
+function host.call(name, arguments)
+  if type(name) ~= 'string' then error('host.call expects a callback name', 2) end
+  return coroutine.yield({kind = 'host_call', name = name, arguments = arguments or {}})
+end
+function host.open(name, arguments)
+  if type(name) ~= 'string' then error('host.open expects a callback name', 2) end
+  return coroutine.yield({kind = 'host_open', name = name, arguments = arguments or {}})
+end
+function host.next(stream_handle)
+  if type(stream_handle) ~= 'string' then error('host.next expects a stream handle', 2) end
+  return coroutine.yield({kind = 'host_next', stream_handle = stream_handle})
+end
+function host.close(stream_handle)
+  if type(stream_handle) ~= 'string' then error('host.close expects a stream handle', 2) end
+  return coroutine.yield({kind = 'host_close', stream_handle = stream_handle})
+end
+
 local function emit(kind, value)
   coroutine.yield({kind = kind, value = value})
 end
 
+local safe_require
 local safe_env = {
   assert=assert, error=error, ipairs=ipairs, next=next, pairs=pairs,
   pcall=pcall, select=select, tonumber=tonumber, tostring=tostring,
   type=type, utf8=utf8, xpcall=xpcall,
   math=math, string=string, table=table,
-  tools=tools, spawn=spawn_task, await=await_task,
+  tools=tools, host=host, spawn=spawn_task, await=await_task,
   await_all=function(list)
     local results = {}
     for index, task in ipairs(list) do results[index] = table.pack(await_task(task)) end
@@ -274,26 +298,82 @@ safe_env.set_timeout = function(fn, milliseconds)
   return timer
 end
 safe_env.ALL_TOOLS = init.tools or {}
+safe_env.assets = {
+  read=function(path)
+    if type(path) ~= 'string' then error('assets.read expects a path', 2) end
+    local value = (bundle.markdown_assets or {})[path]
+    if value == nil then error('Markdown asset not found: ' .. path, 2) end
+    return value
+  end,
+}
+local module_cache, module_loading = {}, {}
+safe_require = function(name)
+  if type(name) ~= 'string' or
+      not name:match('^[a-z_][a-z0-9_%.]*$') or
+      name:sub(-1) == '.' or name:find('..', 1, true) then
+    error('invalid Lua module name: ' .. tostring(name), 2)
+  end
+  if module_cache[name] ~= nil then return module_cache[name] end
+  if module_loading[name] then error('cyclic Lua module: ' .. name, 2) end
+  local source = (bundle.modules or {})[name]
+  if type(source) ~= 'string' then error('Lua module not found: ' .. name, 2) end
+  module_loading[name] = true
+  local chunk, compile_error = load(source, '@bundle/' .. name .. '.lua', 't', safe_env)
+  if not chunk then module_loading[name] = nil; error(compile_error, 2) end
+  local ok, value = pcall(chunk)
+  module_loading[name] = nil
+  if not ok then error(value, 2) end
+  if value == nil then value = true end
+  module_cache[name] = value
+  return value
+end
+safe_env.require = safe_require
 safe_env._G = safe_env
 
-local chunk, compile_error = load(init.source, '=code-mode', 't', safe_env)
-if not chunk then send('error', {message = compile_error}); return end
-spawn_task(chunk)
+for _, preload in ipairs(bundle.preload_modules or {}) do
+  local ok_preload, preload_error = pcall(safe_require, preload)
+  if not ok_preload then send('error', {message = preload_error}); return end
+end
+local ok_entrypoint, entrypoint = pcall(safe_require, bundle.entrypoint)
+if not ok_entrypoint then send('error', {message = entrypoint}); return end
+if type(entrypoint) ~= 'table' then
+  send('error', {message = 'entrypoint module must return a handler table'}); return
+end
+local handler = entrypoint[init.handler]
+if type(handler) ~= 'function' then
+  send('error', {message = 'named handler not found: ' .. tostring(init.handler)}); return
+end
+spawn_task(handler, init.arguments or {})
 
 local function finish_task(task, resumed)
   task.done = true
   if resumed[1] then
     task.values = table.pack(table.unpack(resumed, 2, resumed.n))
   else
-    task.error = traceback(task.coroutine, tostring(resumed[2]))
+    local message = tostring(resumed[2])
+    if message:lower():find('memory', 1, true) then
+      task.error = message
+    else
+      task.error = traceback(task.coroutine, message)
+    end
     task.values = table.pack()
   end
+  task.coroutine = nil
+  collectgarbage('collect')
   local waiters = waiting[task.id] or {}
   waiting[task.id] = nil
   for _, waiter in ipairs(waiters) do
     if task.error then enqueue(waiter, false, task.error)
     else enqueue(waiter, true, table.unpack(task.values, 1, task.values.n)) end
   end
+end
+
+local function completed_payload()
+  local root = tasks[1]
+  local result = JSON_NULL
+  if root and root.values and root.values.n > 0 then result = root.values[1] end
+  json_encode(result)
+  return {store = session_store, result = result}
 end
 
 while true do
@@ -312,14 +392,25 @@ while true do
     local resumed = table.pack(coroutine.resume(task.coroutine, table.unpack(current.values, 1, current.values.n)))
     if not resumed[1] or coroutine.status(task.coroutine) == 'dead' then
       finish_task(task, resumed)
-      if task.id == 1 and task.error then send('error', {message = task.error, store = session_store}); return end
+      if task.id == 1 and task.error then
+        local category = task.error:find('__LUA_LIMIT_', 1, true) and 'limit' or 'script'
+        send('error', {message = task.error, category = category, store = session_store}); return
+      end
     else
       local operation = resumed[2]
       if type(operation) ~= 'table' or not operation.kind then
         send('error', {message = 'invalid coroutine yield'}); return
       elseif operation.kind == 'tool' then
         local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
-        calls[#calls + 1] = {request_id=request_id, name=operation.name, arguments=operation.arguments}
+        calls[#calls + 1] = {request_id=request_id, operation='tool_call', name=operation.name, arguments=operation.arguments}
+        call_tasks[request_id] = task
+      elseif operation.kind == 'host_call' or operation.kind == 'host_open' then
+        local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
+        calls[#calls + 1] = {request_id=request_id, operation=operation.kind, name=operation.name, arguments=operation.arguments}
+        call_tasks[request_id] = task
+      elseif operation.kind == 'host_next' or operation.kind == 'host_close' then
+        local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
+        calls[#calls + 1] = {request_id=request_id, operation=operation.kind, stream_handle=operation.stream_handle}
         call_tasks[request_id] = task
       elseif operation.kind == 'await' then
         waiting[operation.task_id] = waiting[operation.task_id] or {}
@@ -334,7 +425,7 @@ while true do
         if control.type == 'terminate' then send('terminated', {store=session_store}); return end
         enqueue(task)
       elseif operation.kind == 'exit' then
-        send('completed', {store = session_store}); return
+        send('completed', completed_payload()); return
       else
         send('output', {kind=operation.kind, value=operation.value})
         enqueue(task)
@@ -346,9 +437,9 @@ while true do
     for _, task in pairs(tasks) do
       if not task.done and not task.detached then attached_live = true; break end
     end
-    if not attached_live then send('completed', {store=session_store}); return end
-    send('tool_batch', {calls = calls})
-    local response = receive('tool_results')
+    if not attached_live then send('completed', completed_payload()); return end
+    send('callback_batch', {calls = calls})
+    local response = receive('callback_results')
     if response.type == 'terminate' then send('terminated', {store=session_store}); return end
     for _, result in ipairs(response.payload.results or {}) do
       local task = call_tasks[result.request_id]
@@ -357,7 +448,7 @@ while true do
   else
     local live = false
     for _, task in pairs(tasks) do if not task.done then live = true; break end end
-    if not live then send('completed', {store = session_store}); return end
+    if not live then send('completed', completed_payload()); return end
     if #runnable == 0 then send('error', {message='scheduler deadlock', store=session_store}); return end
   end
 end

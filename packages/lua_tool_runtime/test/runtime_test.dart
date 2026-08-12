@@ -27,6 +27,15 @@ void main() {
 
   tearDown(() => runtime.close());
 
+  test('rejects invalid runtime limits at session creation', () {
+    expect(
+      () => runtime.createSession(
+        limits: const LuaRuntimeLimits(maxWorkersPerRevision: 0),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('dispatches a tool batch and preserves opaque resources', () async {
     final dispatcher = RecordingDispatcher();
     final pending = session.execute(
@@ -109,6 +118,266 @@ void main() {
     }
     expect(delta.running, isFalse);
   });
+
+  test('invokes named bundle handlers and reuses a revision worker', () async {
+    final bundle = LuaProgramBundle(
+      revision: 'sha256:one',
+      entrypoint: 'main',
+      modules: const {
+        'main': 'return {run = function(input) return input.value end}',
+      },
+    );
+    final context = LuaExecutionContext<String>(
+      dispatcher: RecordingDispatcher(),
+    );
+
+    var first = session.invoke(
+      LuaInvokeRequest(
+        bundle: bundle,
+        handler: 'run',
+        arguments: const {'value': 1},
+        yieldTime: const Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      ),
+      context,
+    );
+    await pumpEventQueue();
+    final process = launcher.process;
+    final firstId = process.writtenFrame(0)['cell_id']! as String;
+    expect(process.writtenFrame(0)['type'], 'invoke');
+    process.emitFrame(firstId, 1, 'completed', {
+      'store': <String, Object?>{},
+      'result': 1,
+    });
+    expect((await first).result, 1);
+
+    first = session.invoke(
+      LuaInvokeRequest(
+        bundle: bundle,
+        handler: 'run',
+        arguments: const {'value': 2},
+        yieldTime: const Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      ),
+      context,
+    );
+    await pumpEventQueue();
+    expect(launcher.processes, hasLength(1));
+    final secondId = process.writtenFrame(1)['cell_id']! as String;
+    expect(secondId, isNot(firstId));
+    process.emitFrame(secondId, 1, 'completed', {
+      'store': <String, Object?>{},
+      'result': 2,
+    });
+    expect((await first).result, 2);
+  });
+
+  test('bridges versioned host callbacks and pull-based streams', () async {
+    final callbacks = RecordingHostCallbacks();
+    final pending = session.invoke(
+      LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: 'sha256:stream',
+          entrypoint: 'main',
+          modules: const {'main': 'return {run = function() end}'},
+        ),
+        handler: 'run',
+        yieldTime: const Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      ),
+      LuaExecutionContext(
+        dispatcher: RecordingDispatcher(),
+        hostCallbacks: callbacks,
+      ),
+    );
+    await pumpEventQueue();
+    final process = launcher.process;
+    final cellId = process.writtenFrame(0)['cell_id']! as String;
+    process.emitFrame(cellId, 1, 'callback_batch', {
+      'calls': [
+        {
+          'request_id': 'call',
+          'operation': 'host_call',
+          'name': 'clock.now',
+          'arguments': <String, Object?>{},
+        },
+        {
+          'request_id': 'open',
+          'operation': 'host_open',
+          'name': 'model.events',
+          'arguments': {'request': 1},
+        },
+      ],
+    });
+    await pumpEventQueue();
+    final firstResults = process.writtenFrame(1);
+    expect(firstResults['version'], luaHostProtocolVersion);
+    expect(firstResults['type'], 'callback_results');
+    final firstPayload = Map<String, Object?>.from(
+      firstResults['payload']! as Map,
+    );
+    final values = (firstPayload['results']! as List)
+        .map((value) => Map<String, Object?>.from(value! as Map))
+        .toList();
+    final streamHandle = values.last['value']! as String;
+
+    process.emitFrame(cellId, 2, 'callback_batch', {
+      'calls': [
+        {
+          'request_id': 'next',
+          'operation': 'host_next',
+          'stream_handle': streamHandle,
+        },
+      ],
+    });
+    await pumpEventQueue();
+    final nextPayload = Map<String, Object?>.from(
+      process.writtenFrame(2)['payload']! as Map,
+    );
+    expect(nextPayload['results'], [
+      {
+        'request_id': 'next',
+        'value': {
+          'done': false,
+          'value': {'type': 'text_delta', 'text': 'hello'},
+        },
+      },
+    ]);
+    process.emitFrame(cellId, 3, 'completed', {'store': <String, Object?>{}});
+    await pending;
+    expect(callbacks.calls, ['clock.now']);
+    expect(callbacks.streams, ['model.events']);
+  });
+
+  test('enforces revision identity and worker concurrency quotas', () async {
+    final limited = runtime.createSession(
+      limits: const LuaRuntimeLimits(maxWorkersPerRevision: 1),
+    );
+    final context = LuaExecutionContext<String>(
+      dispatcher: RecordingDispatcher(),
+    );
+    final bundle = LuaProgramBundle(
+      revision: 'sha256:pinned',
+      entrypoint: 'main',
+      modules: const {'main': 'return {run = function() end}'},
+    );
+    final first = limited.invoke(
+      LuaInvokeRequest(
+        bundle: bundle,
+        handler: 'run',
+        yieldTime: const Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      ),
+      context,
+    );
+    await pumpEventQueue();
+    final process = launcher.process;
+    final cellId = process.writtenFrame(0)['cell_id']! as String;
+    process.emitFrame(cellId, 1, 'yielded', {'store': <String, Object?>{}});
+    expect((await first).running, isTrue);
+
+    final quota = await limited.invoke(
+      LuaInvokeRequest(
+        bundle: bundle,
+        handler: 'run',
+        yieldTime: const Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      ),
+      context,
+    );
+    expect(quota.error, isA<LuaLimitException>());
+    expect(launcher.processes, hasLength(1));
+
+    final collision = await limited.invoke(
+      LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: bundle.revision,
+          entrypoint: 'main',
+          modules: const {'main': 'return {run = function() return 2 end}'},
+        ),
+        handler: 'run',
+        yieldTime: const Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      ),
+      context,
+    );
+    expect(collision.error, isA<LuaProtocolException>());
+  });
+
+  test(
+    'rejects unsafe handlers and non-JSON arguments before launch',
+    () async {
+      final bundle = LuaProgramBundle(
+        revision: 'sha256:invalid-input',
+        entrypoint: 'main',
+        modules: const {'main': 'return {run = function() end}'},
+      );
+      final context = LuaExecutionContext<String>(
+        dispatcher: RecordingDispatcher(),
+      );
+      final invalidHandler = await session.invoke(
+        LuaInvokeRequest(
+          bundle: bundle,
+          handler: '../run',
+          yieldTime: Duration.zero,
+          maxOutputTokens: 1,
+        ),
+        context,
+      );
+      expect(invalidHandler.error, isA<LuaProtocolException>());
+
+      final cyclic = <String, Object?>{};
+      cyclic['self'] = cyclic;
+      final invalidArguments = await session.invoke(
+        LuaInvokeRequest(
+          bundle: bundle,
+          handler: 'run',
+          arguments: cyclic,
+          yieldTime: Duration.zero,
+          maxOutputTokens: 1,
+        ),
+        context,
+      );
+      expect(invalidArguments.error, isA<LuaProtocolException>());
+      expect(launcher.processes, isEmpty);
+    },
+  );
+
+  test(
+    'serializes concurrent worker admission without exceeding quota',
+    () async {
+      final limited = runtime.createSession(
+        limits: const LuaRuntimeLimits(
+          maxLiveCells: 2,
+          maxWorkersPerRevision: 1,
+        ),
+      );
+      final context = LuaExecutionContext<String>(
+        dispatcher: RecordingDispatcher(),
+      );
+      final request = LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: 'sha256:concurrent',
+          entrypoint: 'main',
+          modules: const {'main': 'return {run = function() end}'},
+        ),
+        handler: 'run',
+        yieldTime: const Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      );
+
+      final first = limited.invoke(request, context);
+      final second = limited.invoke(request, context);
+      final rejected = await second;
+      expect(rejected.error, isA<LuaLimitException>());
+      expect(launcher.processes, hasLength(1));
+
+      final process = launcher.process;
+      final cellId = process.writtenFrame(0)['cell_id']! as String;
+      process.emitFrame(cellId, 1, 'completed', {'store': <String, Object?>{}});
+      expect((await first).error, isNull);
+    },
+  );
 
   test('resumes yielded cells and persists JSON session state', () async {
     final context = LuaExecutionContext<String>(
@@ -532,6 +801,7 @@ final class RecordingDispatcher implements LuaToolDispatcher<String> {
 
   @override
   Future<LuaToolResult<String>> invoke(LuaToolInvocation invocation) async {
+    expect(invocation.cancellation?.isCancelled, isFalse);
     calls.add('${invocation.name}:${invocation.arguments['value']}');
     return const LuaToolResult(
       value: 'hello',
@@ -551,6 +821,26 @@ final class ThrowingDispatcher implements LuaToolDispatcher<String> {
   @override
   Future<LuaToolResult<String>> invoke(LuaToolInvocation invocation) =>
       throw StateError('tool failed');
+}
+
+final class RecordingHostCallbacks
+    implements LuaHostCallbackDispatcher<String> {
+  final List<String> calls = [];
+  final List<String> streams = [];
+
+  @override
+  Future<LuaHostResult<String>> call(LuaHostInvocation invocation) async {
+    calls.add(invocation.name);
+    return const LuaHostResult(value: {'utc': '2026-01-01T00:00:00Z'});
+  }
+
+  @override
+  Stream<LuaHostResult<String>> open(LuaHostInvocation invocation) {
+    streams.add(invocation.name);
+    return Stream.value(
+      const LuaHostResult(value: {'type': 'text_delta', 'text': 'hello'}),
+    );
+  }
 }
 
 final class FakeClock implements LuaClock {

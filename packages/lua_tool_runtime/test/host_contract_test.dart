@@ -164,6 +164,177 @@ while true do values[#values + 1] = string.rep("x", 65536) end
     expect(memory.error!.message.toLowerCase(), contains('memory'));
   });
 
+  test('loads safe modules and Markdown assets for a named handler', () async {
+    final runtime = _runtime(command);
+    addTearDown(runtime.close);
+    final session = runtime.createSession();
+    final context = LuaExecutionContext<String>(
+      dispatcher: ParallelDispatcher(),
+    );
+    var delta = await session.invoke(
+      LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: 'sha256:assets',
+          entrypoint: 'main',
+          modules: const {
+            'tinest.sdk': '''
+tinest = {prefix = "Safe"}
+return tinest
+''',
+            'main': '''
+local helper = require("plugin.helper")
+return {run = function(input)
+  text(tinest.prefix .. ":" .. assets.read("prompts/system.md"))
+  return helper.answer + input.increment
+end}
+''',
+            'plugin.helper': 'return {answer = 40}',
+          },
+          preloadModules: const ['tinest.sdk'],
+          markdownAssets: const {'prompts/system.md': '# Safe prompt'},
+        ),
+        handler: 'run',
+        arguments: const {'increment': 2},
+        yieldTime: const Duration(seconds: 5),
+        maxOutputTokens: 1000,
+      ),
+      context,
+      workingDirectory: Directory.current.path,
+    );
+    final output = StringBuffer(delta.output);
+    while (delta.running) {
+      delta = await session.wait(
+        LuaWaitRequest(
+          cellId: delta.cellId,
+          yieldTime: const Duration(seconds: 5),
+          maxOutputTokens: 1000,
+        ),
+        context,
+      );
+      output.write(delta.output);
+    }
+
+    expect(delta.error, isNull);
+    expect(output.toString(), contains('Safe:# Safe prompt'));
+    expect(delta.result, 42);
+  });
+
+  test('reuses a helper with fresh VMs and streams host events', () async {
+    final runtime = _runtime(command);
+    addTearDown(runtime.close);
+    final session = runtime.createSession();
+    final callbacks = ContractCallbacks();
+    final context = LuaExecutionContext<String>(
+      dispatcher: ParallelDispatcher(),
+      hostCallbacks: callbacks,
+    );
+    final bundle = LuaProgramBundle(
+      revision: 'sha256:fresh-stream',
+      entrypoint: 'main',
+      modules: const {
+        'main': '''
+return {run = function()
+  local previous = _G.invocation_marker
+  _G.invocation_marker = true
+  local unary = host.call("model.describe", {})
+  local stream = host.open("model.events", {})
+  local event = host.next(stream)
+  host.close(stream)
+  return {previous = previous or false, unary = unary, event = event.value}
+end}
+''',
+      },
+    );
+
+    Future<LuaCellDelta<String>> run() => session.invoke(
+      LuaInvokeRequest(
+        bundle: bundle,
+        handler: 'run',
+        yieldTime: const Duration(seconds: 5),
+        maxOutputTokens: 1000,
+      ),
+      context,
+      workingDirectory: Directory.current.path,
+    );
+
+    final first = await run();
+    final second = await run();
+    expect(first.error, isNull);
+    expect(second.error, isNull);
+    expect(first.result, {
+      'previous': false,
+      'unary': {'model': 'test'},
+      'event': {'type': 'text_delta', 'text': 'hello'},
+    });
+    expect(second.result, first.result);
+    expect(callbacks.calls, 2);
+    expect(callbacks.streams, 2);
+  });
+
+  test('wall deadline cancels an in-flight host await', () async {
+    final runtime = _runtime(command);
+    addTearDown(runtime.close);
+    final session = runtime.createSession(
+      limits: const LuaRuntimeLimits(maxWallTime: Duration(milliseconds: 100)),
+    );
+    final callbacks = HangingCallbacks();
+    final delta = await session.invoke(
+      LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: 'sha256:host-await',
+          entrypoint: 'main',
+          modules: const {
+            'main': '''
+return {run = function() return host.call("never", {}) end}
+''',
+          },
+        ),
+        handler: 'run',
+        yieldTime: const Duration(seconds: 2),
+        maxOutputTokens: 1000,
+      ),
+      LuaExecutionContext(
+        dispatcher: ParallelDispatcher(),
+        hostCallbacks: callbacks,
+      ),
+      workingDirectory: Directory.current.path,
+    );
+
+    expect(delta.error, isA<LuaLimitException>());
+    expect(callbacks.cancelled, isTrue);
+  });
+
+  test('stops compute with an instruction budget and wall deadline', () async {
+    final runtime = _runtime(command);
+    addTearDown(runtime.close);
+    final session = runtime.createSession(
+      limits: const LuaRuntimeLimits(
+        maxInstructions: 250000,
+        maxWallTime: Duration(seconds: 2),
+      ),
+    );
+    final elapsed = Stopwatch()..start();
+    final delta = await session.invoke(
+      LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: 'sha256:loop',
+          entrypoint: 'main',
+          modules: const {
+            'main': 'return {run = function() while true do end end}',
+          },
+        ),
+        handler: 'run',
+        yieldTime: const Duration(seconds: 5),
+        maxOutputTokens: 1000,
+      ),
+      LuaExecutionContext(dispatcher: ParallelDispatcher()),
+      workingDirectory: Directory.current.path,
+    );
+
+    expect(delta.error, isA<LuaLimitException>());
+    expect(elapsed.elapsed, lessThan(const Duration(seconds: 3)));
+  });
+
   test('yielded infinite work is killed by consumer cancellation', () async {
     final runtime = _runtime(command);
     addTearDown(runtime.close);
@@ -253,4 +424,38 @@ final class ManualCancellation implements LuaCancellationSignal {
       callback();
     }
   }
+}
+
+final class ContractCallbacks implements LuaHostCallbackDispatcher<String> {
+  int calls = 0;
+  int streams = 0;
+
+  @override
+  Future<LuaHostResult<String>> call(LuaHostInvocation invocation) async {
+    calls += 1;
+    return const LuaHostResult(value: {'model': 'test'});
+  }
+
+  @override
+  Stream<LuaHostResult<String>> open(LuaHostInvocation invocation) {
+    streams += 1;
+    return Stream.value(
+      const LuaHostResult(value: {'type': 'text_delta', 'text': 'hello'}),
+    );
+  }
+}
+
+final class HangingCallbacks implements LuaHostCallbackDispatcher<String> {
+  bool cancelled = false;
+
+  @override
+  Future<LuaHostResult<String>> call(LuaHostInvocation invocation) {
+    invocation.cancellation.onCancel(() => throw StateError('cleanup failed'));
+    invocation.cancellation.onCancel(() => cancelled = true);
+    return Completer<LuaHostResult<String>>().future;
+  }
+
+  @override
+  Stream<LuaHostResult<String>> open(LuaHostInvocation invocation) =>
+      const Stream.empty();
 }

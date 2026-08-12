@@ -15,6 +15,8 @@ void main() {
   stderr.write(List.filled(9000, 'e').join());
   stdout.write(stdin.readLineSync());
   stdout.write(Platform.environment['LUA_TEST_VALUE']);
+  stdout.write(':');
+  stdout.write(Platform.environment.containsKey('PATH'));
 }
 ''');
     final process = await const IoLuaHostProcessLauncher().start(
@@ -28,7 +30,7 @@ void main() {
     final output = process.outputs.transform(const LineSplitter()).toList();
     await process.write('input\n');
     expect(await process.exitCode, 0);
-    expect((await output).join(), 'inputenvironment');
+    expect((await output).join(), 'inputenvironment:false');
     await process.terminate();
   });
 
