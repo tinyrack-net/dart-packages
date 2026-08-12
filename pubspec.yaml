@@ -17,3 +17,9 @@ workspace:
 
 dev_dependencies:
   test: ^1.26.0
+
+# pqcrypto 0.4.1's published archive omits a file referenced by its own
+# dartdoc_options.yaml. Keep workspace documentation checks reproducible while
+# dartage retains its normal published dependency constraint.
+dependency_overrides:
+  pqcrypto: 0.4.0
