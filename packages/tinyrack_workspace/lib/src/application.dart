@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import 'coverage_policy.dart';
+import 'lcov_merger.dart';
 import 'source_policy.dart';
 
 typedef OutputWriter = void Function(Object? value);
@@ -17,15 +18,6 @@ Future<int> runTinyrackWorkspace(
   final command = arguments.first;
   final options = arguments.skip(1).toList(growable: false);
   final root = _option(options, '--root') ?? Directory.current.path;
-  if (options.any(
-    (value) =>
-        !value.startsWith('--root=') &&
-        !value.startsWith('--scope=') &&
-        !value.startsWith('--line=') &&
-        !value.startsWith('--branch='),
-  )) {
-    return _usage(error);
-  }
   switch (command) {
     case 'source-check':
       if (options.any((value) => !value.startsWith('--root='))) {
@@ -39,6 +31,15 @@ Future<int> runTinyrackWorkspace(
       out('Tinyrack dependency sources are pinned.');
       return 0;
     case 'coverage-check':
+      if (options.any(
+        (value) =>
+            !value.startsWith('--root=') &&
+            !value.startsWith('--scope=') &&
+            !value.startsWith('--line=') &&
+            !value.startsWith('--branch='),
+      )) {
+        return _usage(error);
+      }
       final line = _percentage(options, '--line', 90, error);
       final branch = _percentage(options, '--branch', 80, error);
       if (line == null || branch == null) return 64;
@@ -73,6 +74,33 @@ Future<int> runTinyrackWorkspace(
         }
       }
       return failed ? 1 : 0;
+    case 'coverage-merge':
+      if (options.any(
+        (value) =>
+            !value.startsWith('--input=') && !value.startsWith('--output='),
+      )) {
+        return _usage(error);
+      }
+      final inputs = <String>[
+        for (final option in options)
+          if (option.startsWith('--input='))
+            option.substring('--input='.length),
+      ];
+      final output = _option(options, '--output');
+      if (inputs.isEmpty || output == null || output.isEmpty) {
+        return _usage(error);
+      }
+      try {
+        const LcovMerger().mergeFiles(inputs, output);
+      } on FormatException catch (failure) {
+        error(failure);
+        return 1;
+      } on StateError catch (failure) {
+        error(failure);
+        return 1;
+      }
+      out('Merged ${inputs.length} LCOV reports into $output.');
+      return 0;
     default:
       return _usage(error);
   }
@@ -102,8 +130,9 @@ double? _percentage(
 int _usage(OutputWriter error) {
   error(
     'Usage: dart run tinyrack_workspace '
-    '<source-check|coverage-check> [--root=DIR] [--scope=NAME] '
-    '[--line=PERCENT] [--branch=PERCENT]',
+    '<source-check|coverage-check|coverage-merge> '
+    '[--root=DIR] [--scope=NAME] [--line=PERCENT] [--branch=PERCENT] '
+    '[--input=FILE] [--output=FILE]',
   );
   return 64;
 }
