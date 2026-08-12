@@ -233,6 +233,15 @@ final class LuaRuntimeSession<T extends Object> {
       );
       worker.attach(cell);
       _cells[id] = cell;
+      // Bind only after [cell] is assigned and discoverable. A cancellation
+      // source may invoke its callback synchronously when it was cancelled
+      // before registration, and the abort callback closes this exact cell.
+      cell.bindCancellation();
+      if (cell.isTerminal) {
+        final delta = await cell.read(Duration.zero, request.maxOutputTokens);
+        await _remove(cell, terminate: true);
+        return delta;
+      }
     } finally {
       _pendingInvocations -= 1;
     }
@@ -480,7 +489,6 @@ final class _LuaCell<T extends Object> {
       );
       onAbort();
     });
-    bindCancellation();
   }
 
   final String id;
@@ -514,6 +522,8 @@ final class _LuaCell<T extends Object> {
   int _cancellationGeneration = 0;
   int _nextStream = 0;
   Completer<void> _changed = Completer<void>();
+
+  bool get isTerminal => _terminal;
 
   void bindCancellation() {
     final generation = ++_cancellationGeneration;

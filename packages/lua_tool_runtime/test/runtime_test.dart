@@ -36,6 +36,33 @@ void main() {
     );
   });
 
+  test(
+    'an already-cancelled invoke terminates without a construction race',
+    () async {
+      final result = await session.invoke(
+        LuaInvokeRequest(
+          bundle: LuaProgramBundle(
+            revision: 'sha256:cancelled-before-bind',
+            entrypoint: 'main',
+            modules: const <String, String>{
+              'main': 'return {run = function() return true end}',
+            },
+          ),
+          handler: 'run',
+          yieldTime: const Duration(seconds: 1),
+          maxOutputTokens: 1000,
+        ),
+        LuaExecutionContext<String>(
+          dispatcher: RecordingDispatcher(),
+          cancellation: const _AlreadyCancelled(),
+        ),
+      );
+
+      expect(result.running, isFalse);
+      expect(result.error, isA<LuaCancelledException>());
+    },
+  );
+
   test('dispatches a tool batch and preserves opaque resources', () async {
     final dispatcher = RecordingDispatcher();
     final pending = session.execute(
@@ -840,6 +867,13 @@ final class ThrowingDispatcher implements LuaToolDispatcher<String> {
   @override
   Future<LuaToolResult<String>> invoke(LuaToolInvocation invocation) =>
       throw StateError('tool failed');
+}
+
+final class _AlreadyCancelled implements LuaCancellationSignal {
+  const _AlreadyCancelled();
+
+  @override
+  void onCancel(void Function() callback) => callback();
 }
 
 final class RecordingHostCallbacks
