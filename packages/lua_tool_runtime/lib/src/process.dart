@@ -80,10 +80,27 @@ final class IoLuaHostProcessLauncher implements LuaHostProcessLauncher {
       command.executable,
       command.arguments,
       workingDirectory: workingDirectory,
-      environment: command.environment,
+      environment: {..._requiredProcessEnvironment(), ...command.environment},
+      includeParentEnvironment: false,
     );
     return _IoLuaHostProcess(process);
   }
+}
+
+Map<String, String> _requiredProcessEnvironment() {
+  if (!Platform.isWindows) return const {};
+  const required = [
+    'SystemRoot',
+    'WINDIR',
+    'COMSPEC',
+    'PATHEXT',
+    'TEMP',
+    'TMP',
+  ];
+  return {
+    for (final name in required)
+      if (Platform.environment[name] case final String value) name: value,
+  };
 }
 
 final class _IoLuaHostProcess implements LuaHostProcess {

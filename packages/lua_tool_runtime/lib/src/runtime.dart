@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'model.dart';
 import 'process.dart';
+import 'program_bundle.dart';
 
 /// Creates independent Lua sessions over one native-host distribution.
 final class LuaToolRuntime<T extends Object> {
@@ -28,10 +29,11 @@ final class LuaToolRuntime<T extends Object> {
 
   final Set<LuaRuntimeSession<T>> _sessions = {};
 
-  /// Creates a session with isolated store, cells, and resources.
+  /// Creates a session with isolated store, cells, resources, and workers.
   LuaRuntimeSession<T> createSession({
     LuaRuntimeLimits limits = const LuaRuntimeLimits(),
   }) {
+    _validateRuntimeLimits(limits);
     final session = LuaRuntimeSession<T>._(this, limits);
     _sessions.add(session);
     return session;
@@ -57,65 +59,189 @@ final class LuaToolRuntime<T extends Object> {
   void _forget(LuaRuntimeSession<T> session) => _sessions.remove(session);
 }
 
-/// Session-isolated cell collection and JSON store.
+void _validateRuntimeLimits(LuaRuntimeLimits limits) {
+  if (limits.maxMemoryBytes < 1024 * 1024 ||
+      limits.maxSourceBytes <= 0 ||
+      limits.maxFrameBytes <= 0 ||
+      limits.maxOutputBytes <= 0 ||
+      limits.maxLiveCells <= 0 ||
+      limits.maxYieldTime <= Duration.zero ||
+      limits.idleTimeout <= Duration.zero ||
+      limits.executionWatchdog <= Duration.zero ||
+      limits.maxWallTime <= Duration.zero ||
+      limits.maxInstructions < 1000 ||
+      limits.instructionHookInterval < 100 ||
+      limits.maxWorkersPerRevision <= 0) {
+    throw ArgumentError.value(
+      limits,
+      'limits',
+      'Runtime limits must be positive.',
+    );
+  }
+}
+
+/// Session-isolated invocation collection, JSON store, and revision workers.
 final class LuaRuntimeSession<T extends Object> {
   LuaRuntimeSession._(this._runtime, this.limits);
 
   final LuaToolRuntime<T> _runtime;
 
-  /// Limits applied to cells in this session.
+  /// Limits applied to invocations in this session.
   final LuaRuntimeLimits limits;
 
   final Map<String, _LuaCell<T>> _cells = {};
+  final Map<_LuaWorkerKey, List<_LuaWorker<T>>> _workers = {};
+  final Map<String, String> _revisionIdentities = {};
+  Future<void> _workerQueue = Future<void>.value();
   Map<String, Object?> _store = {};
+  int _pendingInvocations = 0;
   bool _closed = false;
 
   /// Snapshot of the JSON-serializable session store.
   Map<String, Object?> get store => Map.unmodifiable(_store);
 
-  /// Starts a fresh VM.
+  /// Starts an inline source chunk in a fresh VM.
+  ///
+  /// New plugin hosts should prefer [invoke]. This convenience API is retained
+  /// for code-mode integrations and is implemented as a named bundle handler.
   Future<LuaCellDelta<T>> execute(
     LuaExecuteRequest request,
     LuaExecutionContext<T> context, {
     String workingDirectory = '.',
+  }) {
+    final module =
+        'return {run = function(_arguments)\n${request.source}\nend}';
+    return invoke(
+      LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: 'inline:${_fnv1a64(request.source)}',
+          entrypoint: 'main',
+          modules: {'main': module},
+        ),
+        handler: 'run',
+        yieldTime: request.yieldTime,
+        maxOutputTokens: request.maxOutputTokens,
+        tools: request.tools,
+      ),
+      context,
+      workingDirectory: workingDirectory,
+    );
+  }
+
+  /// Invokes a named handler in a fresh Lua VM.
+  ///
+  /// Native helper processes are lazily reused by revision, but the helper
+  /// discards the previous VM before accepting another invocation.
+  Future<LuaCellDelta<T>> invoke(
+    LuaInvokeRequest request,
+    LuaExecutionContext<T> context, {
+    String workingDirectory = '.',
   }) async {
     if (_closed) throw StateError('Lua runtime session is closed.');
-    final sourceBytes = utf8.encode(request.source).length;
-    if (sourceBytes > limits.maxSourceBytes) {
+    if (!_validHandler.hasMatch(request.handler)) {
+      return LuaCellDelta<T>(
+        cellId: '',
+        output: '',
+        running: false,
+        error: LuaProtocolException(
+          'Invalid Lua handler name: ${request.handler}',
+        ),
+      );
+    }
+    if (request.bundle.encodedByteLength > limits.maxSourceBytes) {
       return LuaCellDelta<T>(
         cellId: '',
         output: '',
         running: false,
         error: LuaLimitException(
-          'Lua source exceeds ${limits.maxSourceBytes} bytes.',
+          'Lua bundle exceeds ${limits.maxSourceBytes} bytes.',
         ),
       );
     }
+    try {
+      jsonEncode(request.arguments);
+    } on Object catch (error) {
+      return LuaCellDelta<T>(
+        cellId: '',
+        output: '',
+        running: false,
+        error: LuaProtocolException('Handler arguments are not JSON: $error'),
+      );
+    }
+    final knownIdentity = _revisionIdentities[request.bundle.revision];
+    if (knownIdentity != null &&
+        knownIdentity != request.bundle.contentIdentity) {
+      return LuaCellDelta<T>(
+        cellId: '',
+        output: '',
+        running: false,
+        error: LuaProtocolException(
+          'Bundle revision ${request.bundle.revision} changed content.',
+        ),
+      );
+    }
+    _revisionIdentities[request.bundle.revision] =
+        request.bundle.contentIdentity;
+
     sweep();
-    if (_cells.length >= limits.maxLiveCells) {
-      final oldest = _cells.values.reduce(
+    _LuaCell<T>? oldest;
+    if (_cells.length + _pendingInvocations >= limits.maxLiveCells) {
+      if (_pendingInvocations > 0 || _cells.isEmpty) {
+        return LuaCellDelta<T>(
+          cellId: '',
+          output: '',
+          running: false,
+          error: LuaLimitException(
+            'Lua session already has ${limits.maxLiveCells} live invocations.',
+          ),
+        );
+      }
+      oldest = _cells.values.reduce(
         (left, right) => left.lastUsed.isBefore(right.lastUsed) ? left : right,
       );
-      await _remove(oldest, terminate: true);
     }
-    final id = 'lua-${_runtime.ids.generate()}';
-    final process = await _runtime.processLauncher.start(
-      _runtime.host.withEnvironment({
-        'LUA_TOOL_RUNTIME_MEMORY_LIMIT_BYTES': '${limits.maxMemoryBytes}',
-      }),
-      workingDirectory: workingDirectory,
-    );
-    final cell = _LuaCell<T>(
-      id: id,
-      process: process,
-      clock: _runtime.clock,
-      limits: limits,
-      context: context,
-      onStore: (value) => _store = value,
-      onTerminal: (value) => _cells.remove(value.id),
-    );
-    _cells[id] = cell;
-    await cell.initialize(request.source, request.tools, _store);
+    _pendingInvocations += 1;
+    late final _LuaCell<T> cell;
+    try {
+      if (oldest != null) await _remove(oldest, terminate: true);
+      final key = _LuaWorkerKey(request.bundle.revision, workingDirectory);
+      final worker = await _acquireWorker(key);
+      if (worker == null) {
+        return LuaCellDelta<T>(
+          cellId: '',
+          output: '',
+          running: false,
+          error: LuaLimitException(
+            'Revision ${request.bundle.revision} already has '
+            '${limits.maxWorkersPerRevision} live workers.',
+          ),
+        );
+      }
+      if (_closed) {
+        await worker.close();
+        throw StateError('Lua runtime session is closed.');
+      }
+      final id = 'lua-${_runtime.ids.generate()}';
+      cell = _LuaCell<T>(
+        id: id,
+        worker: worker,
+        clock: _runtime.clock,
+        limits: limits,
+        context: context,
+        onStore: (value) => _store = value,
+        onAbort: () => unawaited(_remove(cell, terminate: true)),
+      );
+      worker.attach(cell);
+      _cells[id] = cell;
+    } finally {
+      _pendingInvocations -= 1;
+    }
+    try {
+      await cell.initialize(request, _store);
+    } on Object {
+      await _remove(cell, terminate: true);
+      rethrow;
+    }
     final delta = await cell.read(
       _boundedWait(request.yieldTime),
       request.maxOutputTokens,
@@ -143,10 +269,11 @@ final class LuaRuntimeSession<T extends Object> {
     cell.context = context;
     cell.bindCancellation();
     if (request.terminate) {
+      final output = cell.drain(request.maxOutputTokens);
       await _remove(cell, terminate: true);
       return LuaCellDelta<T>(
         cellId: request.cellId,
-        output: cell.drain(request.maxOutputTokens),
+        output: output,
         running: false,
         terminated: true,
       );
@@ -158,6 +285,49 @@ final class LuaRuntimeSession<T extends Object> {
     );
     if (!delta.running) await _remove(cell, terminate: false);
     return delta;
+  }
+
+  Future<_LuaWorker<T>?> _acquireWorker(_LuaWorkerKey key) async {
+    final previous = _workerQueue;
+    final release = Completer<void>();
+    _workerQueue = release.future;
+    await previous;
+    try {
+      return await _acquireWorkerUnlocked(key);
+    } finally {
+      release.complete();
+    }
+  }
+
+  Future<_LuaWorker<T>?> _acquireWorkerUnlocked(_LuaWorkerKey key) async {
+    final workers = _workers.putIfAbsent(key, () => []);
+    for (final worker in workers) {
+      if (!worker.isDead && worker.isIdle) {
+        worker.reserve();
+        return worker;
+      }
+    }
+    workers.removeWhere((worker) => worker.isDead);
+    if (workers.length >= limits.maxWorkersPerRevision) return null;
+    final process = await _runtime.processLauncher.start(
+      _runtime.host.withEnvironment({
+        'LUA_TOOL_RUNTIME_MEMORY_LIMIT_BYTES': '${limits.maxMemoryBytes}',
+        'LUA_TOOL_RUNTIME_INSTRUCTION_LIMIT': '${limits.maxInstructions}',
+        'LUA_TOOL_RUNTIME_HOOK_INTERVAL': '${limits.instructionHookInterval}',
+      }),
+      workingDirectory: key.workingDirectory,
+    );
+    late final _LuaWorker<T> worker;
+    worker = _LuaWorker<T>(
+      process,
+      onDead: () {
+        workers.remove(worker);
+        if (workers.isEmpty) _workers.remove(key);
+      },
+    );
+    workers.add(worker);
+    worker.reserve();
+    return worker;
   }
 
   Duration _boundedWait(Duration requested) {
@@ -176,7 +346,7 @@ final class LuaRuntimeSession<T extends Object> {
     }
   }
 
-  /// Terminates all cells in this session.
+  /// Terminates all cells and revision workers in this session.
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
@@ -185,6 +355,12 @@ final class LuaRuntimeSession<T extends Object> {
         _cells.values,
       ).map((cell) => _remove(cell, terminate: true)),
     );
+    await _workerQueue;
+    final workers = <_LuaWorker<T>>{
+      for (final group in _workers.values) ...group,
+    };
+    await Future.wait(workers.map((worker) => worker.close()));
+    _workers.clear();
     _runtime._forget(this);
   }
 
@@ -194,57 +370,140 @@ final class LuaRuntimeSession<T extends Object> {
   }
 }
 
+final class _LuaWorkerKey {
+  const _LuaWorkerKey(this.revision, this.workingDirectory);
+
+  final String revision;
+  final String workingDirectory;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _LuaWorkerKey &&
+      other.revision == revision &&
+      other.workingDirectory == workingDirectory;
+
+  @override
+  int get hashCode => Object.hash(revision, workingDirectory);
+}
+
+final class _LuaWorker<T extends Object> {
+  _LuaWorker(this._process, {required this.onDead}) {
+    _subscription = _process.outputs.listen(
+      (data) => _cell?._receiveData(data),
+      onError: (Object error, StackTrace stack) {
+        _cell?._hostFailed(LuaHostException('$error'));
+        unawaited(close());
+      },
+      onDone: () {
+        _cell?._hostFailed(
+          const LuaHostException('Lua host closed its output.'),
+        );
+        unawaited(close());
+      },
+    );
+    unawaited(
+      _process.exitCode.then<void>(
+        (code) {
+          if (!_dead && code != 0) {
+            _cell?._hostFailed(
+              LuaHostException('Lua host exited with code $code.'),
+            );
+            unawaited(close());
+          }
+        },
+        onError: (Object error) {
+          _cell?._hostFailed(LuaHostException('Lua host crashed: $error'));
+          unawaited(close());
+        },
+      ),
+    );
+  }
+
+  final LuaHostProcess _process;
+  final void Function() onDead;
+  late final StreamSubscription<String> _subscription;
+  _LuaCell<T>? _cell;
+  bool _reserved = false;
+  bool _dead = false;
+
+  bool get isDead => _dead;
+  bool get isIdle => _cell == null && !_reserved;
+
+  void reserve() {
+    if (_dead || !isIdle) throw StateError('Lua worker is not available.');
+    _reserved = true;
+  }
+
+  void attach(_LuaCell<T> cell) {
+    if (_dead || _cell != null || !_reserved) {
+      throw StateError('Lua worker is not available.');
+    }
+    _reserved = false;
+    _cell = cell;
+  }
+
+  void release(_LuaCell<T> cell) {
+    if (identical(_cell, cell)) _cell = null;
+  }
+
+  Future<void> write(String value) => _process.write(value);
+
+  Future<void> close() async {
+    if (_dead) return;
+    _dead = true;
+    final active = _cell;
+    _cell = null;
+    active?._hostFailed(const LuaHostException('Lua worker was terminated.'));
+    await _process.terminate();
+    await _subscription.cancel();
+    onDead();
+  }
+}
+
 final class _LuaCell<T extends Object> {
   _LuaCell({
     required this.id,
-    required LuaHostProcess process,
+    required this.worker,
     required LuaClock clock,
     required this.limits,
     required this.context,
     required this.onStore,
-    required this.onTerminal,
-  }) : _process = process,
-       _clock = clock,
+    required this.onAbort,
+  }) : _clock = clock,
        startedAt = clock.nowUtc(),
        lastUsed = clock.nowUtc() {
-    _subscription = process.outputs.listen(
-      _receiveData,
-      onError: (Object error, StackTrace stack) =>
-          _fail(LuaHostException('$error')),
-      onDone: _outputClosed,
-    );
-    unawaited(
-      process.exitCode.then<void>(
-        (code) {
-          if (!_terminal && code != 0) {
-            _fail(LuaHostException('Lua host exited with code $code.'));
-          }
-        },
-        onError: (Object error) {
-          _fail(LuaHostException('Lua host crashed: $error'));
-        },
-      ),
-    );
+    _wallTimer = Timer(limits.maxWallTime, () {
+      _fail(
+        LuaLimitException(
+          'Lua invocation exceeded ${limits.maxWallTime.inMilliseconds} ms.',
+        ),
+      );
+      onAbort();
+    });
     bindCancellation();
   }
 
   final String id;
-  final LuaHostProcess _process;
+  final _LuaWorker<T> worker;
   final LuaClock _clock;
   final LuaRuntimeLimits limits;
   final void Function(Map<String, Object?>) onStore;
-  final void Function(_LuaCell<T>) onTerminal;
+  final void Function() onAbort;
   final Map<String, LuaOpaqueResource<T>> _resources = {};
+  final Map<String, StreamIterator<LuaHostResult<T>>> _hostStreams = {};
   final Set<String> _emittedHandles = {};
   final Set<String> _drainedHandles = {};
   final Set<String> _drainedEmittedHandles = {};
   final List<Object?> _notifications = [];
-  late final StreamSubscription<String> _subscription;
+  final _LuaInvocationCancellationController _invocationCancellation =
+      _LuaInvocationCancellationController();
+  late final Timer _wallTimer;
   LuaExecutionContext<T> context;
   final DateTime startedAt;
   DateTime lastUsed;
   String _inputBuffer = '';
   String _output = '';
+  Object? _result;
   LuaRuntimeException? _error;
   bool _terminal = false;
   bool _yielded = false;
@@ -253,25 +512,34 @@ final class _LuaCell<T extends Object> {
   int _outboundSequence = 0;
   int _revision = 0;
   int _cancellationGeneration = 0;
+  int _nextStream = 0;
   Completer<void> _changed = Completer<void>();
 
   void bindCancellation() {
     final generation = ++_cancellationGeneration;
     context.cancellation?.onCancel(() {
-      if (generation == _cancellationGeneration) {
-        unawaited(close(terminate: true));
+      if (generation == _cancellationGeneration && !_closed) {
+        _fail(const LuaCancelledException('Lua invocation was cancelled.'));
+        onAbort();
       }
     });
   }
 
   Future<void> initialize(
-    String source,
-    List<LuaToolDefinition> tools,
+    LuaInvokeRequest request,
     Map<String, Object?> store,
-  ) => _send('init', {
-    'source': source,
+  ) => _send('invoke', {
+    'bundle': {
+      'revision': request.bundle.revision,
+      'entrypoint': request.bundle.entrypoint,
+      'modules': request.bundle.modules,
+      'preload_modules': request.bundle.preloadModules,
+      'markdown_assets': request.bundle.markdownAssets,
+    },
+    'handler': request.handler,
+    'arguments': request.arguments,
     'tools': [
-      for (final tool in tools)
+      for (final tool in request.tools)
         {
           'name': tool.name,
           'description': tool.description,
@@ -299,7 +567,7 @@ final class _LuaCell<T extends Object> {
         'Lua host frame exceeds ${limits.maxFrameBytes} bytes.',
       );
     }
-    await _process.write('$encoded\n');
+    await worker.write('$encoded\n');
   }
 
   void _receiveData(String data) {
@@ -342,8 +610,10 @@ final class _LuaCell<T extends Object> {
     switch (frame['type']) {
       case 'output':
         _acceptOutput(payload);
+      case 'callback_batch':
+        unawaited(_dispatchBatch(payload, responseType: 'callback_results'));
       case 'tool_batch':
-        unawaited(_dispatchBatch(payload));
+        unawaited(_dispatchBatch(payload, responseType: 'tool_results'));
       case 'yielded':
         _yielded = true;
         _acceptStore(payload['store']);
@@ -351,14 +621,19 @@ final class _LuaCell<T extends Object> {
       case 'completed':
       case 'terminated':
         _acceptStore(payload['store']);
+        _result = payload['result'];
         _terminal = true;
+        _wallTimer.cancel();
         _touch();
       case 'error':
         _acceptStore(payload['store']);
+        final message =
+            payload['message']?.toString() ?? 'Unknown Lua script error.';
+        final category = payload['category']?.toString();
         _fail(
-          LuaScriptException(
-            payload['message']?.toString() ?? 'Unknown Lua script error.',
-          ),
+          category == 'limit' || message.contains('__LUA_LIMIT_')
+              ? LuaLimitException(message)
+              : LuaScriptException(message),
         );
       default:
         throw FormatException('Unknown frame type: ${frame['type']}');
@@ -386,10 +661,13 @@ final class _LuaCell<T extends Object> {
     _touch();
   }
 
-  Future<void> _dispatchBatch(Map<String, Object?> payload) async {
+  Future<void> _dispatchBatch(
+    Map<String, Object?> payload, {
+    required String responseType,
+  }) async {
     final rawCalls = payload['calls'];
     if (rawCalls is! List) {
-      _protocolFailure('Invalid tool batch.');
+      _protocolFailure('Invalid callback batch.');
       return;
     }
     try {
@@ -397,66 +675,203 @@ final class _LuaCell<T extends Object> {
         for (final raw in rawCalls)
           _dispatchOne(Map<String, Object?>.from(raw! as Map)),
       ]);
-      if (!_closed) await _send('tool_results', {'results': results});
+      if (!_closed) await _send(responseType, {'results': results});
     } on Object catch (error) {
-      _fail(LuaHostException('Tool results could not be delivered: $error'));
-      await close(terminate: true);
+      if (_closed) return;
+      _fail(
+        LuaHostException('Callback results could not be delivered: $error'),
+      );
+      onAbort();
     }
   }
 
   Future<Map<String, Object?>> _dispatchOne(Map<String, Object?> call) async {
     final requestId = call['request_id']?.toString() ?? '';
     if (call['sleep_ms'] case final num milliseconds) {
-      await Future<void>.delayed(
-        Duration(milliseconds: milliseconds.toInt().clamp(0, 60000)),
+      await _invocationCancellation.race(
+        Future<void>.delayed(
+          Duration(milliseconds: milliseconds.toInt().clamp(0, 60000)),
+        ),
       );
       return {'request_id': requestId, 'value': <String, Object?>{}};
     }
+    final operation = call['operation']?.toString() ?? 'tool_call';
+    switch (operation) {
+      case 'tool_call':
+        return _dispatchTool(requestId, call);
+      case 'host_call':
+        return _dispatchHostCall(requestId, call);
+      case 'host_open':
+        return _openHostStream(requestId, call);
+      case 'host_next':
+        return _nextHostStream(requestId, call);
+      case 'host_close':
+        return _closeHostStream(requestId, call);
+      default:
+        return _toolError(requestId, 'Unknown callback operation: $operation');
+    }
+  }
+
+  Future<Map<String, Object?>> _dispatchTool(
+    String requestId,
+    Map<String, Object?> call,
+  ) async {
     final name = call['name'];
-    final arguments = call['arguments'];
-    if (name is! String || arguments is! Map) {
+    final arguments = _decodeArguments(call['arguments']);
+    if (name is! String || arguments == null) {
       return _toolError(requestId, 'Invalid nested tool request.');
     }
     try {
-      final result = await context.dispatcher.invoke(
-        LuaToolInvocation(
-          name: name,
-          arguments: Map<String, Object?>.from(arguments),
+      final result = await _invocationCancellation.race(
+        context.dispatcher.invoke(
+          LuaToolInvocation(
+            name: name,
+            arguments: arguments,
+            cancellation: _invocationCancellation,
+          ),
         ),
       );
-      final descriptors = <Map<String, Object?>>[];
-      for (final resource in result.resources) {
-        final handle = 'resource-${_resources.length + 1}';
-        _resources[handle] = resource;
-        descriptors.add({
-          'handle': handle,
-          'file_name': resource.fileName,
-          'mime_type': resource.mimeType,
-          'byte_size': resource.byteSize,
-        });
-      }
-      final enriched =
-          result.resources.isNotEmpty ||
-          result.content.isNotEmpty ||
-          result.structuredContent != null ||
-          result.meta.isNotEmpty ||
-          result.isError;
-      return {
-        'request_id': requestId,
-        'value': enriched
-            ? <String, Object?>{
-                'value': result.value,
-                'is_error': result.isError,
-                'attachments': descriptors,
-                'content': result.content,
-                'structured_content': result.structuredContent,
-                '_meta': result.meta,
-              }
-            : result.value,
-      };
+      return {'request_id': requestId, 'value': _encodeToolResult(result)};
     } on Object catch (error) {
       return _toolError(requestId, '$error');
     }
+  }
+
+  Future<Map<String, Object?>> _dispatchHostCall(
+    String requestId,
+    Map<String, Object?> call,
+  ) async {
+    final invocation = _hostInvocation(call);
+    final callbacks = context.hostCallbacks;
+    if (invocation == null || callbacks == null) {
+      return _toolError(requestId, 'Host callback is unavailable.');
+    }
+    try {
+      final result = await _invocationCancellation.race(
+        callbacks.call(invocation),
+      );
+      return {'request_id': requestId, 'value': _encodeHostResult(result)};
+    } on Object catch (error) {
+      return _toolError(requestId, '$error');
+    }
+  }
+
+  Future<Map<String, Object?>> _openHostStream(
+    String requestId,
+    Map<String, Object?> call,
+  ) async {
+    final invocation = _hostInvocation(call);
+    final callbacks = context.hostCallbacks;
+    if (invocation == null || callbacks == null) {
+      return _toolError(requestId, 'Host stream callback is unavailable.');
+    }
+    try {
+      final handle = 'stream-${++_nextStream}';
+      _hostStreams[handle] = StreamIterator(callbacks.open(invocation));
+      return {'request_id': requestId, 'value': handle};
+    } on Object catch (error) {
+      return _toolError(requestId, '$error');
+    }
+  }
+
+  Future<Map<String, Object?>> _nextHostStream(
+    String requestId,
+    Map<String, Object?> call,
+  ) async {
+    final handle = call['stream_handle'];
+    final iterator = handle is String ? _hostStreams[handle] : null;
+    if (iterator == null) {
+      return _toolError(requestId, 'Unknown host stream handle.');
+    }
+    try {
+      if (!await _invocationCancellation.race(iterator.moveNext())) {
+        _hostStreams.remove(handle);
+        await iterator.cancel();
+        return {
+          'request_id': requestId,
+          'value': {'done': true},
+        };
+      }
+      return {
+        'request_id': requestId,
+        'value': {'done': false, 'value': _encodeHostResult(iterator.current)},
+      };
+    } on Object catch (error) {
+      _hostStreams.remove(handle);
+      await iterator.cancel();
+      return _toolError(requestId, '$error');
+    }
+  }
+
+  Future<Map<String, Object?>> _closeHostStream(
+    String requestId,
+    Map<String, Object?> call,
+  ) async {
+    final handle = call['stream_handle'];
+    final iterator = handle is String ? _hostStreams.remove(handle) : null;
+    if (iterator == null) {
+      return _toolError(requestId, 'Unknown host stream handle.');
+    }
+    await iterator.cancel();
+    return {'request_id': requestId, 'value': true};
+  }
+
+  LuaHostInvocation? _hostInvocation(Map<String, Object?> call) {
+    final name = call['name'];
+    final arguments = _decodeArguments(call['arguments']);
+    if (name is! String || arguments == null) return null;
+    return LuaHostInvocation(
+      name: name,
+      arguments: arguments,
+      cancellation: _invocationCancellation,
+    );
+  }
+
+  Object? _encodeToolResult(LuaToolResult<T> result) {
+    final descriptors = _registerResources(result.resources);
+    final enriched =
+        result.resources.isNotEmpty ||
+        result.content.isNotEmpty ||
+        result.structuredContent != null ||
+        result.meta.isNotEmpty ||
+        result.isError;
+    return enriched
+        ? <String, Object?>{
+            'value': result.value,
+            'is_error': result.isError,
+            'attachments': descriptors,
+            'content': result.content,
+            'structured_content': result.structuredContent,
+            '_meta': result.meta,
+          }
+        : result.value;
+  }
+
+  Object? _encodeHostResult(LuaHostResult<T> result) {
+    final descriptors = _registerResources(result.resources);
+    if (descriptors.isEmpty && !result.isError) return result.value;
+    return <String, Object?>{
+      'value': result.value,
+      'is_error': result.isError,
+      'attachments': descriptors,
+    };
+  }
+
+  List<Map<String, Object?>> _registerResources(
+    List<LuaOpaqueResource<T>> resources,
+  ) {
+    final descriptors = <Map<String, Object?>>[];
+    for (final resource in resources) {
+      final handle = 'resource-${_resources.length + 1}';
+      _resources[handle] = resource;
+      descriptors.add({
+        'handle': handle,
+        'file_name': resource.fileName,
+        'mime_type': resource.mimeType,
+        'byte_size': resource.byteSize,
+      });
+    }
+    return descriptors;
   }
 
   Map<String, Object?> _toolError(String requestId, String message) => {
@@ -482,20 +897,20 @@ final class _LuaCell<T extends Object> {
 
   void _protocolFailure(String message) {
     _fail(LuaProtocolException(message));
-    unawaited(close(terminate: true));
+    onAbort();
+  }
+
+  void _hostFailed(LuaHostException error) {
+    if (_terminal || _closed) return;
+    _fail(error);
   }
 
   void _fail(LuaRuntimeException error) {
     if (_terminal) return;
     _error = error;
     _terminal = true;
+    _wallTimer.cancel();
     _touch();
-  }
-
-  void _outputClosed() {
-    if (!_terminal && !_closed) {
-      _fail(const LuaHostException('Lua host closed its output.'));
-    }
   }
 
   void _touch() {
@@ -521,6 +936,7 @@ final class _LuaCell<T extends Object> {
       output: drain(maxTokens),
       running: !_terminal && !_closed,
       error: _error,
+      result: _result,
       resources: [
         for (final entry in _resources.entries)
           if (_drainedHandles.add(entry.key)) entry.value,
@@ -549,19 +965,99 @@ final class _LuaCell<T extends Object> {
   Future<void> close({required bool terminate}) async {
     if (_closed) return;
     _closed = true;
-    if (terminate && !_terminal) {
+    _wallTimer.cancel();
+    if (terminate) _invocationCancellation.cancel();
+    if (terminate && !_terminal && !worker.isDead) {
       try {
         await _send('terminate', const {});
       } on Object {
-        // Process termination below is authoritative.
+        // Worker termination below is authoritative.
       }
     }
     _terminal = true;
     _touch();
-    await _subscription.cancel();
-    await _process.terminate();
-    onTerminal(this);
+    if (_hostStreams.isNotEmpty) {
+      await Future.wait(
+        _hostStreams.values.map((iterator) => iterator.cancel()),
+      );
+    }
+    _hostStreams.clear();
+    if (terminate) {
+      await worker.close();
+    } else {
+      worker.release(this);
+    }
   }
+}
+
+Map<String, Object?>? _decodeArguments(Object? value) {
+  if (value is Map) return Map<String, Object?>.from(value);
+  if (value is List && value.isEmpty) return <String, Object?>{};
+  return null;
+}
+
+final class _LuaInvocationCancellationController
+    implements LuaInvocationCancellation {
+  final List<void Function()> _callbacks = [];
+  final Completer<void> _cancelledSignal = Completer<void>();
+  bool _cancelled = false;
+
+  @override
+  bool get isCancelled => _cancelled;
+
+  @override
+  void onCancel(void Function() callback) {
+    if (_cancelled) {
+      _notify(callback);
+    } else {
+      _callbacks.add(callback);
+    }
+  }
+
+  void cancel() {
+    if (_cancelled) return;
+    _cancelled = true;
+    _cancelledSignal.complete();
+    final callbacks = List<void Function()>.of(_callbacks);
+    _callbacks.clear();
+    for (final callback in callbacks) {
+      _notify(callback);
+    }
+  }
+
+  void _notify(void Function() callback) {
+    try {
+      callback();
+    } on Object {
+      // A consumer cleanup callback cannot prevent authoritative cancellation.
+    }
+  }
+
+  Future<R> race<R>(Future<R> operation) {
+    if (_cancelled) {
+      return Future<R>.error(
+        const LuaCancelledException('Lua invocation was cancelled.'),
+      );
+    }
+    return Future.any<R>([
+      operation,
+      _cancelledSignal.future.then<R>(
+        (_) =>
+            throw const LuaCancelledException('Lua invocation was cancelled.'),
+      ),
+    ]);
+  }
+}
+
+final RegExp _validHandler = RegExp(r'^[A-Za-z_][A-Za-z0-9_.-]*$');
+
+String _fnv1a64(String source) {
+  var hash = 0xcbf29ce484222325;
+  for (final byte in utf8.encode(source)) {
+    hash ^= byte;
+    hash = (hash * 0x100000001b3) & 0xffffffffffffffff;
+  }
+  return hash.toRadixString(16).padLeft(16, '0');
 }
 
 String _truncateTail(String value, int maxBytes) {
