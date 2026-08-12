@@ -243,7 +243,26 @@ void main() {
         },
       },
     ]);
-    process.emitFrame(cellId, 3, 'completed', {'store': <String, Object?>{}});
+    process.emitFrame(cellId, 3, 'callback_batch', {
+      'calls': [
+        {
+          'request_id': 'done',
+          'operation': 'host_next',
+          'stream_handle': streamHandle,
+        },
+      ],
+    });
+    await pumpEventQueue();
+    final donePayload = Map<String, Object?>.from(
+      process.writtenFrame(3)['payload']! as Map,
+    );
+    expect(donePayload['results'], [
+      {
+        'request_id': 'done',
+        'value': {'done': true},
+      },
+    ]);
+    process.emitFrame(cellId, 4, 'completed', {'store': <String, Object?>{}});
     await pending;
     expect(callbacks.calls, ['clock.now']);
     expect(callbacks.streams, ['model.events']);
