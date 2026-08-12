@@ -30,6 +30,7 @@ jobs:
       lua_tool_runtime: ${{ steps.detect.outputs.lua_tool_runtime }}
       ptyworld: ${{ steps.detect.outputs.ptyworld }}
       shipworld: ${{ steps.detect.outputs.shipworld }}
+      tinyrack_workspace: ${{ steps.detect.outputs.tinyrack_workspace }}
       vtworld: ${{ steps.detect.outputs.vtworld }}
     steps:
       - uses: actions/checkout@v7
@@ -516,6 +517,38 @@ jobs:
           test -x /usr/bin/shipworld_fixture
           sudo dpkg -r shipworld-fixture
 
+  tinyrack-workspace:
+    name: tinyrack_workspace (${{ matrix.os }})
+    needs: affected
+    if: needs.affected.outputs.tinyrack_workspace == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            coverage: true
+          - os: macos-26
+          - os: windows-2025
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-workspace
+      - if: ${{ !matrix.coverage }}
+        run: dart test
+        working-directory: packages/tinyrack_workspace
+      - if: matrix.coverage
+        run: dart run tool/verify_coverage.dart tinyrack_workspace
+      - if: matrix.coverage
+        run: dart doc
+        working-directory: packages/tinyrack_workspace
+      - if: ${{ always() && matrix.coverage }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-tinyrack-workspace
+          path: coverage
+          if-no-files-found: error
+
   vtworld:
     name: vtworld (${{ matrix.os }})
     needs: affected
@@ -583,6 +616,7 @@ jobs:
       - shipworld-quality
       - shipworld-homebrew-render
       - shipworld-flutter-payload
+      - tinyrack-workspace
       - vtworld
       - vtworld-quality
     runs-on: ubuntu-24.04

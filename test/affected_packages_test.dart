@@ -26,6 +26,11 @@ const _packages = [
     path: 'packages/shipworld',
     dependencies: {'cliweave'},
   ),
+  WorkspacePackage(
+    name: 'tinyrack_workspace',
+    path: 'packages/tinyrack_workspace',
+    dependencies: {},
+  ),
 ];
 
 Set<String> _affected(List<String> paths) {
@@ -109,6 +114,7 @@ void main() {
       'lua_tool_runtime',
       'ptyworld',
       'shipworld',
+      'tinyrack_workspace',
       'vtworld',
     ]);
     // The one intra-workspace edge in this repository. If a second appears,

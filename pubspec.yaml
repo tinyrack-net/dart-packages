@@ -12,6 +12,7 @@ workspace:
   - packages/lua_tool_runtime
   - packages/ptyworld
   - packages/shipworld
+  - packages/tinyrack_workspace
   - packages/vtworld
 
 dev_dependencies:

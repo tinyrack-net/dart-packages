@@ -52,6 +52,7 @@ Future<void> main(List<String> arguments) async {
     _PackageCoverage(name: 'lua_tool_runtime', testArguments: []),
     _PackageCoverage(name: 'ptyworld', testArguments: []),
     _PackageCoverage(name: 'shipworld', testArguments: []),
+    _PackageCoverage(name: 'tinyrack_workspace', testArguments: []),
     // `vtworld` was extracted from `termworld`, which gates at 90% line and
     // 80% branch coverage. The lines it misses here are the ones its Flutter
     // half covers: renderer hooks, view-element attachment, focus handlers,
