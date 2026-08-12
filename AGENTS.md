@@ -19,6 +19,9 @@ public packages.
 - `packages/shipworld` is reusable release, signing, and desktop-packaging
   tooling. It is published to pub.dev from this workspace via the
   `shipworld-v*` tag trigger, and it consumes `cliweave` from the workspace.
+- `packages/tinyrack_workspace` provides reusable source and coverage policy
+  checks for Tinyrack consumer workspaces. It is not published to pub.dev;
+  consumers pin it by commit SHA.
 - Keep product-specific types and behavior out of every package.
 - Treat each package's public API, README, CHANGELOG, examples, and package
   metadata as user-facing.
@@ -38,7 +41,8 @@ From the repository root, run `dart run tool/verify_coverage.dart` to check the
 floor through `_PackageCoverage.minimumLineCoverage`, and one that does records
 why where it is set; `vtworld` is at 90% because the lines it misses are the
 ones its Flutter half covers. `cliweave`, `dartage`, `lua_tool_runtime`,
-`ptyworld`, and `vtworld` are checked on Linux; `shipworld` is checked
+`ptyworld`, `tinyrack_workspace`, and `vtworld` are checked on Linux;
+`shipworld` is checked
 on **Windows**
 (`dart run tool/verify_coverage.dart shipworld`), because its Windows SDK-tool
 discovery is guarded by `Platform.isWindows` and only executes on a Windows
