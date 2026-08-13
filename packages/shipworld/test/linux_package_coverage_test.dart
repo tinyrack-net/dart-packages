@@ -66,19 +66,18 @@ void main() {
     final executable = File(p.join(temporary.path, 'example'));
     await executable.writeAsString('binary');
 
-    await LinuxPackagingService(
-      ShipworldContext(process: _LinuxExecutor()),
-    ).buildPackage(
-      repoRoot: temporary.path,
-      payload: ExecutablePayload(
-        executablePath: executable.path,
-        executableName: 'example',
-      ),
-      config: _config(),
-      format: LinuxPackageFormat.deb,
-      outputPath: p.join('dist', 'example.deb'),
-      nfpmToolPath: 'nfpm',
-    );
+    await LinuxPackagingService(ShipworldContext(process: _LinuxExecutor()))
+        .buildPackage(
+          repoRoot: temporary.path,
+          payload: ExecutablePayload(
+            executablePath: executable.path,
+            executableName: 'example',
+          ),
+          config: _config(),
+          format: LinuxPackageFormat.deb,
+          outputPath: p.join('dist', 'example.deb'),
+          nfpmToolPath: 'nfpm',
+        );
 
     expect(File(p.join(stale.path, 'stale.txt')).existsSync(), isFalse);
     expect(File(p.join(stale.path, 'root', 'example')).existsSync(), isTrue);
@@ -90,32 +89,31 @@ void main() {
     final executable = File(p.join(temporary.path, 'example'));
     await executable.writeAsString('binary');
 
-    await LinuxPackagingService(
-      ShipworldContext(process: _LinuxExecutor()),
-    ).buildPackage(
-      repoRoot: temporary.path,
-      payload: ExecutablePayload(
-        executablePath: executable.path,
-        executableName: 'example',
-      ),
-      config: _config(
-        launcherStyle: LinuxLauncherStyle.wrapper,
-        prefix: '/opt',
-        recommends: const ['fonts-noto'],
-        conflicts: const ['example-git'],
-      ),
-      format: LinuxPackageFormat.deb,
-      outputPath: p.join('dist', 'example.deb'),
-      nfpmToolPath: 'nfpm',
-    );
+    await LinuxPackagingService(ShipworldContext(process: _LinuxExecutor()))
+        .buildPackage(
+          repoRoot: temporary.path,
+          payload: ExecutablePayload(
+            executablePath: executable.path,
+            executableName: 'example',
+          ),
+          config: _config(
+            launcherStyle: LinuxLauncherStyle.wrapper,
+            prefix: '/opt',
+            recommends: const ['fonts-noto'],
+            conflicts: const ['example-git'],
+          ),
+          format: LinuxPackageFormat.deb,
+          outputPath: p.join('dist', 'example.deb'),
+          nfpmToolPath: 'nfpm',
+        );
 
     final workDir = p.join(temporary.path, '.shipworld', 'deb', 'example');
     final wrapper = await File(p.join(workDir, 'example')).readAsString();
     expect(wrapper, contains('exec "/opt/example/example"'));
 
-    final manifest =
-        jsonDecode(await File(p.join(workDir, 'nfpm.json')).readAsString())
-            as Map<String, Object?>;
+    final manifest = jsonDecode(
+      await File(p.join(workDir, 'nfpm.json')).readAsString(),
+    ) as Map<String, Object?>;
     final contents = (manifest['contents']! as List<Object?>)
         .cast<Map<String, Object?>>();
     final launcher = contents.singleWhere(

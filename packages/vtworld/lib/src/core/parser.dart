@@ -29,12 +29,15 @@ final class TerminalFunctionIdentifier {
 typedef TerminalParameter = Object;
 
 /// xterm-compatible `TerminalCsiHandler` API.
-typedef TerminalCsiHandler =
-    FutureOr<bool> Function(List<TerminalParameter> parameters);
+typedef TerminalCsiHandler = FutureOr<bool> Function(
+  List<TerminalParameter> parameters,
+);
 
 /// xterm-compatible `TerminalDcsHandler` API.
-typedef TerminalDcsHandler =
-    FutureOr<bool> Function(String data, List<TerminalParameter> parameters);
+typedef TerminalDcsHandler = FutureOr<bool> Function(
+  String data,
+  List<TerminalParameter> parameters,
+);
 
 /// xterm-compatible `Function` API.
 typedef TerminalEscHandler = FutureOr<bool> Function();
@@ -83,8 +86,9 @@ final class TerminalParsingState {
 }
 
 /// Inspects and may replace a parser error recovery snapshot.
-typedef TerminalParserErrorHandler =
-    TerminalParsingState Function(TerminalParsingState state);
+typedef TerminalParserErrorHandler = TerminalParsingState Function(
+  TerminalParsingState state,
+);
 
 /// Custom parser handler registry with xterm's newest-handler-first ordering.
 final class TerminalParser implements Disposable {

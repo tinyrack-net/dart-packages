@@ -500,9 +500,8 @@ final class _TerminalCoreEngine {
       }
       return null;
     }
-    final match = RegExp(
-      r'^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)',
-    ).firstMatch(value);
+    final match = RegExp(r'^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)')
+        .firstMatch(value);
     if (match == null) return null;
     final red = int.parse(match.group(1)!).clamp(0, 255);
     final green = int.parse(match.group(2)!).clamp(0, 255);

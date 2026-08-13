@@ -9,13 +9,12 @@ import 'package:vtworld/src/core/event.dart';
 /// Returning a future pauses the active chunk. The action is called again for
 /// that same chunk with the resolved boolean so a resumable parser can continue
 /// from its saved state, matching xterm.js' write-buffer contract.
-typedef WriteBufferAction =
-    Object? Function(
-      Object data, [
-      // The positional boolean is fixed by xterm's continuation contract.
-      // ignore: avoid_positional_boolean_parameters
-      bool? promiseResult,
-    ]);
+typedef WriteBufferAction = Object? Function(
+  Object data, [
+  // The positional boolean is fixed by xterm's continuation contract.
+  // ignore: avoid_positional_boolean_parameters
+  bool? promiseResult,
+]);
 
 /// xterm.js' ordered, time-sliced terminal input queue.
 final class WriteBuffer extends DisposableStore {

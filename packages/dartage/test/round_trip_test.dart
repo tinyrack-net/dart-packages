@@ -87,9 +87,8 @@ void main() {
           final plaintext = Uint8List.fromList(
             List<int>.generate(size, (_) => random.nextInt(256)),
           );
-          final ciphertext = await AgeEncrypter(
-            recipients: recipients,
-          ).encrypt(plaintext);
+          final ciphertext = await AgeEncrypter(recipients: recipients)
+              .encrypt(plaintext);
           for (final identity in identities) {
             expect(
               await AgeDecrypter(identities: [identity]).decrypt(ciphertext),
@@ -97,9 +96,8 @@ void main() {
             );
           }
           expect(
-            await AgeDecrypter(
-              identities: [identities.last],
-            ).decrypt(AgeArmor.decode(AgeArmor.encode(ciphertext))),
+            await AgeDecrypter(identities: [identities.last])
+                .decrypt(AgeArmor.decode(AgeArmor.encode(ciphertext))),
             plaintext,
           );
         });
@@ -112,9 +110,8 @@ void main() {
         recipients: [ScryptRecipient('battery staple', workFactorLog2: 10)],
       ).encrypt(plaintext);
       expect(
-        await AgeDecrypter(
-          identities: [ScryptIdentity('battery staple')],
-        ).decrypt(ciphertext),
+        await AgeDecrypter(identities: [ScryptIdentity('battery staple')])
+            .decrypt(ciphertext),
         plaintext,
       );
       await expectLater(
@@ -166,9 +163,8 @@ void main() {
         recipients: [await target.recipient()],
       ).encrypt(Uint8List(10));
       await expectLater(
-        AgeDecrypter(
-          identities: [X25519Identity.generate()],
-        ).decrypt(ciphertext),
+        AgeDecrypter(identities: [X25519Identity.generate()])
+            .decrypt(ciphertext),
         throwsA(
           isA<AgeException>().having(
             (error) => error.code,

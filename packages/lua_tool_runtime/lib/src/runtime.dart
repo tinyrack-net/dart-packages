@@ -49,9 +49,8 @@ final class LuaToolRuntime<T extends Object> {
   /// Terminates every session and helper process.
   Future<void> close() async {
     await Future.wait(
-      List<LuaRuntimeSession<T>>.of(
-        _sessions,
-      ).map((session) => session.close()),
+      List<LuaRuntimeSession<T>>.of(_sessions)
+          .map((session) => session.close()),
     );
     _sessions.clear();
   }
@@ -360,9 +359,8 @@ final class LuaRuntimeSession<T extends Object> {
     if (_closed) return;
     _closed = true;
     await Future.wait(
-      List<_LuaCell<T>>.of(
-        _cells.values,
-      ).map((cell) => _remove(cell, terminate: true)),
+      List<_LuaCell<T>>.of(_cells.values)
+          .map((cell) => _remove(cell, terminate: true)),
     );
     await _workerQueue;
     final workers = <_LuaWorker<T>>{

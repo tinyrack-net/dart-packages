@@ -20,8 +20,11 @@ abstract interface class ApcSubHandler {
 }
 
 /// Fallback notification for an unregistered APC identifier.
-typedef ApcFallbackHandler =
-    void Function(int identifier, String action, [Object? payload]);
+typedef ApcFallbackHandler = void Function(
+  int identifier,
+  String action, [
+  Object? payload,
+]);
 
 /// Parser for APC identifier and payload dispatch.
 final class ApcParser implements Disposable {

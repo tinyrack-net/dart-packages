@@ -40,12 +40,10 @@ void main() {
       final second = RecordingExecutor('second');
 
       final results = await Future.wait([
-        ShipworldContext(
-          process: first,
-        ).run(() => runCapture('first-tool', const [])),
-        ShipworldContext(
-          process: second,
-        ).run(() => runCapture('second-tool', const [])),
+        ShipworldContext(process: first)
+            .run(() => runCapture('first-tool', const [])),
+        ShipworldContext(process: second)
+            .run(() => runCapture('second-tool', const [])),
       ]);
 
       expect(results.map((result) => result.stdout), ['first', 'second']);

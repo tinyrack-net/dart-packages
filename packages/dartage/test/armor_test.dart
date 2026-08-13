@@ -42,16 +42,14 @@ void main() {
     });
 
     test('rejects a wrong begin label', () {
-      final armored = armorEncode(
-        Uint8List(4),
-      ).replaceFirst('BEGIN AGE', 'BEGIN PGP');
+      final armored = armorEncode(Uint8List(4))
+          .replaceFirst('BEGIN AGE', 'BEGIN PGP');
       expect(() => armorDecode(armored), throwsA(isA<AgeException>()));
     });
 
     test('rejects a wrong end label', () {
-      final armored = armorEncode(
-        Uint8List(4),
-      ).replaceFirst('END AGE', 'END PGP');
+      final armored = armorEncode(Uint8List(4))
+          .replaceFirst('END AGE', 'END PGP');
       expect(() => armorDecode(armored), throwsA(isA<AgeException>()));
     });
 
@@ -66,9 +64,8 @@ void main() {
     });
 
     test('rejects an empty final data line', () {
-      final armored = armorEncode(
-        Uint8List(4),
-      ).replaceFirst('-----END', '\n-----END');
+      final armored = armorEncode(Uint8List(4))
+          .replaceFirst('-----END', '\n-----END');
       expect(() => armorDecode(armored), throwsA(isA<AgeException>()));
     });
 

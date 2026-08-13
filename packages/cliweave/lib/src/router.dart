@@ -331,16 +331,21 @@ enum DisplayCaseStyle {
 typedef FlagParseFunction = FutureOr<Object?> Function(String input);
 
 /// Completion callback for flags/positionals (`proposeCompletions` in TS).
-typedef ProposeCompletionsCallback =
-    FutureOr<List<String>> Function(String partial);
+typedef ProposeCompletionsCallback = FutureOr<List<String>> Function(
+  String partial,
+);
 
 /// Internal context-aware parser used by the typed public facade.
-typedef ContextualParseFunction =
-    FutureOr<Object?> Function(RunContext context, String input);
+typedef ContextualParseFunction = FutureOr<Object?> Function(
+  RunContext context,
+  String input,
+);
 
 /// Internal context-aware completion callback used by the typed public facade.
-typedef ContextualProposeCompletionsCallback =
-    FutureOr<List<String>> Function(RunContext context, String partial);
+typedef ContextualProposeCompletionsCallback = FutureOr<List<String>> Function(
+  RunContext context,
+  String partial,
+);
 
 /// Identity parser mirroring the TS idiom `parse: String`.
 String stringParser(String input) => input;
@@ -579,12 +584,11 @@ final class CommandDocs {
 /// context explicitly and the positional values as a list. A returned
 /// [Error]/[Exception] is reported through `commandErrorResult`, mirroring
 /// the TS `result instanceof Error` check.
-typedef CommandFunction =
-    FutureOr<Object?> Function(
-      RunContext context,
-      Map<String, Object?> flags,
-      List<Object?> positional,
-    );
+typedef CommandFunction = FutureOr<Object?> Function(
+  RunContext context,
+  Map<String, Object?> flags,
+  List<Object?> positional,
+);
 
 /// Mirror of stricli's `loader` indirection (`command.loader()` resolves the
 /// function to run); the ported `commands.test.ts` invokes this directly.

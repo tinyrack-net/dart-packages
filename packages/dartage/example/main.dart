@@ -14,16 +14,14 @@ Future<void> main() async {
 
   print('recipient: $recipient');
 
-  final ciphertext = await AgeEncrypter(
-    recipients: [recipient],
-  ).encrypt(Uint8List.fromList(utf8.encode('secret')));
+  final ciphertext = await AgeEncrypter(recipients: [recipient])
+      .encrypt(Uint8List.fromList(utf8.encode('secret')));
 
   // `AgeArmor.encode` produces the PEM-style text form for storing in a file.
   print(AgeArmor.encode(ciphertext).split('\n').first);
 
-  final plaintext = await AgeDecrypter(
-    identities: [identity],
-  ).decrypt(ciphertext);
+  final plaintext = await AgeDecrypter(identities: [identity])
+      .decrypt(ciphertext);
 
   print('decrypted: ${utf8.decode(plaintext)}');
 }

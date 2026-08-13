@@ -93,9 +93,8 @@ void main() {
     // A relative symlink is reported as a Link by list() only when it does
     // not resolve to an existing entity, so target a missing sibling that
     // still normalizes inside the payload root.
-    await Link(
-      p.join(source.path, 'alias'),
-    ).create(p.join('data', 'missing-asset'));
+    await Link(p.join(source.path, 'alias'))
+        .create(p.join('data', 'missing-asset'));
 
     final payload = DirectoryPayload(
       directoryPath: source.path,
@@ -119,9 +118,8 @@ void main() {
     await File(p.join(source.path, 'app')).writeAsString('launcher');
     // Absolute symlink pointing outside the payload root. It is left broken so
     // list() reports it as a Link and the escape guard runs.
-    await Link(
-      p.join(source.path, 'escape'),
-    ).create(p.join(temporary.path, 'outside-missing.txt'));
+    await Link(p.join(source.path, 'escape'))
+        .create(p.join(temporary.path, 'outside-missing.txt'));
 
     final payload = DirectoryPayload(
       directoryPath: source.path,

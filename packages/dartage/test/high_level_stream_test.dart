@@ -12,13 +12,12 @@ void main() {
       List<int>.generate(70000, (index) => index & 0xff),
     );
     final encrypted =
-        await AgeEncrypter(
-          recipients: [await identity.recipient()],
-        ).encryptStream(
-          Stream<List<int>>.fromIterable(
-            plaintext.map<List<int>>((byte) => [byte]),
-          ),
-        );
+        await AgeEncrypter(recipients: [await identity.recipient()])
+            .encryptStream(
+              Stream<List<int>>.fromIterable(
+                plaintext.map<List<int>>((byte) => [byte]),
+              ),
+            );
     final ciphertext = await _collect(encrypted);
     final decrypted = await AgeDecrypter(identities: [identity]).decryptStream(
       Stream<List<int>>.fromIterable(
@@ -40,9 +39,8 @@ void main() {
     final firstPartLength = payloadOffset + 16 + 65552 + 1;
     final source = StreamController<List<int>>();
     source.add(ciphertext.sublist(0, firstPartLength));
-    final decrypted = await AgeDecrypter(
-      identities: [identity],
-    ).decryptStream(source.stream);
+    final decrypted = await AgeDecrypter(identities: [identity])
+        .decryptStream(source.stream);
     final firstOutput = Completer<Uint8List>();
     final allOutput = BytesBuilder(copy: false);
     final done = Completer<void>();
@@ -89,9 +87,8 @@ void main() {
     final payloadOffset = text.indexOf('\n', macStart) + 1;
     final source = StreamController<List<int>>();
     source.add(ciphertext.sublist(0, payloadOffset + 16));
-    final decrypted = await AgeDecrypter(
-      identities: [identity],
-    ).decryptStream(source.stream);
+    final decrypted = await AgeDecrypter(identities: [identity])
+        .decryptStream(source.stream);
     final expectation = expectLater(
       _collect(decrypted),
       throwsA(isA<StateError>()),
@@ -210,9 +207,8 @@ void main() {
 
   test('custom recipient and identity contract is supported', () async {
     final plaintext = Uint8List.fromList([1, 3, 3, 7]);
-    final ciphertext = await AgeEncrypter(
-      recipients: [_TestRecipient()],
-    ).encrypt(plaintext);
+    final ciphertext = await AgeEncrypter(recipients: [_TestRecipient()])
+        .encrypt(plaintext);
     expect(
       await AgeDecrypter(identities: [_TestIdentity()]).decrypt(ciphertext),
       plaintext,

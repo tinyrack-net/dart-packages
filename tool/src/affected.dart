@@ -87,9 +87,9 @@ List<WorkspacePackage> readWorkspace(Directory root) {
       WorkspacePackage(
         name: names[path]!,
         path: path,
-        dependencies: parseDependencyNames(
-          sources[path]!,
-        ).where(memberNames.contains).toSet(),
+        dependencies: parseDependencyNames(sources[path]!)
+            .where(memberNames.contains)
+            .toSet(),
       ),
   ];
 }

@@ -27,9 +27,9 @@ final targetArgument = Positional.required<String, ApplicationContext>(
 final deployCommand = buildCommand(
   docs: const CommandDocs(brief: 'Deploy a target'),
   parameters: CommandParameters(
-    flags: FlagSet.one(
-      modeFlag,
-    ).and(projectFlag).map((values) => (mode: values.$1, project: values.$2)),
+    flags: FlagSet.one(modeFlag)
+        .and(projectFlag)
+        .map((values) => (mode: values.$1, project: values.$2)),
     positional: PositionalSet.one(targetArgument).map((target) => (target,)),
   ),
   func: (context, flags, args) {

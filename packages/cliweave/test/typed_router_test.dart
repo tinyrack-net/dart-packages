@@ -560,81 +560,75 @@ void main() {
     );
   });
 
-  test(
-    'record composition, contextual completion, default version, and run facade',
-    () async {
-      final stdout = CaptureStream();
-      final process = RunProcess(stdout: stdout, stderr: CaptureStream());
-      final first = BooleanFlag.required<TestContext>(
-        name: 'first',
-        brief: 'First',
-      );
-      final second = ParsedFlag.required<int, TestContext>(
-        name: 'second',
-        brief: 'Second',
-        parse: (context, input) => int.parse(input),
-        proposeCompletions: (context, partial) => ['7'],
-      );
-      final left = Positional.required<String, TestContext>(
-        brief: 'Left',
-        parse: stringParser,
-        proposeCompletions: (context, partial) => ['left'],
-      );
-      final right = Positional.optional<String, TestContext>(
-        brief: 'Right',
-        parse: stringParser,
-      );
-      final parameters = CommandParameters(
-        flags: FlagSet.one(
-          first,
-        ).and(second).map((values) => (first: values.$1, second: values.$2)),
-        positional: PositionalSet.one(
-          left,
-        ).and(right).map((values) => (left: values.$1, right: values.$2)),
-      );
-      final command = buildCommand(
-        docs: const CommandDocs(brief: 'Compose'),
-        parameters: parameters,
-        func: (context, flags, args) {
-          context.process.stdout.write('${flags.second}:${args.left}');
-        },
-      );
-      final app = buildApplication(
-        command,
-        ApplicationConfiguration(
-          name: 'typed',
-          versionInfo: VersionInformation(
-            getCurrentVersion: (_) => '3.0.0',
-            getLatestVersion: (_, current) => current,
-          ),
+  test('record composition, contextual completion, default version, and run facade', () async {
+    final stdout = CaptureStream();
+    final process = RunProcess(stdout: stdout, stderr: CaptureStream());
+    final first = BooleanFlag.required<TestContext>(
+      name: 'first',
+      brief: 'First',
+    );
+    final second = ParsedFlag.required<int, TestContext>(
+      name: 'second',
+      brief: 'Second',
+      parse: (context, input) => int.parse(input),
+      proposeCompletions: (context, partial) => ['7'],
+    );
+    final left = Positional.required<String, TestContext>(
+      brief: 'Left',
+      parse: stringParser,
+      proposeCompletions: (context, partial) => ['left'],
+    );
+    final right = Positional.optional<String, TestContext>(
+      brief: 'Right',
+      parse: stringParser,
+    );
+    final parameters = CommandParameters(
+      flags: FlagSet.one(first)
+          .and(second)
+          .map((values) => (first: values.$1, second: values.$2)),
+      positional: PositionalSet.one(left)
+          .and(right)
+          .map((values) => (left: values.$1, right: values.$2)),
+    );
+    final command = buildCommand(
+      docs: const CommandDocs(brief: 'Compose'),
+      parameters: parameters,
+      func: (context, flags, args) {
+        context.process.stdout.write('${flags.second}:${args.left}');
+      },
+    );
+    final app = buildApplication(
+      command,
+      ApplicationConfiguration(
+        name: 'typed',
+        versionInfo: VersionInformation(
+          getCurrentVersion: (_) => '3.0.0',
+          getLatestVersion: (_, current) => current,
         ),
-      );
-      final context = RunContext.direct(TestContext(process, 1));
-      expect(
-        (await proposeCompletions(app, [
-          '--second',
-          '',
-        ], context)).single.completion,
-        '7',
-      );
-      expect(
-        (await proposeCompletions(app, ['l'], context)).single.completion,
-        'left',
-      );
-      await run(app, ['--second', '4', 'left'], context);
-      expect(process.exitCode, ExitCode.success);
-      expect(stdout.text, contains('4:left'));
-      expect(
-        await runApplication(app, ['--version'], context),
-        ExitCode.success,
-      );
-      expect(stdout.text, contains('3.0.0'));
-      expect(stringParser(context._rawContextForTest, 'x'), 'x');
-      expect(booleanParser(context._rawContextForTest, 'true'), isTrue);
-      expect(looseBooleanParser(context._rawContextForTest, 'yes'), isTrue);
-      expect(numberParser(context._rawContextForTest, '2'), 2);
-    },
-  );
+      ),
+    );
+    final context = RunContext.direct(TestContext(process, 1));
+    expect(
+      (await proposeCompletions(app, [
+        '--second',
+        '',
+      ], context)).single.completion,
+      '7',
+    );
+    expect(
+      (await proposeCompletions(app, ['l'], context)).single.completion,
+      'left',
+    );
+    await run(app, ['--second', '4', 'left'], context);
+    expect(process.exitCode, ExitCode.success);
+    expect(stdout.text, contains('4:left'));
+    expect(await runApplication(app, ['--version'], context), ExitCode.success);
+    expect(stdout.text, contains('3.0.0'));
+    expect(stringParser(context._rawContextForTest, 'x'), 'x');
+    expect(booleanParser(context._rawContextForTest, 'true'), isTrue);
+    expect(looseBooleanParser(context._rawContextForTest, 'yes'), isTrue);
+    expect(numberParser(context._rawContextForTest, '2'), 2);
+  });
 }
 
 extension on RunContext<TestContext> {

@@ -308,15 +308,12 @@ Uint8List _createLogoPng(int size) {
 Future<void> _writeMsixAssets(String assetsDirectory) async {
   await Directory(assetsDirectory).create(recursive: true);
 
-  await File(
-    p.join(assetsDirectory, 'StoreLogo.png'),
-  ).writeAsBytes(_createLogoPng(50));
-  await File(
-    p.join(assetsDirectory, 'Square44x44Logo.png'),
-  ).writeAsBytes(_createLogoPng(44));
-  await File(
-    p.join(assetsDirectory, 'Square150x150Logo.png'),
-  ).writeAsBytes(_createLogoPng(150));
+  await File(p.join(assetsDirectory, 'StoreLogo.png'))
+      .writeAsBytes(_createLogoPng(50));
+  await File(p.join(assetsDirectory, 'Square44x44Logo.png'))
+      .writeAsBytes(_createLogoPng(44));
+  await File(p.join(assetsDirectory, 'Square150x150Logo.png'))
+      .writeAsBytes(_createLogoPng(150));
 }
 
 final RegExp _naturalChunkPattern = RegExp(r'(\d+)|(\D+)');
@@ -550,9 +547,8 @@ Future<String> buildMsixBundle({
   await Directory(bundleInputDir).create(recursive: true);
 
   for (final packageName in packageNames) {
-    await File(
-      p.join(resolvedPackageDir, packageName),
-    ).copy(p.join(bundleInputDir, packageName));
+    await File(p.join(resolvedPackageDir, packageName))
+        .copy(p.join(bundleInputDir, packageName));
   }
 
   final makeAppxPath = await _findWindowsSdkTool('makeappx');

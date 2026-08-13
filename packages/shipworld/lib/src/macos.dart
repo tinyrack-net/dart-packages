@@ -97,9 +97,8 @@ Future<String> _installSigningIdentity(Map<String, String> env) async {
   }
 
   stdout.writeln('Importing Apple Certificate...');
-  await File(
-    'certificate.p12',
-  ).writeAsBytes(decodeBase64Secret(appleCertificate));
+  await File('certificate.p12')
+      .writeAsBytes(decodeBase64Secret(appleCertificate));
 
   await _tryRun('security', ['delete-keychain', 'build.keychain']);
   await runChecked('security', [

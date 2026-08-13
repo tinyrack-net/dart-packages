@@ -76,19 +76,16 @@ Future<void> buildAppImage({
     p.join(appDir, 'usr/bin', payload.launcherRelativePath),
   );
 
-  await File(
-    p.join(appDir, '${config.name}.desktop'),
-  ).writeAsString(_desktopEntry(config, payload.launcherRelativePath));
+  await File(p.join(appDir, '${config.name}.desktop'))
+      .writeAsString(_desktopEntry(config, payload.launcherRelativePath));
 
   // The desktop entry's Icon= key is extension-agnostic, so the icon keeps its
   // source extension instead of being forced to one format.
-  await File(
-    config.iconPath,
-  ).copy(p.join(appDir, '${config.name}${p.extension(config.iconPath)}'));
+  await File(config.iconPath)
+      .copy(p.join(appDir, '${config.name}${p.extension(config.iconPath)}'));
 
-  await File(
-    p.join(appDir, 'AppRun'),
-  ).writeAsString(_appRun(payload.launcherRelativePath));
+  await File(p.join(appDir, 'AppRun'))
+      .writeAsString(_appRun(payload.launcherRelativePath));
   await _makeExecutable(p.join(appDir, 'AppRun'));
 
   stdout.writeln('Building AppImage...');
@@ -425,9 +422,8 @@ Future<String> buildLinuxPackage({
   String? wrapperPath;
   if (config.launcherStyle == LinuxLauncherStyle.wrapper) {
     wrapperPath = p.join(workDir, config.executableName);
-    await File(
-      wrapperPath,
-    ).writeAsString(_launcherWrapper(launcherInstallPath));
+    await File(wrapperPath)
+        .writeAsString(_launcherWrapper(launcherInstallPath));
   }
 
   final stagedIcons = <({LinuxIconAsset icon, String stagedPath})>[];

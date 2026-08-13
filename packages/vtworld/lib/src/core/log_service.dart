@@ -4,12 +4,11 @@ import 'package:vtworld/src/core/disposable.dart';
 import 'package:vtworld/src/core/options.dart';
 
 /// Platform-neutral fallback used when no [TerminalLogger] is configured.
-typedef TerminalLogSink =
-    void Function(
-      TerminalLogLevel level,
-      String message,
-      List<Object?> optionalParameters,
-    );
+typedef TerminalLogSink = void Function(
+  TerminalLogLevel level,
+  String message,
+  List<Object?> optionalParameters,
+);
 
 /// Applies xterm log levels, lazy parameters, prefixes, and live options.
 final class TerminalLogService extends DisposableStore {

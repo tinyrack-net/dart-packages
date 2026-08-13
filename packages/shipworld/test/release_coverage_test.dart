@@ -65,16 +65,14 @@ void main() {
   }) async {
     final root = p.join(temporary.path, 'packages', 'cliweave');
     await Directory(p.join(root, 'lib')).create(recursive: true);
-    await File(
-      p.join(root, 'pubspec.yaml'),
-    ).writeAsString('name: cliweave\nversion: $version\n');
+    await File(p.join(root, 'pubspec.yaml'))
+        .writeAsString('name: cliweave\nversion: $version\n');
     if (changelogContent != null) {
       await File(p.join(root, 'CHANGELOG.md')).writeAsString(changelogContent);
     }
     if (synchronized) {
-      await File(
-        p.join(root, 'lib', 'version.g.dart'),
-      ).writeAsString(renderVersionConstant('0.0.0'));
+      await File(p.join(root, 'lib', 'version.g.dart'))
+          .writeAsString(renderVersionConstant('0.0.0'));
     }
     final syncBlock = synchronized
         ? '      synchronized:\n'
@@ -122,9 +120,8 @@ $changelogLine''');
         changelogContent: '# Changelog\n\n## 1.0.0\n\n- Major.\n',
       );
 
-      final result = await serviceFor(
-        config,
-      ).prepare(bumps: {'cliweave': ReleaseType.major}, dryRun: true);
+      final result = await serviceFor(config)
+          .prepare(bumps: {'cliweave': ReleaseType.major}, dryRun: true);
 
       expect(result.targets.single.version, '1.0.0');
       expect(result.targets.single.tag, 'cliweave-v1.0.0');
@@ -137,9 +134,8 @@ $changelogLine''');
       );
 
       await expectLater(
-        serviceFor(
-          config,
-        ).prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true),
+        serviceFor(config)
+            .prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true),
         throwsA(
           predicate(
             (Object? error) =>
@@ -159,9 +155,8 @@ $changelogLine''');
       );
 
       await expectLater(
-        serviceFor(
-          config,
-        ).prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true),
+        serviceFor(config)
+            .prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true),
         throwsA(
           predicate(
             (Object? error) =>
@@ -178,9 +173,8 @@ $changelogLine''');
       );
 
       await expectLater(
-        serviceFor(
-          config,
-        ).prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true),
+        serviceFor(config)
+            .prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true),
         throwsA(
           predicate(
             (Object? error) => '$error'.contains('must contain "## 0.1.2"'),
@@ -195,9 +189,8 @@ $changelogLine''');
             '# Changelog\n\n## 0.1.2\n\n- New stuff.\n\n## 0.1.1\n\n- Old.\n',
       );
 
-      final result = await serviceFor(
-        config,
-      ).prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true);
+      final result = await serviceFor(config)
+          .prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true);
 
       expect(result.targets.single.version, '0.1.2');
     });
@@ -208,9 +201,8 @@ $changelogLine''');
       );
 
       await expectLater(
-        serviceFor(
-          config,
-        ).prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true),
+        serviceFor(config)
+            .prepare(bumps: {'cliweave': ReleaseType.patch}, dryRun: true),
         throwsA(
           predicate(
             (Object? error) => '$error'.contains('section for 0.1.2 is empty'),

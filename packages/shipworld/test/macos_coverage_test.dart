@@ -43,9 +43,8 @@ final class _FakeExecutor implements ProcessExecutor {
 }
 
 Future<void> _signWith(_FakeExecutor executor, MacosSignConfig config) {
-  return MacosPackagingService(
-    ShipworldContext(process: executor),
-  ).sign(config);
+  return MacosPackagingService(ShipworldContext(process: executor))
+      .sign(config);
 }
 
 /// Bytes that make a fixture look like a Mach-O image to the signer.

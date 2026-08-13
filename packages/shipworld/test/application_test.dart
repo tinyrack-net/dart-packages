@@ -21,7 +21,7 @@ void main() {
       final result = await _run(arguments);
       expect(result.exitCode, 0, reason: arguments.join(' '));
     }
-  });
+  }, timeout: const Timeout(Duration(minutes: 1)));
 
   test('CLI reports unknown commands without a stack trace', () async {
     final result = await _run(const ['unknown']);

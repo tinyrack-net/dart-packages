@@ -359,8 +359,9 @@ final class TerminalCharacterJoin {
 }
 
 /// xterm-compatible `TerminalCharacterJoiner` API.
-typedef TerminalCharacterJoiner =
-    List<TerminalCharacterJoin> Function(String text);
+typedef TerminalCharacterJoiner = List<TerminalCharacterJoin> Function(
+  String text,
+);
 
 /// Link returned by a terminal link provider.
 final class TerminalLink {
@@ -469,7 +470,6 @@ final class TerminalLinkDecorations {
 
 /// Resolves links for one 1-based buffer line.
 // A named interface allows providers to retain lifecycle-specific state.
-// ignore: one_member_abstracts
 abstract interface class TerminalLinkProvider {
   /// xterm-compatible `provideLinks` API using a 1-based buffer line number.
   FutureOr<List<TerminalLink>> provideLinks(int bufferLineNumber);

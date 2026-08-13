@@ -20,8 +20,11 @@ abstract interface class OscSubHandler {
 }
 
 /// Fallback notification for an unregistered OSC identifier.
-typedef OscFallbackHandler =
-    void Function(int identifier, String action, [Object? payload]);
+typedef OscFallbackHandler = void Function(
+  int identifier,
+  String action, [
+  Object? payload,
+]);
 
 enum _OscState { start, identifier, payload, abort }
 

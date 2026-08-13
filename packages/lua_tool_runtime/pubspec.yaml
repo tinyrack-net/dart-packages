@@ -14,7 +14,7 @@ topics:
   - tools
 
 environment:
-  sdk: ^3.12.2
+  sdk: ^3.13.0
 
 platforms:
   linux:
