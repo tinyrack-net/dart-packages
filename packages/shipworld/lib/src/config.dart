@@ -555,9 +555,8 @@ WindowsTargetConfig? _parseWindows(Map<Object?, Object?> target, String label) {
     'application-id',
     '$label.windows',
   );
-  if (!RegExp(
-    r'^([A-Za-z][A-Za-z0-9]*)(\.[A-Za-z][A-Za-z0-9]*)*$',
-  ).hasMatch(applicationId)) {
+  if (!RegExp(r'^([A-Za-z][A-Za-z0-9]*)(\.[A-Za-z][A-Za-z0-9]*)*$')
+      .hasMatch(applicationId)) {
     throw ShipworldException(
       '$label.windows.application-id is not MSIX-compatible: $applicationId',
       code: 'invalid_config',

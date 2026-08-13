@@ -85,8 +85,7 @@ void main() {
           expect(
             bodyLines.last,
             isEmpty,
-            reason:
-                'bodies that are a multiple of 48 bytes need an empty final line',
+            reason: 'bodies that are a multiple of 48 bytes need an empty final line',
           );
         }
 

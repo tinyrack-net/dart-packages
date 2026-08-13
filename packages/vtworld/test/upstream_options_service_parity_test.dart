@@ -4,14 +4,11 @@ import 'package:vtworld/vtworld.dart';
 void main() {
   group('OptionsService', () {
     group('constructor', () {
-      test(
-        'uses default value if invalid constructor option values passed for cols/rows',
-        () {
-          final options = TerminalOptions();
-          expect(options.rows, 24);
-          expect(options.cols, 80);
-        },
-      );
+      test('uses default value if invalid constructor option values passed for cols/rows', () {
+        final options = TerminalOptions();
+        expect(options.rows, 24);
+        expect(options.cols, 80);
+      });
 
       test(
         'uses values from constructor option values if correctly passed',

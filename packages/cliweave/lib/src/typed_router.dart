@@ -79,8 +79,9 @@ final class CommandInfo {
 }
 
 /// Builds context for one command invocation.
-typedef CommandContextBuilder<C extends CommandContext> =
-    FutureOr<C> Function(CommandInfo info);
+typedef CommandContextBuilder<C extends CommandContext> = FutureOr<C> Function(
+  CommandInfo info,
+);
 
 /// Runtime context source used by [run], [runApplication], and completion.
 final class RunContext<C extends CommandContext> {
@@ -127,8 +128,10 @@ final class NoArgs {
 }
 
 /// Parses one CLI input with access to the command context.
-typedef InputParser<T, C extends CommandContext> =
-    FutureOr<T> Function(C context, String input);
+typedef InputParser<T, C extends CommandContext> = FutureOr<T> Function(
+  C context,
+  String input,
+);
 
 /// Proposes values with access to the command context.
 typedef ValueCompletion<C extends CommandContext> =

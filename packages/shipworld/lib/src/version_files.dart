@@ -84,7 +84,6 @@ Future<void> writeVersionConstant(
   String version, {
   String constant = 'packageVersion',
 }) async {
-  await File(
-    filePath,
-  ).writeAsString(renderVersionConstant(version, constant: constant));
+  await File(filePath)
+      .writeAsString(renderVersionConstant(version, constant: constant));
 }

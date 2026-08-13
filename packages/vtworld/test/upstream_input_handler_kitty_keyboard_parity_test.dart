@@ -56,6 +56,6 @@ Terminal _terminal() => Terminal(
   ),
 );
 
-String _pushes(int count) => <String>[
-  for (var value = 1; value <= count; value++) '\x1b[>${value}u',
-].join();
+String _pushes(int count) =>
+    <String>[for (var value = 1; value <= count; value++) '\x1b[>${value}u']
+        .join();

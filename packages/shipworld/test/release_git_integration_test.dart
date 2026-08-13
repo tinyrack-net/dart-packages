@@ -25,9 +25,8 @@ void main() {
       // beneath the main fixture, so keep the isolated GPG home under /tmp.
       final gnupgDirectory = Platform.isMacOS
           ? await Directory('/tmp').createTemp('shipworld-gpg-')
-          : await Directory(
-              p.join(temporary.path, 'gnupg'),
-            ).create(recursive: true);
+          : await Directory(p.join(temporary.path, 'gnupg'))
+                .create(recursive: true);
       final gnupg = gnupgDirectory.path;
       if (Platform.isMacOS) {
         addTearDown(() => gnupgDirectory.delete(recursive: true));
@@ -89,12 +88,10 @@ void main() {
       for (final name in const ['cliweave', 'dartage']) {
         final root = p.join(work, 'packages', name);
         await Directory(root).create(recursive: true);
-        await File(
-          p.join(root, 'pubspec.yaml'),
-        ).writeAsString('name: $name\nversion: 0.1.1\n');
-        await File(
-          p.join(root, 'CHANGELOG.md'),
-        ).writeAsString('# Changelog\n\n## 0.1.1\n\n- Initial.\n');
+        await File(p.join(root, 'pubspec.yaml'))
+            .writeAsString('name: $name\nversion: 0.1.1\n');
+        await File(p.join(root, 'CHANGELOG.md'))
+            .writeAsString('# Changelog\n\n## 0.1.1\n\n- Initial.\n');
       }
       final configFile = File(p.join(work, 'shipworld.yaml'));
       await configFile.writeAsString(_config);
@@ -102,12 +99,10 @@ void main() {
       await _run('git', ['commit', '-m', 'initial'], work);
       await _run('git', ['push', '-u', 'origin', 'main'], work);
 
-      await File(
-        p.join(work, 'packages', 'cliweave', 'CHANGELOG.md'),
-      ).writeAsString('# Changelog\n\n## 0.1.2\n\n- Patch.\n');
-      await File(
-        p.join(work, 'packages', 'dartage', 'CHANGELOG.md'),
-      ).writeAsString('# Changelog\n\n## 0.2.0\n\n- Minor.\n');
+      await File(p.join(work, 'packages', 'cliweave', 'CHANGELOG.md'))
+          .writeAsString('# Changelog\n\n## 0.1.2\n\n- Patch.\n');
+      await File(p.join(work, 'packages', 'dartage', 'CHANGELOG.md'))
+          .writeAsString('# Changelog\n\n## 0.2.0\n\n- Minor.\n');
       final config = await loadShipworldConfig(configFile.path);
       final service = ReleaseService(
         config: config,

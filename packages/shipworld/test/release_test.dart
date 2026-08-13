@@ -55,20 +55,17 @@ void main() {
     }.entries) {
       final root = p.join(temporary.path, 'packages', entry.key);
       await Directory(root).create(recursive: true);
-      await File(
-        p.join(root, 'pubspec.yaml'),
-      ).writeAsString('name: ${entry.key}\nversion: ${entry.value}\n');
+      await File(p.join(root, 'pubspec.yaml'))
+          .writeAsString('name: ${entry.key}\nversion: ${entry.value}\n');
     }
-    await File(
-      p.join(temporary.path, 'packages', 'cliweave', 'CHANGELOG.md'),
-    ).writeAsString(
-      '# Changelog\n\n'
-      '## ${cliweaveVersion == '1.2.3+41' ? '1.2.4' : '0.1.2'}\n\n'
-      '- Patch.\n',
-    );
-    await File(
-      p.join(temporary.path, 'packages', 'dartage', 'CHANGELOG.md'),
-    ).writeAsString('# Changelog\n\n## 0.2.0\n\n- Minor.\n');
+    await File(p.join(temporary.path, 'packages', 'cliweave', 'CHANGELOG.md'))
+        .writeAsString(
+          '# Changelog\n\n'
+          '## ${cliweaveVersion == '1.2.3+41' ? '1.2.4' : '0.1.2'}\n\n'
+          '- Patch.\n',
+        );
+    await File(p.join(temporary.path, 'packages', 'dartage', 'CHANGELOG.md'))
+        .writeAsString('# Changelog\n\n## 0.2.0\n\n- Minor.\n');
     final configFile = File(p.join(temporary.path, 'shipworld.yaml'));
     await configFile.writeAsString('''
 schema: 1
@@ -165,11 +162,10 @@ targets:
       'cliweave': '0.1.1',
       'dartage': '0.1.1',
     }.entries) {
-      await File(
-        p.join(temporary.path, 'packages', entry.key, 'CHANGELOG.md'),
-      ).writeAsString(
-        '# Changelog\n\n## ${entry.value}\n\n- Current release.\n',
-      );
+      await File(p.join(temporary.path, 'packages', entry.key, 'CHANGELOG.md'))
+          .writeAsString(
+            '# Changelog\n\n## ${entry.value}\n\n- Current release.\n',
+          );
     }
     final git = FakeGitClient();
     final result = await ReleaseService(
@@ -194,11 +190,10 @@ targets:
       'cliweave': '0.1.1',
       'dartage': '0.1.1',
     }.entries) {
-      await File(
-        p.join(temporary.path, 'packages', entry.key, 'CHANGELOG.md'),
-      ).writeAsString(
-        '# Changelog\n\n## ${entry.value}\n\n- Current release.\n',
-      );
+      await File(p.join(temporary.path, 'packages', entry.key, 'CHANGELOG.md'))
+          .writeAsString(
+            '# Changelog\n\n## ${entry.value}\n\n- Current release.\n',
+          );
     }
     final git = FakeGitClient(
       failWhen: (arguments) =>

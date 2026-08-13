@@ -21,8 +21,11 @@ abstract interface class DcsSubHandler {
 }
 
 /// Fallback notification for an unregistered DCS identifier.
-typedef DcsFallbackHandler =
-    void Function(int identifier, String action, [Object? payload]);
+typedef DcsFallbackHandler = void Function(
+  int identifier,
+  String action, [
+  Object? payload,
+]);
 
 /// Parser for DCS identifier, parameters and payload dispatch.
 final class DcsParser implements Disposable {

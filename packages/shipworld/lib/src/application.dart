@@ -173,9 +173,8 @@ final _verifyCommand = buildCommand(
   docs: const CommandDocs(brief: 'Verify a CI tag against a target version'),
   parameters: CommandParameters(
     flags: FlagSet.one(_configFlag).map((config) => (config: config)),
-    positional: PositionalSet.one(
-      _targetArgument(),
-    ).map((target) => (target: target)),
+    positional: PositionalSet.one(_targetArgument())
+        .map((target) => (target: target)),
   ),
   func: (context, flags, args) async {
     final config = await loadShipworldConfig(flags.config);
@@ -208,9 +207,8 @@ final _msixCommand = buildCommand(
             launcher: launcher,
           );
         }),
-    positional: PositionalSet.one(
-      _targetArgument(),
-    ).map((target) => (target: target)),
+    positional: PositionalSet.one(_targetArgument())
+        .map((target) => (target: target)),
   ),
   func: (context, flags, args) async {
     final loaded = await _loadTarget(flags.config, args.target);
@@ -288,9 +286,8 @@ final _msixBundleCommand = buildCommand(
             workingDirectory: workingDirectory,
           );
         }),
-    positional: PositionalSet.one(
-      _targetArgument(),
-    ).map((target) => (target: target)),
+    positional: PositionalSet.one(_targetArgument())
+        .map((target) => (target: target)),
   ),
   func: (context, flags, args) async {
     final loaded = await _loadTarget(flags.config, args.target);
@@ -334,9 +331,8 @@ final _macosSignCommand = buildCommand(
             skipNotarize: skipNotarize,
           );
         }),
-    positional: PositionalSet.one(
-      _targetArgument(),
-    ).map((target) => (target: target)),
+    positional: PositionalSet.one(_targetArgument())
+        .map((target) => (target: target)),
   ),
   func: (context, flags, args) async {
     final loaded = await _loadTarget(flags.config, args.target);
@@ -379,15 +375,13 @@ final _macosArchiveCommand = buildCommand(
           final ((config, input), output) = values;
           return (config: config, input: input, output: output);
         }),
-    positional: PositionalSet.one(
-      _targetArgument(),
-    ).map((target) => (target: target)),
+    positional: PositionalSet.one(_targetArgument())
+        .map((target) => (target: target)),
   ),
   func: (context, flags, args) async {
     await _loadTarget(flags.config, args.target);
-    final output = await MacosPackagingService(
-      _context(context),
-    ).archive(appPath: flags.input, outputPath: flags.output);
+    final output = await MacosPackagingService(_context(context))
+        .archive(appPath: flags.input, outputPath: flags.output);
     context.process.stdout.write('Archived $output\n');
   },
 );
@@ -412,9 +406,8 @@ final _appImageCommand = buildCommand(
             launcher: launcher,
           );
         }),
-    positional: PositionalSet.one(
-      _targetArgument(),
-    ).map((target) => (target: target)),
+    positional: PositionalSet.one(_targetArgument())
+        .map((target) => (target: target)),
   ),
   func: (context, flags, args) async {
     final loaded = await _loadTarget(flags.config, args.target);
@@ -490,9 +483,8 @@ Command<ApplicationContext> _linuxPackageCommand(LinuxPackageFormat format) =>
                 release: release,
               );
             }),
-        positional: PositionalSet.one(
-          _targetArgument(),
-        ).map((target) => (target: target)),
+        positional: PositionalSet.one(_targetArgument())
+            .map((target) => (target: target)),
       ),
       func: (context, flags, args) async {
         final loaded = await _loadTarget(flags.config, args.target);
@@ -600,9 +592,8 @@ final _formulaCommand = buildCommand(
             versionedOutput: versionedOutput,
           );
         }),
-    positional: PositionalSet.one(
-      _targetArgument(),
-    ).map((target) => (target: target)),
+    positional: PositionalSet.one(_targetArgument())
+        .map((target) => (target: target)),
   ),
   func: (context, flags, args) async {
     final loaded = await _loadTarget(flags.config, args.target);
@@ -701,9 +692,8 @@ final _caskCommand = buildCommand(
           final (((config, archive), url), output) = values;
           return (config: config, archive: archive, url: url, output: output);
         }),
-    positional: PositionalSet.one(
-      _targetArgument(),
-    ).map((target) => (target: target)),
+    positional: PositionalSet.one(_targetArgument())
+        .map((target) => (target: target)),
   ),
   func: (context, flags, args) async {
     final loaded = await _loadTarget(flags.config, args.target);

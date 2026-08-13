@@ -117,9 +117,8 @@ targets:
       'shipworld-linux-config-',
     );
     addTearDown(() => temporary.delete(recursive: true));
-    await File(
-      p.join(temporary.path, 'pubspec.yaml'),
-    ).writeAsString('name: example\nversion: 1.0.0\n');
+    await File(p.join(temporary.path, 'pubspec.yaml'))
+        .writeAsString('name: example\nversion: 1.0.0\n');
     final file = File(p.join(temporary.path, 'shipworld.yaml'));
     await file.writeAsString('''
 schema: 1
@@ -157,9 +156,9 @@ targets:
       minimum-version: ventura
 ''');
 
-    final linux = (await loadShipworldConfig(
-      file.path,
-    )).target('example').linux;
+    final linux = (await loadShipworldConfig(file.path))
+        .target('example')
+        .linux;
     expect(linux?.maintainer, 'Tinyrack <dev@tinyrack.net>');
     expect(linux?.license, 'Apache-2.0');
     expect(linux?.appId, 'net.example.app');
@@ -170,26 +169,23 @@ targets:
     expect(linux?.rpm.requires, ['gtk3']);
     expect(linux?.rpm.release, '2');
 
-    final macos = (await loadShipworldConfig(
-      file.path,
-    )).target('example').macos;
+    final macos = (await loadShipworldConfig(file.path))
+        .target('example')
+        .macos;
     expect(macos?.bundleName, 'Example');
     expect(macos?.minimumVersion, 'ventura');
   });
 
-  test(
-    'keeps accepting a Linux block that only sets the AppImage keys',
-    () async {
-      // proxer and dotweave ship exactly these three keys and must keep loading.
-      final temporary = await Directory.systemTemp.createTemp(
-        'shipworld-linux-legacy-',
-      );
-      addTearDown(() => temporary.delete(recursive: true));
-      await File(
-        p.join(temporary.path, 'pubspec.yaml'),
-      ).writeAsString('name: example\nversion: 1.0.0\n');
-      final file = File(p.join(temporary.path, 'shipworld.yaml'));
-      await file.writeAsString('''
+  test('keeps accepting a Linux block that only sets the AppImage keys', () async {
+    // proxer and dotweave ship exactly these three keys and must keep loading.
+    final temporary = await Directory.systemTemp.createTemp(
+      'shipworld-linux-legacy-',
+    );
+    addTearDown(() => temporary.delete(recursive: true));
+    await File(p.join(temporary.path, 'pubspec.yaml'))
+        .writeAsString('name: example\nversion: 1.0.0\n');
+    final file = File(p.join(temporary.path, 'shipworld.yaml'));
+    await file.writeAsString('''
 schema: 1
 remote: origin
 batch-commit: "release: {targets}"
@@ -208,27 +204,25 @@ targets:
       terminal: true
 ''');
 
-      final linux = (await loadShipworldConfig(
-        file.path,
-      )).target('example').linux;
-      expect(linux?.icon, 'icon.svg');
-      expect(linux?.terminal, isTrue);
-      expect(linux?.maintainer, isNull);
-      expect(linux?.icons, isEmpty);
-      expect(linux?.deb.section, 'utils');
-      expect(linux?.rpm.release, '1');
-      expect(linux?.launcherStyle, 'symlink');
-    },
-  );
+    final linux = (await loadShipworldConfig(file.path))
+        .target('example')
+        .linux;
+    expect(linux?.icon, 'icon.svg');
+    expect(linux?.terminal, isTrue);
+    expect(linux?.maintainer, isNull);
+    expect(linux?.icons, isEmpty);
+    expect(linux?.deb.section, 'utils');
+    expect(linux?.rpm.release, '1');
+    expect(linux?.launcherStyle, 'symlink');
+  });
 
   test('rejects malformed Linux packaging values', () async {
     final temporary = await Directory.systemTemp.createTemp(
       'shipworld-linux-bad-',
     );
     addTearDown(() => temporary.delete(recursive: true));
-    await File(
-      p.join(temporary.path, 'pubspec.yaml'),
-    ).writeAsString('name: example\nversion: 1.0.0\n');
+    await File(p.join(temporary.path, 'pubspec.yaml'))
+        .writeAsString('name: example\nversion: 1.0.0\n');
     final file = File(p.join(temporary.path, 'shipworld.yaml'));
 
     Future<void> expectRejected(String linuxBlock) async {
@@ -271,13 +265,9 @@ $linuxBlock
   });
 
   test('ships a valid JSON Schema document', () async {
-    final schema =
-        jsonDecode(
-              await File(
-                p.join('schema', 'shipworld.schema.json'),
-              ).readAsString(),
-            )
-            as Map<String, Object?>;
+    final schema = jsonDecode(
+      await File(p.join('schema', 'shipworld.schema.json')).readAsString(),
+    ) as Map<String, Object?>;
 
     expect(schema['title'], 'Shipworld configuration');
     expect(schema[r'$defs'], isA<Map<String, Object?>>());

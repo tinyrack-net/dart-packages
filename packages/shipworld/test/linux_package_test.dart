@@ -201,9 +201,8 @@ void main() {
     expect(link['src'], '/usr/lib/example/example');
     // Nothing is linked on disk, so staging behaves the same on every host.
     expect(
-      Link(
-        p.join(temporary.path, '.shipworld', 'deb', 'example', 'usr'),
-      ).existsSync(),
+      Link(p.join(temporary.path, '.shipworld', 'deb', 'example', 'usr'))
+          .existsSync(),
       isFalse,
     );
 

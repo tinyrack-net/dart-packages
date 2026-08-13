@@ -30,9 +30,8 @@ void main() {
     expect(File(distribution.hostPath).readAsStringSync(), 'host');
     expect(File(distribution.bootstrapPath).readAsStringSync(), 'bootstrap');
     expect(
-      File(
-        p.join(destination.path, 'lua_tool_runtime', 'LICENSE.txt'),
-      ).readAsStringSync(),
+      File(p.join(destination.path, 'lua_tool_runtime', 'LICENSE.txt'))
+          .readAsStringSync(),
       'license',
     );
   });

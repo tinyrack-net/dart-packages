@@ -86,9 +86,8 @@ end_of_record
       final directory = Directory(p.join(root.path, path))
         ..createSync(recursive: true);
       if (!path.endsWith('empty')) {
-        File(
-          p.join(directory.path, 'pubspec.yaml'),
-        ).writeAsStringSync('name: x');
+        File(p.join(directory.path, 'pubspec.yaml'))
+            .writeAsStringSync('name: x');
       }
     }
     final workspace = CoverageWorkspace(root.path);

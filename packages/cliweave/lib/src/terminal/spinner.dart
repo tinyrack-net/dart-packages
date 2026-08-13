@@ -29,8 +29,10 @@ abstract class SpinnerTimer {
 }
 
 /// Callback used by [SpinnerTimerFactory].
-typedef SpinnerTimerFactory =
-    SpinnerTimer Function(Duration interval, void Function() onTick);
+typedef SpinnerTimerFactory = SpinnerTimer Function(
+  Duration interval,
+  void Function() onTick,
+);
 
 class _PeriodicSpinnerTimer implements SpinnerTimer {
   _PeriodicSpinnerTimer(Duration interval, void Function() onTick)

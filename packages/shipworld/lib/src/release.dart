@@ -133,12 +133,9 @@ final class ReleaseService {
   Future<bool> _hasLocalTag(String tag) async =>
       await _git(['tag', '--list', tag]) == tag;
 
-  Future<bool> _hasRemoteTag(String tag) async => (await _git([
-    'ls-remote',
-    '--tags',
-    config.remote,
-    'refs/tags/$tag',
-  ])).isNotEmpty;
+  Future<bool> _hasRemoteTag(String tag) async =>
+      (await _git(['ls-remote', '--tags', config.remote, 'refs/tags/$tag']))
+          .isNotEmpty;
 
   /// Preflights every target, then writes and commits the release as one unit.
   Future<PreparedReleaseSet> prepare({

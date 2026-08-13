@@ -95,13 +95,11 @@ void main() {
         final recipient = parseAgeRecipient(encoded);
         expect(recipient.toString(), encoded);
         final plaintext = Uint8List.fromList([7, 6, 5, 4]);
-        final ciphertext = await AgeEncrypter(
-          recipients: [recipient],
-        ).encrypt(plaintext);
+        final ciphertext = await AgeEncrypter(recipients: [recipient])
+            .encrypt(plaintext);
         expect(
-          await AgeDecrypter(
-            identities: [_TagIdentity(hybrid, secret)],
-          ).decrypt(ciphertext),
+          await AgeDecrypter(identities: [_TagIdentity(hybrid, secret)])
+              .decrypt(ciphertext),
           plaintext,
         );
       },

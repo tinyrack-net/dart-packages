@@ -205,9 +205,8 @@ void main() {
     await File(p.join(payload.path, 'example.exe')).writeAsString('binary');
 
     // Pre-create the package root so the pre-build cleanup deletes it.
-    await Directory(
-      p.join(temporary.path, '.shipworld', 'msix'),
-    ).create(recursive: true);
+    await Directory(p.join(temporary.path, '.shipworld', 'msix'))
+        .create(recursive: true);
 
     final executor = _RecordingExecutor();
     final result =
@@ -324,9 +323,8 @@ void main() {
       final packages = Directory(p.join(temporary.path, 'packages'));
       await packages.create();
       await File(p.join(packages.path, 'example-x64.msix')).writeAsString('a');
-      await File(
-        p.join(packages.path, 'example-arm64.msix'),
-      ).writeAsString('b');
+      await File(p.join(packages.path, 'example-arm64.msix'))
+          .writeAsString('b');
       // A non-.msix file is ignored by the discovery filter.
       await File(p.join(packages.path, 'notes.txt')).writeAsString('ignore');
 

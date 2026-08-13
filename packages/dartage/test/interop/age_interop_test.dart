@@ -165,9 +165,8 @@ void main() {
       recipient.encoded,
     ], stdinText: base64Encode(plaintext));
     expect(
-      await AgeDecrypter(
-        identities: [identity],
-      ).decrypt(AgeArmor.decode(nodeArmored)),
+      await AgeDecrypter(identities: [identity])
+          .decrypt(AgeArmor.decode(nodeArmored)),
       plaintext,
     );
   });
@@ -192,9 +191,8 @@ void main() {
       '10',
     ], stdinText: base64Encode(plaintext));
     expect(
-      await AgeDecrypter(
-        identities: [ScryptIdentity(passphrase)],
-      ).decrypt(AgeArmor.decode(nodeArmored)),
+      await AgeDecrypter(identities: [ScryptIdentity(passphrase)])
+          .decrypt(AgeArmor.decode(nodeArmored)),
       plaintext,
     );
   });

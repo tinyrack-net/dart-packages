@@ -318,9 +318,8 @@ void main() {
       expect(executor.inheritedCalls.first.first, 'makepri-test');
       expect(executor.inheritedCalls.last.first, 'makeappx-test');
       expect(
-        await File(
-          p.join(result.packageRoot, 'AppxManifest.xml'),
-        ).readAsString(),
+        await File(p.join(result.packageRoot, 'AppxManifest.xml'))
+            .readAsString(),
         allOf(
           contains('ProcessorArchitecture="arm64"'),
           contains('example.exe'),
