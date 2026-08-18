@@ -1,3 +1,13 @@
+## 0.3.2
+
+- Serialize protocol writes with termination inside the IO host process and
+  always kill the native helper even when its stdin sink is bound, broken, or
+  wedged. Previously a termination racing an in-flight write threw
+  `Bad state: StreamSink is bound to a stream` before `Process.kill`, leaking
+  the native host; on Windows the leaked process then held the staged
+  executable open and broke consumer temp-directory cleanup. Writes accepted
+  after termination begins now fail fast with a `StateError`.
+
 ## 0.3.1
 
 - Discard a native build directory whose CMake cache records a different source
