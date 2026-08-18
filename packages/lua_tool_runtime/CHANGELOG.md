@@ -1,3 +1,10 @@
+## 0.3.1
+
+- Discard a native build directory whose CMake cache records a different source
+  or build path instead of letting CMake reject it. A consumer that supplies its
+  own build directory kept a cache pointing at the previous pinned revision's
+  pub-cache checkout, which failed the configure step on every revision bump.
+
 ## 0.3.0
 
 - Add immutable revision-pinned `LuaProgramBundle` snapshots with safe module

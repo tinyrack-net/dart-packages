@@ -147,6 +147,178 @@ void main() {
     expect(firstBuild, contains('dart-packages-first'));
     expect(secondBuild, contains('dart-packages-second'));
   });
+
+  test('discards a cache generated from a different package source', () async {
+    final root = await Directory.systemTemp.createTemp('lua-stage-stale-');
+    final destination = await Directory.systemTemp.createTemp(
+      'lua-stage-stale-output-',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    addTearDown(() => destination.delete(recursive: true));
+    final packageRoot = _fakePackageRoot(root, 'dart-packages-new');
+    final build = Directory(p.join(root.path, 'build'))
+      ..createSync(recursive: true);
+    _writeCache(
+      build,
+      home: p.join(root.path, 'dart-packages-old', 'native'),
+      cacheFileDirectory: build.path,
+    );
+    final stale = File(p.join(build.path, 'stale.vcxproj'))
+      ..writeAsStringSync('stale');
+
+    await stageLuaToolRuntime(
+      destination: destination.path,
+      packageRoot: packageRoot,
+      buildDirectory: build.path,
+      runner: FakeBuildRunner(),
+    );
+
+    expect(stale.existsSync(), isFalse);
+    expect(File(p.join(build.path, 'CMakeCache.txt')).existsSync(), isFalse);
+  });
+
+  test('discards a cache generated for a different build directory', () async {
+    final root = await Directory.systemTemp.createTemp('lua-stage-moved-');
+    final destination = await Directory.systemTemp.createTemp(
+      'lua-stage-moved-output-',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    addTearDown(() => destination.delete(recursive: true));
+    final packageRoot = _fakePackageRoot(root, 'dart-packages-moved');
+    final build = Directory(p.join(root.path, 'build'))
+      ..createSync(recursive: true);
+    _writeCache(
+      build,
+      home: p.join(packageRoot, 'native'),
+      cacheFileDirectory: p.join(root.path, 'elsewhere'),
+    );
+    final stale = File(p.join(build.path, 'stale.vcxproj'))
+      ..writeAsStringSync('stale');
+
+    await stageLuaToolRuntime(
+      destination: destination.path,
+      packageRoot: packageRoot,
+      buildDirectory: build.path,
+      runner: FakeBuildRunner(),
+    );
+
+    expect(stale.existsSync(), isFalse);
+  });
+
+  test('keeps a cache that still matches the current build', () async {
+    final root = await Directory.systemTemp.createTemp('lua-stage-warm-');
+    final destination = await Directory.systemTemp.createTemp(
+      'lua-stage-warm-output-',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    addTearDown(() => destination.delete(recursive: true));
+    final packageRoot = _fakePackageRoot(root, 'dart-packages-warm');
+    final build = Directory(p.join(root.path, 'build'))
+      ..createSync(recursive: true);
+    _writeCache(
+      build,
+      home: p.join(packageRoot, 'native'),
+      cacheFileDirectory: build.path,
+    );
+    final warm = File(p.join(build.path, 'warm.o'))..writeAsStringSync('warm');
+
+    await stageLuaToolRuntime(
+      destination: destination.path,
+      packageRoot: packageRoot,
+      buildDirectory: build.path,
+      runner: FakeBuildRunner(),
+    );
+
+    expect(warm.existsSync(), isTrue);
+  });
+
+  test('keeps a cache recorded with Windows casing and separators', () async {
+    final root = await Directory.systemTemp.createTemp('lua-stage-casing-');
+    final destination = await Directory.systemTemp.createTemp(
+      'lua-stage-casing-output-',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    addTearDown(() => destination.delete(recursive: true));
+    final packageRoot = _fakePackageRoot(root, 'dart-packages-casing');
+    final build = Directory(p.join(root.path, 'build'))
+      ..createSync(recursive: true);
+    _writeCache(
+      build,
+      home: p.join(packageRoot, 'native').toUpperCase(),
+      cacheFileDirectory: build.path.replaceAll(r'\', '/'),
+    );
+    final warm = File(p.join(build.path, 'warm.obj'))
+      ..writeAsStringSync('warm');
+
+    await stageLuaToolRuntime(
+      destination: destination.path,
+      packageRoot: packageRoot,
+      buildDirectory: build.path,
+      runner: FakeBuildRunner(),
+    );
+
+    expect(warm.existsSync(), isTrue);
+  }, testOn: 'windows');
+
+  test('configures a build directory with no previous cache', () async {
+    final root = await Directory.systemTemp.createTemp('lua-stage-cold-');
+    final destination = await Directory.systemTemp.createTemp(
+      'lua-stage-cold-output-',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    addTearDown(() => destination.delete(recursive: true));
+    final packageRoot = _fakePackageRoot(root, 'dart-packages-cold');
+    final build = Directory(p.join(root.path, 'build'))
+      ..createSync(recursive: true);
+    final unrelated = File(p.join(build.path, 'notes.txt'))
+      ..writeAsStringSync('notes');
+
+    await stageLuaToolRuntime(
+      destination: destination.path,
+      packageRoot: packageRoot,
+      buildDirectory: build.path,
+      runner: FakeBuildRunner(),
+    );
+
+    expect(unrelated.existsSync(), isTrue);
+  });
+
+  test('rebuilds after a cache file that cannot be parsed', () async {
+    final root = await Directory.systemTemp.createTemp('lua-stage-garbled-');
+    final destination = await Directory.systemTemp.createTemp(
+      'lua-stage-garbled-output-',
+    );
+    addTearDown(() => root.delete(recursive: true));
+    addTearDown(() => destination.delete(recursive: true));
+    final packageRoot = _fakePackageRoot(root, 'dart-packages-garbled');
+    final build = Directory(p.join(root.path, 'build'))
+      ..createSync(recursive: true);
+    File(p.join(build.path, 'CMakeCache.txt'))
+        .writeAsStringSync('# no useful entries\n');
+    final stale = File(p.join(build.path, 'stale.vcxproj'))
+      ..writeAsStringSync('stale');
+
+    await stageLuaToolRuntime(
+      destination: destination.path,
+      packageRoot: packageRoot,
+      buildDirectory: build.path,
+      runner: FakeBuildRunner(),
+    );
+
+    expect(stale.existsSync(), isFalse);
+  });
+}
+
+void _writeCache(
+  Directory build, {
+  required String home,
+  required String cacheFileDirectory,
+}) {
+  File(p.join(build.path, 'CMakeCache.txt')).writeAsStringSync(
+    '# This is the CMakeCache file.\n'
+    'CMAKE_CACHEFILE_DIR:INTERNAL=$cacheFileDirectory\n'
+    'CMAKE_HOME_DIRECTORY:INTERNAL=$home\n',
+  );
 }
 
 String _fakePackageRoot(Directory parent, String checkout) {

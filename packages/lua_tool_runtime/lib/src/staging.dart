@@ -76,9 +76,11 @@ Future<LuaHostDistribution> stageLuaToolRuntime({
         _packageSourceIdentity(root),
         '${Platform.operatingSystem}-${buildMode.name}',
       );
+  final source = p.join(root, 'native');
+  _discardUnusableCache(build, source);
   final configure = await runner.run(cmakeExecutable, [
     '-S',
-    p.join(root, 'native'),
+    source,
     '-B',
     build,
     '-DCMAKE_BUILD_TYPE=${buildMode._cmakeName}',
@@ -118,6 +120,45 @@ Future<LuaHostDistribution> stageLuaToolRuntime({
     hostPath: stagedHost.path,
     bootstrapPath: p.join(data.path, 'bootstrap.lua'),
   );
+}
+
+/// Removes a CMake cache that the next configure step would reject.
+///
+/// CMake refuses to reuse a cache whose recorded source or build directory has
+/// moved, and reports it as a configure error rather than reconfiguring. A
+/// pinned git checkout lands under a revision-specific pub-cache path, so
+/// every new revision moves the source. A caller that supplies its own build
+/// directory therefore inherits a cache describing the previous revision, which
+/// is discarded here instead of failing the build.
+void _discardUnusableCache(String buildDirectory, String sourceDirectory) {
+  final cache = File(p.join(buildDirectory, 'CMakeCache.txt'));
+  if (!cache.existsSync()) return;
+  final entries = _readCacheEntries(cache);
+  final home = entries['CMAKE_HOME_DIRECTORY'];
+  final cacheFileDirectory = entries['CMAKE_CACHEFILE_DIR'];
+  if (home != null &&
+      cacheFileDirectory != null &&
+      p.canonicalize(home) == p.canonicalize(sourceDirectory) &&
+      p.canonicalize(cacheFileDirectory) == p.canonicalize(buildDirectory)) {
+    return;
+  }
+  Directory(buildDirectory)
+    ..deleteSync(recursive: true)
+    ..createSync(recursive: true);
+}
+
+/// Reads `NAME:TYPE=VALUE` entries from a CMake cache file.
+Map<String, String> _readCacheEntries(File cache) {
+  final entries = <String, String>{};
+  for (final line in cache.readAsLinesSync()) {
+    final assignment = line.indexOf('=');
+    if (assignment < 0) continue;
+    final declaration = line.substring(0, assignment);
+    final type = declaration.indexOf(':');
+    if (type < 0) continue;
+    entries[declaration.substring(0, type)] = line.substring(assignment + 1);
+  }
+  return entries;
 }
 
 String _packageSourceIdentity(String packageRoot) {
