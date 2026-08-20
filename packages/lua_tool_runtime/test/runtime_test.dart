@@ -656,6 +656,29 @@ void main() {
     );
   });
 
+  test('a host death reports its exit code and its own diagnostics', () async {
+    final pending = session.execute(
+      const LuaExecuteRequest(
+        source: 'text("x")',
+        yieldTime: Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      ),
+      LuaExecutionContext(dispatcher: RecordingDispatcher()),
+    );
+    await pumpEventQueue();
+    final process = launcher.process;
+    // A host that dies mid-protocol closes stdout and exits at nearly the same
+    // moment. Whichever arrives first, the failure must still name both.
+    process.stderrTail = 'bootstrap.lua:124: __LUA_LIMIT_INSTRUCTIONS__';
+    process.exitWith(70);
+    process.closeOutput();
+
+    final error = (await pending).error;
+    expect(error, isA<LuaHostException>());
+    expect(error!.message, contains('Exit code 70'));
+    expect(error.message, contains('__LUA_LIMIT_INSTRUCTIONS__'));
+  });
+
   test('classifies host exits, stream failures, and invalid frames', () async {
     Future<LuaCellDelta<String>> start() => session.execute(
       const LuaExecuteRequest(
@@ -932,6 +955,7 @@ final class FakeProcess implements LuaHostProcess {
   final Completer<int> exitCodeCompleter = Completer();
   final List<String> input = [];
   bool terminated = false;
+  String stderrTail = '';
 
   Map<String, Object?> writtenFrame(int index) =>
       Map<String, Object?>.from(jsonDecode(input[index].trim()) as Map);
@@ -960,6 +984,9 @@ final class FakeProcess implements LuaHostProcess {
 
   @override
   Stream<String> get outputs => outputController.stream;
+
+  @override
+  String get diagnostics => stderrTail;
 
   @override
   Future<void> terminate() async {

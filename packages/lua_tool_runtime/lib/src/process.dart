@@ -50,6 +50,13 @@ abstract interface class LuaHostProcess {
   /// Native exit code.
   Future<int> get exitCode;
 
+  /// Most recent diagnostic output the host wrote outside the protocol.
+  ///
+  /// A host that dies mid-protocol reports why on stderr and nowhere else, so
+  /// this is the only description of the failure the runtime can offer.
+  /// Returns an empty string when the host said nothing.
+  String get diagnostics;
+
   /// Writes protocol input.
   Future<void> write(String value);
 
@@ -124,6 +131,9 @@ final class _IoLuaHostProcess implements LuaHostProcess {
 
   @override
   Stream<String> get outputs => _process.stdout.transform(utf8.decoder);
+
+  @override
+  String get diagnostics => _stderrTail.trim();
 
   @override
   Future<void> write(String value) {

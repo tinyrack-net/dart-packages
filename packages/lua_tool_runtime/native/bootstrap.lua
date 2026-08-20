@@ -63,6 +63,10 @@ local function json_encode(value, seen)
   return '{' .. table.concat(parts, ',') .. '}'
 end
 
+local JSON_SIMPLE_ESCAPES = {
+  ['"']='"', ['\\']='\\', ['/']='/', b='\b', f='\f', n='\n', r='\r', t='\t',
+}
+
 local function json_decode(source)
   local position = 1
   local function skip_space()
@@ -70,30 +74,35 @@ local function json_decode(source)
     position = (finish or position - 1) + 1
   end
   local parse_value
+  -- Take whole unescaped runs at a time. Walking one character per iteration
+  -- costs a table slot and a handful of VM instructions for every byte, which
+  -- dominates the cost of decoding a large frame.
   local function parse_string()
     position = position + 1
     local parts = {}
-    while position <= #source do
-      local char = source:sub(position, position)
-      if char == '"' then position = position + 1; return table.concat(parts) end
-      if char == '\\' then
-        local escaped = source:sub(position + 1, position + 1)
-        local simple = {['"']='"', ['\\']='\\', ['/']='/', b='\b', f='\f', n='\n', r='\r', t='\t'}
-        if simple[escaped] then
-          parts[#parts + 1] = simple[escaped]
-          position = position + 2
-        elseif escaped == 'u' then
-          local code = tonumber(source:sub(position + 2, position + 5), 16)
-          if not code then error('invalid JSON unicode escape') end
-          parts[#parts + 1] = utf8.char(code)
-          position = position + 6
-        else error('invalid JSON escape') end
-      else
-        parts[#parts + 1] = char
-        position = position + 1
+    while true do
+      local stop = source:find('["\\]', position)
+      if not stop then error('unterminated JSON string') end
+      if stop > position then
+        parts[#parts + 1] = source:sub(position, stop - 1)
       end
+      position = stop
+      if source:sub(position, position) == '"' then
+        position = position + 1
+        return table.concat(parts)
+      end
+      local escaped = source:sub(position + 1, position + 1)
+      local simple = JSON_SIMPLE_ESCAPES[escaped]
+      if simple then
+        parts[#parts + 1] = simple
+        position = position + 2
+      elseif escaped == 'u' then
+        local code = tonumber(source:sub(position + 2, position + 5), 16)
+        if not code then error('invalid JSON unicode escape') end
+        parts[#parts + 1] = utf8.char(code)
+        position = position + 6
+      else error('invalid JSON escape') end
     end
-    error('unterminated JSON string')
   end
   local function parse_array()
     position = position + 1
@@ -155,16 +164,19 @@ end
 
 local sequence = 0
 local cell_id
+-- Encode before claiming the sequence number. A frame that cannot be encoded
+-- must leave the cursor untouched so the failure can still be reported on the
+-- sequence the reader is waiting for.
 local function send(kind, payload)
-  sequence = sequence + 1
-  local frame = {
+  local encoded = json_encode({
     version = protocol_version,
     cell_id = cell_id,
-    sequence_id = sequence,
+    sequence_id = sequence + 1,
     type = kind,
     payload = payload or {},
-  }
-  output:write(json_encode(frame), '\n')
+  })
+  sequence = sequence + 1
+  output:write(encoded, '\n')
   output:flush()
 end
 
@@ -197,258 +209,307 @@ cell_id = initial.cell_id
 local init = initial.payload
 local bundle = init.bundle or {}
 
-local tasks, runnable, waiting, next_task = {}, {}, {}, 0
 local session_store = init.store or {}
-local cancelled_timers = {}
 
-local function enqueue(task, ...)
-  runnable[#runnable + 1] = {task = task, values = table.pack(...)}
-end
-
-local function spawn_task(fn, ...)
-  if type(fn) ~= 'function' then error('spawn expects a function', 2) end
-  next_task = next_task + 1
-  local task = {id = next_task, coroutine = coroutine.create(fn), done = false}
-  tasks[task.id] = task
-  enqueue(task, ...)
-  return task
-end
-
-local function await_task(task)
-  if type(task) ~= 'table' or not task.id or tasks[task.id] ~= task then
-    error('await expects a task returned by spawn', 2)
+-- Turn any failure of the privileged protocol layer into a normal error
+-- frame. Only handler code runs under `coroutine.resume`; an instruction
+-- budget trip, an exhausted allocator, or a value that cannot be encoded
+-- would otherwise escape this chunk and take the whole host process with
+-- it, leaving the reader with nothing but a closed pipe.
+local function fatal_handler(message)
+  if type(message) ~= 'string' then
+    local ok_text, converted = pcall(tostring, message)
+    message = ok_text and converted or 'unknown Lua host failure'
   end
-  task.detached = false
-  if task.done then
-    if task.error then error(task.error, 2) end
-    return table.unpack(task.values, 1, task.values.n)
+  -- Building a traceback allocates, which is exactly what is unavailable
+  -- after a memory error. Keep the plain message when it cannot be built.
+  local ok_trace, trace = pcall(traceback, message, 2)
+  return ok_trace and trace or message
+end
+
+local function report_fatal(message)
+  local category = 'script'
+  if string.find(message, '__LUA_LIMIT_', 1, true) then
+    category = 'limit'
   end
-  local packed = table.pack(coroutine.yield({kind = 'await', task_id = task.id}))
-  if packed[1] == false then error(packed[2], 2) end
-  return table.unpack(packed, 2, packed.n)
+  if pcall(send, 'error', {
+    message = message,
+    category = category,
+    store = session_store,
+  }) then return end
+  -- The store, or the message itself, may be what could not be encoded,
+  -- and memory may still be short. A fixed frame always encodes.
+  pcall(send, 'error', {
+    message = 'Lua host failed and could not describe the failure.',
+    category = category,
+  })
 end
 
-local tools = {}
-function tools.call(name, arguments)
-  if type(name) ~= 'string' then error('tools.call expects a tool name', 2) end
-  return coroutine.yield({kind = 'tool', name = name, arguments = arguments or {}})
-end
-setmetatable(tools, {__index = function(_, name)
-  return function(arguments) return tools.call(name, arguments) end
-end, __metatable = false})
+local function drive()
+  local tasks, runnable, waiting, next_task = {}, {}, {}, 0
+  local cancelled_timers = {}
 
-local host = {}
-function host.call(name, arguments)
-  if type(name) ~= 'string' then error('host.call expects a callback name', 2) end
-  return coroutine.yield({kind = 'host_call', name = name, arguments = arguments or {}})
-end
-function host.open(name, arguments)
-  if type(name) ~= 'string' then error('host.open expects a callback name', 2) end
-  return coroutine.yield({kind = 'host_open', name = name, arguments = arguments or {}})
-end
-function host.next(stream_handle)
-  if type(stream_handle) ~= 'string' then error('host.next expects a stream handle', 2) end
-  return coroutine.yield({kind = 'host_next', stream_handle = stream_handle})
-end
-function host.close(stream_handle)
-  if type(stream_handle) ~= 'string' then error('host.close expects a stream handle', 2) end
-  return coroutine.yield({kind = 'host_close', stream_handle = stream_handle})
-end
+  local function enqueue(task, ...)
+    runnable[#runnable + 1] = {task = task, values = table.pack(...)}
+  end
 
-local function emit(kind, value)
-  coroutine.yield({kind = kind, value = value})
-end
+  local function spawn_task(fn, ...)
+    if type(fn) ~= 'function' then error('spawn expects a function', 2) end
+    next_task = next_task + 1
+    local task = {id = next_task, coroutine = coroutine.create(fn), done = false}
+    tasks[task.id] = task
+    enqueue(task, ...)
+    return task
+  end
 
-local safe_require
-local safe_env = {
-  assert=assert, error=error, ipairs=ipairs, next=next, pairs=pairs,
-  pcall=pcall, select=select, tonumber=tonumber, tostring=tostring,
-  type=type, utf8=utf8, xpcall=xpcall,
-  math=math, string=string, table=table,
-  tools=tools, host=host, spawn=spawn_task, await=await_task,
-  await_all=function(list)
-    local results = {}
-    for index, task in ipairs(list) do results[index] = table.pack(await_task(task)) end
-    return results
-  end,
-  text=function(value) emit('text', value) end,
-  image=function(value) emit('image', value) end,
-  audio=function(value) emit('audio', value) end,
-  generated_image=function(value) emit('generated_image', value) end,
-  notify=function(value) emit('notify', value) end,
-  store=function(key, value)
-    if type(key) ~= 'string' then error('store key must be a string', 2) end
-    -- Validate now so a bad value cannot poison a later protocol frame.
-    json_encode(value)
-    session_store[key] = value
-  end,
-  load=function(key) return session_store[key] end,
-  yield_control=function() return coroutine.yield({kind = 'yield_control'}) end,
-  exit=function() return coroutine.yield({kind = 'exit'}) end,
-  clear_timeout=function(timer) if timer then cancelled_timers[timer.id] = true end end,
-  NULL=JSON_NULL,
-}
-safe_env.set_timeout = function(fn, milliseconds)
-  local timer
-  timer = spawn_task(function()
-    coroutine.yield({kind = 'sleep', milliseconds = milliseconds or 0})
-    if not cancelled_timers[timer.id] then fn() end
-  end)
-  timer.detached = true
-  return timer
-end
-safe_env.ALL_TOOLS = init.tools or {}
-safe_env.assets = {
-  read=function(path)
-    if type(path) ~= 'string' then error('assets.read expects a path', 2) end
-    local value = (bundle.markdown_assets or {})[path]
-    if value == nil then error('Markdown asset not found: ' .. path, 2) end
+  local function await_task(task)
+    if type(task) ~= 'table' or not task.id or tasks[task.id] ~= task then
+      error('await expects a task returned by spawn', 2)
+    end
+    task.detached = false
+    if task.done then
+      if task.error then error(task.error, 2) end
+      return table.unpack(task.values, 1, task.values.n)
+    end
+    local packed = table.pack(coroutine.yield({kind = 'await', task_id = task.id}))
+    if packed[1] == false then error(packed[2], 2) end
+    return table.unpack(packed, 2, packed.n)
+  end
+
+  local tools = {}
+  function tools.call(name, arguments)
+    if type(name) ~= 'string' then error('tools.call expects a tool name', 2) end
+    return coroutine.yield({kind = 'tool', name = name, arguments = arguments or {}})
+  end
+  setmetatable(tools, {__index = function(_, name)
+    return function(arguments) return tools.call(name, arguments) end
+  end, __metatable = false})
+
+  local host = {}
+  function host.call(name, arguments)
+    if type(name) ~= 'string' then error('host.call expects a callback name', 2) end
+    return coroutine.yield({kind = 'host_call', name = name, arguments = arguments or {}})
+  end
+  function host.open(name, arguments)
+    if type(name) ~= 'string' then error('host.open expects a callback name', 2) end
+    return coroutine.yield({kind = 'host_open', name = name, arguments = arguments or {}})
+  end
+  function host.next(stream_handle)
+    if type(stream_handle) ~= 'string' then error('host.next expects a stream handle', 2) end
+    return coroutine.yield({kind = 'host_next', stream_handle = stream_handle})
+  end
+  function host.close(stream_handle)
+    if type(stream_handle) ~= 'string' then error('host.close expects a stream handle', 2) end
+    return coroutine.yield({kind = 'host_close', stream_handle = stream_handle})
+  end
+
+  -- Validate before the value leaves the handler, exactly as `store` does. A
+  -- value the protocol cannot carry then fails the task that produced it, with
+  -- a traceback, rather than the privileged layer that would have carried it.
+  -- Emitted media are resource handles, so the common string path is free.
+  local function emit(kind, value)
+    if type(value) ~= 'string' then json_encode(value) end
+    coroutine.yield({kind = kind, value = value})
+  end
+
+  local safe_require
+  local safe_env = {
+    assert=assert, error=error, ipairs=ipairs, next=next, pairs=pairs,
+    pcall=pcall, select=select, tonumber=tonumber, tostring=tostring,
+    type=type, utf8=utf8, xpcall=xpcall,
+    math=math, string=string, table=table,
+    tools=tools, host=host, spawn=spawn_task, await=await_task,
+    await_all=function(list)
+      local results = {}
+      for index, task in ipairs(list) do results[index] = table.pack(await_task(task)) end
+      return results
+    end,
+    text=function(value) emit('text', value) end,
+    image=function(value) emit('image', value) end,
+    audio=function(value) emit('audio', value) end,
+    generated_image=function(value) emit('generated_image', value) end,
+    notify=function(value) emit('notify', value) end,
+    store=function(key, value)
+      if type(key) ~= 'string' then error('store key must be a string', 2) end
+      -- Validate now so a bad value cannot poison a later protocol frame.
+      json_encode(value)
+      session_store[key] = value
+    end,
+    load=function(key) return session_store[key] end,
+    yield_control=function() return coroutine.yield({kind = 'yield_control'}) end,
+    exit=function() return coroutine.yield({kind = 'exit'}) end,
+    clear_timeout=function(timer) if timer then cancelled_timers[timer.id] = true end end,
+    NULL=JSON_NULL,
+  }
+  safe_env.set_timeout = function(fn, milliseconds)
+    local timer
+    timer = spawn_task(function()
+      coroutine.yield({kind = 'sleep', milliseconds = milliseconds or 0})
+      if not cancelled_timers[timer.id] then fn() end
+    end)
+    timer.detached = true
+    return timer
+  end
+  safe_env.ALL_TOOLS = init.tools or {}
+  safe_env.assets = {
+    read=function(path)
+      if type(path) ~= 'string' then error('assets.read expects a path', 2) end
+      local value = (bundle.markdown_assets or {})[path]
+      if value == nil then error('Markdown asset not found: ' .. path, 2) end
+      return value
+    end,
+  }
+  local module_cache, module_loading = {}, {}
+  safe_require = function(name)
+    if type(name) ~= 'string' or
+        not name:match('^[a-z_][a-z0-9_%.]*$') or
+        name:sub(-1) == '.' or name:find('..', 1, true) then
+      error('invalid Lua module name: ' .. tostring(name), 2)
+    end
+    if module_cache[name] ~= nil then return module_cache[name] end
+    if module_loading[name] then error('cyclic Lua module: ' .. name, 2) end
+    local source = (bundle.modules or {})[name]
+    if type(source) ~= 'string' then error('Lua module not found: ' .. name, 2) end
+    module_loading[name] = true
+    local chunk, compile_error = load(source, '@bundle/' .. name .. '.lua', 't', safe_env)
+    if not chunk then module_loading[name] = nil; error(compile_error, 2) end
+    local ok, value = pcall(chunk)
+    module_loading[name] = nil
+    if not ok then error(value, 2) end
+    if value == nil then value = true end
+    module_cache[name] = value
     return value
-  end,
-}
-local module_cache, module_loading = {}, {}
-safe_require = function(name)
-  if type(name) ~= 'string' or
-      not name:match('^[a-z_][a-z0-9_%.]*$') or
-      name:sub(-1) == '.' or name:find('..', 1, true) then
-    error('invalid Lua module name: ' .. tostring(name), 2)
   end
-  if module_cache[name] ~= nil then return module_cache[name] end
-  if module_loading[name] then error('cyclic Lua module: ' .. name, 2) end
-  local source = (bundle.modules or {})[name]
-  if type(source) ~= 'string' then error('Lua module not found: ' .. name, 2) end
-  module_loading[name] = true
-  local chunk, compile_error = load(source, '@bundle/' .. name .. '.lua', 't', safe_env)
-  if not chunk then module_loading[name] = nil; error(compile_error, 2) end
-  local ok, value = pcall(chunk)
-  module_loading[name] = nil
-  if not ok then error(value, 2) end
-  if value == nil then value = true end
-  module_cache[name] = value
-  return value
-end
-safe_env.require = safe_require
-safe_env._G = safe_env
+  safe_env.require = safe_require
+  safe_env._G = safe_env
 
-for _, preload in ipairs(bundle.preload_modules or {}) do
-  local ok_preload, preload_error = pcall(safe_require, preload)
-  if not ok_preload then send('error', {message = preload_error}); return end
-end
-local ok_entrypoint, entrypoint = pcall(safe_require, bundle.entrypoint)
-if not ok_entrypoint then send('error', {message = entrypoint}); return end
-if type(entrypoint) ~= 'table' then
-  send('error', {message = 'entrypoint module must return a handler table'}); return
-end
-local handler = entrypoint[init.handler]
-if type(handler) ~= 'function' then
-  send('error', {message = 'named handler not found: ' .. tostring(init.handler)}); return
-end
-spawn_task(handler, init.arguments or {})
+  for _, preload in ipairs(bundle.preload_modules or {}) do
+    local ok_preload, preload_error = pcall(safe_require, preload)
+    if not ok_preload then send('error', {message = preload_error}); return end
+  end
+  local ok_entrypoint, entrypoint = pcall(safe_require, bundle.entrypoint)
+  if not ok_entrypoint then send('error', {message = entrypoint}); return end
+  if type(entrypoint) ~= 'table' then
+    send('error', {message = 'entrypoint module must return a handler table'}); return
+  end
+  local handler = entrypoint[init.handler]
+  if type(handler) ~= 'function' then
+    send('error', {message = 'named handler not found: ' .. tostring(init.handler)}); return
+  end
+  spawn_task(handler, init.arguments or {})
 
-local function finish_task(task, resumed)
-  task.done = true
-  if resumed[1] then
-    task.values = table.pack(table.unpack(resumed, 2, resumed.n))
-  else
-    local message = tostring(resumed[2])
-    if message:lower():find('memory', 1, true) then
-      task.error = message
+  local function finish_task(task, resumed)
+    task.done = true
+    if resumed[1] then
+      task.values = table.pack(table.unpack(resumed, 2, resumed.n))
     else
-      task.error = traceback(task.coroutine, message)
-    end
-    task.values = table.pack()
-  end
-  task.coroutine = nil
-  collectgarbage('collect')
-  local waiters = waiting[task.id] or {}
-  waiting[task.id] = nil
-  for _, waiter in ipairs(waiters) do
-    if task.error then enqueue(waiter, false, task.error)
-    else enqueue(waiter, true, table.unpack(task.values, 1, task.values.n)) end
-  end
-end
-
-local function completed_payload()
-  local root = tasks[1]
-  local result = JSON_NULL
-  if root and root.values and root.values.n > 0 then result = root.values[1] end
-  json_encode(result)
-  return {store = session_store, result = result}
-end
-
-while true do
-  local calls, call_tasks = {}, {}
-  while #runnable > 0 do
-    local selected = 1
-    for index, candidate in ipairs(runnable) do
-      if not candidate.task.detached then selected = index; break end
-    end
-    local current = table.remove(runnable, selected)
-    local task = current.task
-    if task.detached and #calls > 0 then
-      table.insert(runnable, 1, current)
-      break
-    end
-    local resumed = table.pack(coroutine.resume(task.coroutine, table.unpack(current.values, 1, current.values.n)))
-    if not resumed[1] or coroutine.status(task.coroutine) == 'dead' then
-      finish_task(task, resumed)
-      if task.id == 1 and task.error then
-        local category = task.error:find('__LUA_LIMIT_', 1, true) and 'limit' or 'script'
-        send('error', {message = task.error, category = category, store = session_store}); return
-      end
-    else
-      local operation = resumed[2]
-      if type(operation) ~= 'table' or not operation.kind then
-        send('error', {message = 'invalid coroutine yield'}); return
-      elseif operation.kind == 'tool' then
-        local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
-        calls[#calls + 1] = {request_id=request_id, operation='tool_call', name=operation.name, arguments=operation.arguments}
-        call_tasks[request_id] = task
-      elseif operation.kind == 'host_call' or operation.kind == 'host_open' then
-        local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
-        calls[#calls + 1] = {request_id=request_id, operation=operation.kind, name=operation.name, arguments=operation.arguments}
-        call_tasks[request_id] = task
-      elseif operation.kind == 'host_next' or operation.kind == 'host_close' then
-        local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
-        calls[#calls + 1] = {request_id=request_id, operation=operation.kind, stream_handle=operation.stream_handle}
-        call_tasks[request_id] = task
-      elseif operation.kind == 'await' then
-        waiting[operation.task_id] = waiting[operation.task_id] or {}
-        waiting[operation.task_id][#waiting[operation.task_id] + 1] = task
-      elseif operation.kind == 'sleep' then
-        local request_id = 'timer:' .. tostring(task.id)
-        calls[#calls + 1] = {request_id=request_id, sleep_ms=operation.milliseconds}
-        call_tasks[request_id] = task
-      elseif operation.kind == 'yield_control' then
-        send('yielded', {store = session_store})
-        local control = receive('continue')
-        if control.type == 'terminate' then send('terminated', {store=session_store}); return end
-        enqueue(task)
-      elseif operation.kind == 'exit' then
-        send('completed', completed_payload()); return
+      local message = tostring(resumed[2])
+      if message:lower():find('memory', 1, true) then
+        task.error = message
       else
-        send('output', {kind=operation.kind, value=operation.value})
-        enqueue(task)
+        task.error = traceback(task.coroutine, message)
+      end
+      task.values = table.pack()
+    end
+    task.coroutine = nil
+    collectgarbage('collect')
+    local waiters = waiting[task.id] or {}
+    waiting[task.id] = nil
+    for _, waiter in ipairs(waiters) do
+      if task.error then enqueue(waiter, false, task.error)
+      else enqueue(waiter, true, table.unpack(task.values, 1, task.values.n)) end
+    end
+  end
+
+  local function completed_payload()
+    local root = tasks[1]
+    local result = JSON_NULL
+    if root and root.values and root.values.n > 0 then result = root.values[1] end
+    json_encode(result)
+    return {store = session_store, result = result}
+  end
+
+  while true do
+    local calls, call_tasks = {}, {}
+    while #runnable > 0 do
+      local selected = 1
+      for index, candidate in ipairs(runnable) do
+        if not candidate.task.detached then selected = index; break end
+      end
+      local current = table.remove(runnable, selected)
+      local task = current.task
+      if task.detached and #calls > 0 then
+        table.insert(runnable, 1, current)
+        break
+      end
+      local resumed = table.pack(coroutine.resume(task.coroutine, table.unpack(current.values, 1, current.values.n)))
+      if not resumed[1] or coroutine.status(task.coroutine) == 'dead' then
+        finish_task(task, resumed)
+        if task.id == 1 and task.error then
+          local category = task.error:find('__LUA_LIMIT_', 1, true) and 'limit' or 'script'
+          send('error', {message = task.error, category = category, store = session_store}); return
+        end
+      else
+        local operation = resumed[2]
+        if type(operation) ~= 'table' or not operation.kind then
+          send('error', {message = 'invalid coroutine yield'}); return
+        elseif operation.kind == 'tool' then
+          local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
+          calls[#calls + 1] = {request_id=request_id, operation='tool_call', name=operation.name, arguments=operation.arguments}
+          call_tasks[request_id] = task
+        elseif operation.kind == 'host_call' or operation.kind == 'host_open' then
+          local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
+          calls[#calls + 1] = {request_id=request_id, operation=operation.kind, name=operation.name, arguments=operation.arguments}
+          call_tasks[request_id] = task
+        elseif operation.kind == 'host_next' or operation.kind == 'host_close' then
+          local request_id = tostring(task.id) .. ':' .. tostring(sequence + #calls + 1)
+          calls[#calls + 1] = {request_id=request_id, operation=operation.kind, stream_handle=operation.stream_handle}
+          call_tasks[request_id] = task
+        elseif operation.kind == 'await' then
+          waiting[operation.task_id] = waiting[operation.task_id] or {}
+          waiting[operation.task_id][#waiting[operation.task_id] + 1] = task
+        elseif operation.kind == 'sleep' then
+          local request_id = 'timer:' .. tostring(task.id)
+          calls[#calls + 1] = {request_id=request_id, sleep_ms=operation.milliseconds}
+          call_tasks[request_id] = task
+        elseif operation.kind == 'yield_control' then
+          send('yielded', {store = session_store})
+          local control = receive('continue')
+          if control.type == 'terminate' then send('terminated', {store=session_store}); return end
+          enqueue(task)
+        elseif operation.kind == 'exit' then
+          send('completed', completed_payload()); return
+        else
+          send('output', {kind=operation.kind, value=operation.value})
+          enqueue(task)
+        end
       end
     end
-  end
-  if #calls > 0 then
-    local attached_live = false
-    for _, task in pairs(tasks) do
-      if not task.done and not task.detached then attached_live = true; break end
+    if #calls > 0 then
+      local attached_live = false
+      for _, task in pairs(tasks) do
+        if not task.done and not task.detached then attached_live = true; break end
+      end
+      if not attached_live then send('completed', completed_payload()); return end
+      send('callback_batch', {calls = calls})
+      local response = receive('callback_results')
+      if response.type == 'terminate' then send('terminated', {store=session_store}); return end
+      for _, result in ipairs(response.payload.results or {}) do
+        local task = call_tasks[result.request_id]
+        if task then enqueue(task, result.value) end
+      end
+    else
+      local live = false
+      for _, task in pairs(tasks) do if not task.done then live = true; break end end
+      if not live then send('completed', completed_payload()); return end
+      if #runnable == 0 then send('error', {message='scheduler deadlock', store=session_store}); return end
     end
-    if not attached_live then send('completed', completed_payload()); return end
-    send('callback_batch', {calls = calls})
-    local response = receive('callback_results')
-    if response.type == 'terminate' then send('terminated', {store=session_store}); return end
-    for _, result in ipairs(response.payload.results or {}) do
-      local task = call_tasks[result.request_id]
-      if task then enqueue(task, result.value) end
-    end
-  else
-    local live = false
-    for _, task in pairs(tasks) do if not task.done then live = true; break end end
-    if not live then send('completed', completed_payload()); return end
-    if #runnable == 0 then send('error', {message='scheduler deadlock', store=session_store}); return end
   end
+end
+
+local ok_drive, failure = xpcall(drive, fatal_handler)
+if not ok_drive then
+  -- A memory error needs room before it can describe itself.
+  collectgarbage('collect')
+  report_fatal(failure)
 end

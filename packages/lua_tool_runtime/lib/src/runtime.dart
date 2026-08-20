@@ -397,31 +397,17 @@ final class _LuaWorker<T extends Object> {
   _LuaWorker(this._process, {required this.onDead}) {
     _subscription = _process.outputs.listen(
       (data) => _cell?._receiveData(data),
-      onError: (Object error, StackTrace stack) {
-        _cell?._hostFailed(LuaHostException('$error'));
-        unawaited(close());
-      },
-      onDone: () {
-        _cell?._hostFailed(
-          const LuaHostException('Lua host closed its output.'),
-        );
-        unawaited(close());
-      },
+      onError: (Object error, StackTrace stack) =>
+          unawaited(_die('Lua host output failed: $error.')),
+      onDone: () => unawaited(_die('Lua host closed its output.')),
     );
     unawaited(
       _process.exitCode.then<void>(
         (code) {
-          if (!_dead && code != 0) {
-            _cell?._hostFailed(
-              LuaHostException('Lua host exited with code $code.'),
-            );
-            unawaited(close());
-          }
+          if (_dying || code == 0) return;
+          unawaited(_die('Lua host exited unexpectedly.'));
         },
-        onError: (Object error) {
-          _cell?._hostFailed(LuaHostException('Lua host crashed: $error'));
-          unawaited(close());
-        },
+        onError: (Object error) => unawaited(_die('Lua host crashed: $error.')),
       ),
     );
   }
@@ -432,17 +418,46 @@ final class _LuaWorker<T extends Object> {
   _LuaCell<T>? _cell;
   bool _reserved = false;
   bool _dead = false;
+  bool _dying = false;
 
-  bool get isDead => _dead;
+  /// Reports one host death with everything the host managed to say about it.
+  ///
+  /// A dying host closes stdout and exits at nearly the same moment, so
+  /// whichever signal arrives first must not publish a bare description and
+  /// silence the other. Both paths land here, and the report is assembled only
+  /// after the process has been reaped, because the exit code and the stderr
+  /// the host wrote on its way out are the whole explanation of the failure.
+  Future<void> _die(String summary) async {
+    if (_dying) return;
+    _dying = true;
+    // Closing detaches the cell, so hold the reference the report belongs to.
+    final cell = _cell;
+    await close();
+    // A host that cannot even be reaped reports no code; the summary already
+    // carries why, and a pending exit must not hold the failure back.
+    final code = await _process.exitCode
+        .then<int?>((value) => value, onError: (Object _) => null)
+        .timeout(const Duration(seconds: 1), onTimeout: () => null);
+    final detail = StringBuffer(summary);
+    if (code != null) detail.write(' Exit code $code.');
+    final diagnostics = _process.diagnostics;
+    if (diagnostics.isNotEmpty) detail.write(' $diagnostics');
+    cell?._hostFailed(LuaHostException(detail.toString()));
+  }
+
+  // A worker that is still collecting its own cause of death is already gone.
+  // Reporting waits for the exit code, and no cell may be handed to the
+  // process during that window.
+  bool get isDead => _dead || _dying;
   bool get isIdle => _cell == null && !_reserved;
 
   void reserve() {
-    if (_dead || !isIdle) throw StateError('Lua worker is not available.');
+    if (isDead || !isIdle) throw StateError('Lua worker is not available.');
     _reserved = true;
   }
 
   void attach(_LuaCell<T> cell) {
-    if (_dead || _cell != null || !_reserved) {
+    if (isDead || _cell != null || !_reserved) {
       throw StateError('Lua worker is not available.');
     }
     _reserved = false;
@@ -460,7 +475,11 @@ final class _LuaWorker<T extends Object> {
     _dead = true;
     final active = _cell;
     _cell = null;
-    active?._hostFailed(const LuaHostException('Lua worker was terminated.'));
+    // A death already being reported owns the cell's failure; an orderly
+    // shutdown of a healthy worker owns it here.
+    if (!_dying) {
+      active?._hostFailed(const LuaHostException('Lua worker was terminated.'));
+    }
     await _process.terminate();
     await _subscription.cancel();
     onDead();
