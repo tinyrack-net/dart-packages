@@ -1,5 +1,16 @@
 ## 0.1.0
 
+- Keeps a synchronous flush from re-entering the parser on its own second
+  chunk. The previous guard covered a flush that *arrived* while a chunk was
+  awaiting a handler, but not a flush that started a parse itself: this
+  parser's `process` is asynchronous for every chunk, not only for the ones a
+  registered handler defers, and `flushSync`/`writeSync` hold the isolate, so
+  the parse they just started can never finish while their loop runs. Draining
+  a second chunk therefore threw `improper continuation due to previous async
+  handler` with nothing awaiting and no handler registered — reached in
+  practice by a terminal resize landing on a frame with more than one chunk of
+  pseudo-terminal output queued. Both now stop at the chunk that suspended and
+  leave the rest to the time-sliced write, which parses them in order.
 - Keeps a synchronous flush from abandoning queued output. `WriteBuffer`'s
   `flushSync` and `writeSync` drained the queue by calling the parser action
   directly, guarded only against reentrant synchronous writes. A chunk still

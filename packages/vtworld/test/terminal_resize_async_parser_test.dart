@@ -56,6 +56,36 @@ void main() {
     expect(_line(terminal, 0), contains('flushed'));
     expect(terminal.cols, 40);
   });
+
+  test(
+    'resize flushes more than one queued chunk without re-entering',
+    () async {
+      final terminal = Terminal();
+      addTearDown(terminal.dispose);
+
+      // A PTY delivers output in whatever chunks it arrives in, so a resize
+      // can land on a frame with several already queued. Parsing is
+      // asynchronous even with no handler registered, so the flush suspends on
+      // the first chunk and cannot resume: it holds the isolate, and no
+      // microtask can run until it returns. Draining the rest in the same loop
+      // re-enters a parser that refuses re-entry.
+      terminal
+        ..write('first ')
+        ..write('second')
+        ..resize(40, 10);
+
+      expect(terminal.cols, 40);
+      expect(terminal.rows, 10);
+
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(
+        _line(terminal, 0),
+        'first second',
+        reason: 'both chunks must reach the parser, in order',
+      );
+    },
+  );
 }
 
 String _line(Terminal terminal, int row) =>
