@@ -61,24 +61,63 @@ final class WriteBuffer extends DisposableStore {
   /// a terminal resize fires on any frame, including one where a handler is
   /// still awaiting, so the queue is left to the pending inner write instead.
   /// The chunks stay queued and reach the parser in order once it resumes.
+  ///
+  /// That applies within one flush as well. This parser suspends on every
+  /// chunk, not only on the ones a registered handler defers, so a loop that
+  /// drained the queue would re-enter it on its second pass — and being
+  /// synchronous, it holds the isolate, so the parse it just started can never
+  /// finish while it runs. Stop at the chunk that suspended and hand the rest
+  /// to the time-sliced path.
   void flushSync() {
     if (isDisposed || _isSyncWriting || _isAsyncWriting) return;
     _isSyncWriting = true;
     var didProcess = false;
+    var suspended = false;
     while (_writeBuffer.isNotEmpty) {
       final chunk = _writeBuffer.removeAt(0);
       // The upstream assignment-in-condition stops on an empty JS string.
       if (chunk is String && chunk.isEmpty) break;
       didProcess = true;
-      _action(chunk);
+      final result = _action(chunk);
       if (_callbacks.isNotEmpty) _callbacks.removeAt(0)?.call();
+      if (result is Future) {
+        suspended = true;
+        _resumeAfter(result);
+        break;
+      }
     }
-    _pendingData = 0;
-    _bufferOffset = 0x7fffffff;
-    _writeBuffer.clear();
-    _callbacks.clear();
+    if (!suspended) {
+      _pendingData = 0;
+      _bufferOffset = 0x7fffffff;
+      _writeBuffer.clear();
+      _callbacks.clear();
+    }
     _isSyncWriting = false;
     if (didProcess) _onWriteParsed.fire(TerminalVoid.value);
+  }
+
+  /// Leaves the queue to [_innerWrite] once [pending] resolves.
+  ///
+  /// The synchronous paths cannot wait for a parse: they hold the isolate, so
+  /// no microtask runs and the parser never finishes while they are on the
+  /// stack. Whatever is still queued therefore has to be drained afterwards,
+  /// in order, by the same time-sliced write the asynchronous path uses.
+  void _resumeAfter(Future<Object?> pending) {
+    _isAsyncWriting = true;
+    _bufferOffset = 0;
+    unawaited(
+      pending.then(
+        (_) {
+          _isAsyncWriting = false;
+          if (!isDisposed) _scheduleInnerWrite();
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          _isAsyncWriting = false;
+          scheduleMicrotask(() => Error.throwWithStackTrace(error, stackTrace));
+          if (!isDisposed) _scheduleInnerWrite();
+        },
+      ),
+    );
   }
 
   /// Performs an immediate, recursion-safe write.
@@ -103,8 +142,15 @@ final class WriteBuffer extends DisposableStore {
     while (_writeBuffer.isNotEmpty) {
       final chunk = _writeBuffer.removeAt(0);
       if (chunk is String && chunk.isEmpty) break;
-      _action(chunk);
+      final result = _action(chunk);
       if (_callbacks.isNotEmpty) _callbacks.removeAt(0)?.call();
+      // Same re-entry as [flushSync]: this loop cannot outlast one parse.
+      if (result is Future) {
+        _resumeAfter(result);
+        _isSyncWriting = false;
+        _syncCalls = 0;
+        return;
+      }
     }
     _pendingData = 0;
     _bufferOffset = 0x7fffffff;
