@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "lauxlib.h"
@@ -9,6 +10,10 @@
 #define DEFAULT_MEMORY_LIMIT (64u * 1024u * 1024u)
 #define DEFAULT_INSTRUCTION_LIMIT 100000000ull
 #define DEFAULT_HOOK_INTERVAL 10000
+
+/* Chunk name prefix bootstrap.lua gives every module it loads from a program
+   bundle. */
+#define USER_CHUNK_PREFIX "@bundle/"
 
 typedef struct RuntimeAllocator {
   size_t used;
@@ -21,11 +26,39 @@ typedef struct ExecutionBudget {
   int interval;
 } ExecutionBudget;
 
+/* Reports whether any frame on the running stack came from a program bundle.
+ *
+ * The budget bounds plugin code, not the privileged protocol layer that
+ * carries its frames. Decoding one large callback result costs far more than
+ * the handler that asked for it, so charging the protocol layer to the plugin
+ * made long, chatty invocations fail for work they did not do. Testing the
+ * whole stack rather than the innermost frame keeps module top-level code and
+ * privileged helpers that plugin code called into on the plugin's account.
+ */
+static int running_user_code(lua_State *state) {
+  lua_Debug frame;
+  int level;
+  for (level = 0; lua_getstack(state, level, &frame) != 0; level += 1) {
+    if (lua_getinfo(state, "S", &frame) == 0) {
+      break;
+    }
+    if (frame.source != NULL &&
+        strncmp(frame.source, USER_CHUNK_PREFIX,
+                sizeof(USER_CHUNK_PREFIX) - 1) == 0) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void budget_hook(lua_State *state, lua_Debug *debug) {
   (void)debug;
   ExecutionBudget *budget = *(ExecutionBudget **)lua_getextraspace(state);
   if (budget == NULL) {
     luaL_error(state, "__LUA_LIMIT_INTERNAL__: missing execution budget");
+    return;
+  }
+  if (!running_user_code(state)) {
     return;
   }
   budget->used += (unsigned long long)budget->interval;

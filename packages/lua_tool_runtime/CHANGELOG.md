@@ -1,3 +1,34 @@
+## 0.4.0
+
+- Report why the native host died. `LuaHostProcess` now exposes `diagnostics`,
+  the tail of what the host wrote outside the protocol, and a death is assembled
+  from the exit code and that text after the process is reaped. Previously the
+  stdout-closed and exited signals raced, the loser was discarded, and the
+  captured stderr had no accessor at all, so every host death of every cause
+  arrived as the single sentence `Lua host closed its output.` This is a
+  breaking change for anything implementing `LuaHostProcess`.
+- Stop a failure in the privileged protocol layer from killing the host.
+  `bootstrap.lua` ran its scheduler, frame reads, and JSON codec outside any
+  `pcall`; only handler code was protected, by `coroutine.resume`. An
+  instruction budget trip, an exhausted allocator, or a value that could not be
+  encoded therefore escaped the chunk and exited the process. The driver now
+  runs under `xpcall` and reports a classified `error` frame with the session
+  store, so the failure reaches the caller and the reusable worker survives.
+- Charge the instruction budget to plugin code only. The count hook billed the
+  privileged protocol layer to the running plugin, and decoding one large
+  callback result costs far more than the handler that asked for it, so long
+  chatty invocations died for work they did not do. The hook now charges only
+  while a program-bundle chunk is on the stack, which still covers module
+  top-level code and privileged helpers that plugin code called into.
+- Decode JSON strings a run at a time instead of a character at a time. The old
+  loop spent a table slot and several VM instructions per byte, which dominated
+  the cost of every large frame.
+- Validate emitted values where they are produced. `text`, `notify`, and the
+  media emitters now check non-string values like `store` already did, so an
+  unencodable value fails its own handler with a traceback.
+- Claim a protocol sequence number only once a frame has encoded, so a failed
+  frame can still be reported on the sequence the reader is waiting for.
+
 ## 0.3.2
 
 - Serialize protocol writes with termination inside the IO host process and

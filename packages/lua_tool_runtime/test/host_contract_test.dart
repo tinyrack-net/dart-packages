@@ -335,6 +335,135 @@ return {run = function() return host.call("never", {}) end}
     expect(elapsed.elapsed, lessThan(const Duration(seconds: 3)));
   });
 
+  test('privileged protocol work does not consume the user budget', () async {
+    final runtime = _runtime(command);
+    addTearDown(runtime.close);
+    final session = runtime.createSession(
+      limits: const LuaRuntimeLimits(maxInstructions: 250000),
+    );
+    final context = LuaExecutionContext<String>(
+      dispatcher: ParallelDispatcher(),
+      hostCallbacks: EchoCallbacks(4096),
+    );
+    // The handler itself costs a few thousand instructions. Decoding two
+    // hundred 4 KiB callback results costs millions, and all of it runs in the
+    // privileged bootstrap chunk, where a budget trip is unprotected.
+    var delta = await session.invoke(
+      LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: 'sha256:chatty',
+          entrypoint: 'main',
+          modules: const {
+            'main': '''
+return {run = function()
+  local total = 0
+  for _ = 1, 200 do total = total + #host.call("echo", {}) end
+  return total
+end}
+''',
+          },
+        ),
+        handler: 'run',
+        yieldTime: const Duration(seconds: 10),
+        maxOutputTokens: 1000,
+      ),
+      context,
+      workingDirectory: Directory.current.path,
+    );
+    while (delta.running) {
+      delta = await session.wait(
+        LuaWaitRequest(
+          cellId: delta.cellId,
+          yieldTime: const Duration(seconds: 10),
+          maxOutputTokens: 1000,
+        ),
+        context,
+      );
+    }
+
+    expect(delta.error, isNull);
+    expect(delta.result, 200 * 4096);
+  });
+
+  test('an unserializable emitted value fails only its handler', () async {
+    final runtime = _runtime(command);
+    addTearDown(runtime.close);
+    final session = runtime.createSession();
+    final context = LuaExecutionContext<String>(
+      dispatcher: ParallelDispatcher(),
+    );
+    final bundle = LuaProgramBundle(
+      revision: 'sha256:unserializable',
+      entrypoint: 'main',
+      modules: const {
+        'main': '''
+return {
+  bad = function() notify(function() end) end,
+  good = function() return "still alive" end,
+}
+''',
+      },
+    );
+    final failed = await session.invoke(
+      LuaInvokeRequest(
+        bundle: bundle,
+        handler: 'bad',
+        yieldTime: const Duration(seconds: 5),
+        maxOutputTokens: 1000,
+      ),
+      context,
+      workingDirectory: Directory.current.path,
+    );
+
+    expect(failed.error, isA<LuaScriptException>());
+    expect(failed.error!.message, contains('not JSON serializable'));
+
+    // A privileged-layer failure must not destroy the reusable native worker.
+    final recovered = await session.invoke(
+      LuaInvokeRequest(
+        bundle: bundle,
+        handler: 'good',
+        yieldTime: const Duration(seconds: 5),
+        maxOutputTokens: 1000,
+      ),
+      context,
+      workingDirectory: Directory.current.path,
+    );
+    expect(recovered.error, isNull);
+    expect(recovered.result, 'still alive');
+  });
+
+  test('memory exhausted while encoding a result stays classified', () async {
+    final runtime = _runtime(command);
+    addTearDown(runtime.close);
+    final session = runtime.createSession(
+      limits: const LuaRuntimeLimits(maxMemoryBytes: 1024 * 1024),
+    );
+    // The handler allocates well inside the cap; encoding the same value into
+    // a protocol frame needs several copies of it and cannot fit.
+    final delta = await session.invoke(
+      LuaInvokeRequest(
+        bundle: LuaProgramBundle(
+          revision: 'sha256:oversized-result',
+          entrypoint: 'main',
+          modules: const {
+            'main':
+                'return {run = function() return string.rep("y", 400000) end}',
+          },
+        ),
+        handler: 'run',
+        yieldTime: const Duration(seconds: 5),
+        maxOutputTokens: 1000,
+      ),
+      LuaExecutionContext(dispatcher: ParallelDispatcher()),
+      workingDirectory: Directory.current.path,
+    );
+
+    expect(delta.error, isNotNull);
+    expect(delta.error, isNot(isA<LuaHostException>()));
+    expect(delta.error!.message.toLowerCase(), contains('memory'));
+  });
+
   test('yielded infinite work is killed by consumer cancellation', () async {
     final runtime = _runtime(command);
     addTearDown(runtime.close);
@@ -443,6 +572,20 @@ final class ContractCallbacks implements LuaHostCallbackDispatcher<String> {
       const LuaHostResult(value: {'type': 'text_delta', 'text': 'hello'}),
     );
   }
+}
+
+final class EchoCallbacks implements LuaHostCallbackDispatcher<String> {
+  EchoCallbacks(int payloadBytes) : payload = 'x' * payloadBytes;
+
+  final String payload;
+
+  @override
+  Future<LuaHostResult<String>> call(LuaHostInvocation invocation) async =>
+      LuaHostResult(value: payload);
+
+  @override
+  Stream<LuaHostResult<String>> open(LuaHostInvocation invocation) =>
+      const Stream.empty();
 }
 
 final class HangingCallbacks implements LuaHostCallbackDispatcher<String> {
