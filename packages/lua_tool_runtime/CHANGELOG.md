@@ -1,3 +1,15 @@
+## 0.4.1
+
+- Report a worker closed only once its host is actually gone. A host that died
+  on its own was terminated by `_die`, which runs from a stream callback that
+  nothing awaits, and a `close()` arriving during that window returned through
+  the already-closed flag instead of waiting. A session shutdown could
+  therefore complete while the operating system was still reaping the host, so
+  a caller that stages the host in a scratch directory and deletes it after
+  closing raced its own executable — on Windows, `Access is denied` on
+  `lua-tool-runtime-host.exe`. All callers now share the one termination, the
+  same way `LuaHostProcess.terminate` already did.
+
 ## 0.4.0
 
 - Report why the native host died. `LuaHostProcess` now exposes `diagnostics`,

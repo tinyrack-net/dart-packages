@@ -419,6 +419,7 @@ final class _LuaWorker<T extends Object> {
   bool _reserved = false;
   bool _dead = false;
   bool _dying = false;
+  Future<void>? _closing;
 
   /// Reports one host death with everything the host managed to say about it.
   ///
@@ -470,8 +471,18 @@ final class _LuaWorker<T extends Object> {
 
   Future<void> write(String value) => _process.write(value);
 
-  Future<void> close() async {
-    if (_dead) return;
+  /// Terminates the host, and reports done only once it is actually gone.
+  ///
+  /// Every caller shares one termination. `_die` runs from a stream callback
+  /// that nothing awaits, so a session shutdown routinely arrives while a
+  /// host death is already being processed. Returning early on a flag would
+  /// let that shutdown finish first and claim the host is gone while the
+  /// operating system is still reaping it -- which strands the executable a
+  /// caller staged in a scratch directory and is about to delete. Holding the
+  /// future instead makes the second caller wait for the first one's work.
+  Future<void> close() => _closing ??= _close();
+
+  Future<void> _close() async {
     _dead = true;
     final active = _cell;
     _cell = null;
