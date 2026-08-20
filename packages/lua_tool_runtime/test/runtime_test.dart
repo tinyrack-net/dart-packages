@@ -679,6 +679,50 @@ void main() {
     expect(error.message, contains('__LUA_LIMIT_INSTRUCTIONS__'));
   });
 
+  test('closing a session awaits a termination already in flight', () async {
+    // A host that dies on its own is reported by `_die`, which nothing awaits.
+    // If a later `close()` returns through the already-closed guard instead of
+    // awaiting the first one, the session reports itself shut down while the
+    // native process is still being reaped. A caller that stages the host in a
+    // scratch directory then deletes it races the operating system for the
+    // executable, and on Windows that is `Access is denied` rather than a
+    // tidy failure.
+    final pending = session.execute(
+      const LuaExecuteRequest(
+        source: 'text("x")',
+        yieldTime: Duration(seconds: 1),
+        maxOutputTokens: 1000,
+      ),
+      LuaExecutionContext(dispatcher: RecordingDispatcher()),
+    );
+    await pumpEventQueue();
+    final process = launcher.process;
+    final reaped = Completer<void>();
+    process.terminationGate = reaped;
+
+    process.closeOutput();
+    await pumpEventQueue();
+    expect(
+      process.terminated,
+      isTrue,
+      reason: 'the host death should have started terminating the worker',
+    );
+
+    var closed = false;
+    final closing = session.close().then((_) => closed = true);
+    await pumpEventQueue();
+    expect(
+      closed,
+      isFalse,
+      reason: 'session.close() returned while the host was still terminating',
+    );
+
+    reaped.complete();
+    await closing;
+    expect(closed, isTrue);
+    await pending;
+  });
+
   test('classifies host exits, stream failures, and invalid frames', () async {
     Future<LuaCellDelta<String>> start() => session.execute(
       const LuaExecuteRequest(
@@ -957,6 +1001,12 @@ final class FakeProcess implements LuaHostProcess {
   bool terminated = false;
   String stderrTail = '';
 
+  /// Holds [terminate] open so a test can observe an in-flight termination.
+  ///
+  /// The real host takes as long as the operating system needs to reap it,
+  /// which is the window every close path has to agree about.
+  Completer<void>? terminationGate;
+
   Map<String, Object?> writtenFrame(int index) =>
       Map<String, Object?>.from(jsonDecode(input[index].trim()) as Map);
 
@@ -992,6 +1042,7 @@ final class FakeProcess implements LuaHostProcess {
   Future<void> terminate() async {
     terminated = true;
     if (!exitCodeCompleter.isCompleted) exitCodeCompleter.complete(-1);
+    await terminationGate?.future;
   }
 
   @override
