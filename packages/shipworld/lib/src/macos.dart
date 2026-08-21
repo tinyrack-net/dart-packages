@@ -124,6 +124,28 @@ Future<SigningIdentity> _installSigningIdentity(Map<String, String> env) async {
   final keychain = _keychainPath(keychainHome);
 
   await runChecked('security', ['create-keychain', '-p', 'actions', keychain]);
+
+  // `codesign --sign` resolves a Developer ID by name, and that lookup goes
+  // through the search list and the default keychain even when `--keychain`
+  // names one. Removing these two made every signature fail with
+  // errSecInternalComponent, so they stay: what was destructive was the shared
+  // *name*, whose `delete-keychain` took a concurrent job's keychain with it.
+  // Appending rather than replacing keeps a peer's entry in the list.
+  final listed = await runChecked('security', ['list-keychains', '-d', 'user']);
+  final existing = listed.stdout
+      .split('\n')
+      .map((entry) => entry.trim().replaceAll('"', ''))
+      .where((entry) => entry.isNotEmpty)
+      .toList();
+  await runChecked('security', [
+    'list-keychains',
+    '-d',
+    'user',
+    '-s',
+    ...existing,
+    keychain,
+  ]);
+  await runChecked('security', ['default-keychain', '-s', keychain]);
   await runChecked('security', ['unlock-keychain', '-p', 'actions', keychain]);
   await runChecked('security', [
     'import',
