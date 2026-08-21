@@ -6,13 +6,19 @@ import 'package:shipworld/macos.dart';
 import 'package:shipworld/shipworld.dart';
 import 'package:test/test.dart';
 
-/// Signing used one `build.keychain` in the user's home, put it on the
-/// user-wide search list, and made it the default keychain. All three are
-/// shared, and a self-hosted macOS box runs several runner instances as one
-/// user, so a second signing job would `delete-keychain` the one a first was
-/// still using. `codesign` then failed with `errSecInternalComponent`, because
-/// the private key it had just imported was gone. A hosted runner never saw
-/// it, having one job per virtual machine.
+/// Signing used one `build.keychain` in the user's home. A self-hosted macOS
+/// box runs several runner instances as one user, so a second signing job
+/// would `delete-keychain` the one a first was still using; `codesign` then
+/// failed with `errSecInternalComponent` because the private key it had just
+/// imported was gone, and when the timing went the other way the signature it
+/// produced was rejected at exec with `Killed: 9`. A hosted runner never saw
+/// either, having one job per virtual machine.
+///
+/// The shared *name* was the destructive part. Dropping the search list and
+/// the default keychain along with it was tried and broke every signature:
+/// `codesign --sign` resolves a Developer ID by name through both, even when
+/// `--keychain` names one. So the keychain is unique and registered, and
+/// nothing deletes a keychain it did not create.
 void main() {
   test('signing keeps its keychain to itself', () async {
     final executor = _MacExecutor();
@@ -20,16 +26,27 @@ void main() {
 
     final security = executor.calls.where((call) => call.first == 'security');
 
-    // Nothing user-wide: the search list and the default keychain belong to
-    // every process this user runs, not to this job.
+    // The search list is appended to, never replaced with only this keychain:
+    // a concurrent job's entry has to survive. Dropping these two calls
+    // entirely was tried and broke every signature, because `codesign`
+    // resolves an identity by name through them.
+    final listed = security
+        .where((call) => call.contains('list-keychains') && call.contains('-s'))
+        .single;
+    expect(listed.last, endsWith('signing.keychain-db'));
+    expect(
+      security.where((call) => call.contains('default-keychain')),
+      isNotEmpty,
+    );
+
+    // Nothing removes a keychain it did not create; that was the destructive
+    // part, taking a concurrent job's keychain with it.
     expect(
       security.where(
         (call) =>
-            call.contains('list-keychains') ||
-            call.contains('default-keychain'),
+            call.contains('delete-keychain') && call.contains('build.keychain'),
       ),
       isEmpty,
-      reason: 'a concurrent job shares both of these',
     );
 
     // No shared name either, or two jobs collide on the file itself.
