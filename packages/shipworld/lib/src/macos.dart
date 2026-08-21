@@ -72,19 +72,34 @@ Future<void> _deleteIfExists(String path) async {
   }
 }
 
+/// The identity `codesign` should use and the keychain that holds it.
+///
+/// The keychain is null for ad-hoc signing, which needs none.
+typedef SigningIdentity = ({String identity, Directory? keychainHome});
+
 /// Installs the Developer ID certificate into a throwaway keychain.
 ///
 /// Returns the identity `codesign` should use: the configured Developer ID
 /// when a certificate was supplied, or `-` for ad-hoc signing. The caller is
 /// responsible for [disposeSigningIdentity].
-Future<String> _installSigningIdentity(Map<String, String> env) async {
+///
+/// The keychain is created under a fresh temporary directory and handed back
+/// so every `codesign` call can name it. It used to be one `build.keychain` in
+/// the user's home, added to the user-wide search list and made the default.
+/// All three of those are shared state, and a self-hosted macOS box runs
+/// several runner instances as one user: a second signing job would
+/// `delete-keychain` the one a first was still using, and `codesign` then
+/// failed with `errSecInternalComponent` because the private key it had just
+/// imported was gone. A hosted runner never saw it, having one job per virtual
+/// machine.
+Future<SigningIdentity> _installSigningIdentity(Map<String, String> env) async {
   final appleCertificate = env['APPLE_CERTIFICATE'];
   final appleCertificatePassword = env['APPLE_CERTIFICATE_PASSWORD'];
   final appleDeveloperId = env['APPLE_DEVELOPER_ID'];
 
   if (appleCertificate == null || appleCertificate.isEmpty) {
     stdout.writeln('No Apple Certificate found. Performing ad-hoc signing...');
-    return '-';
+    return (identity: '-', keychainHome: null);
   }
   if (appleCertificatePassword == null ||
       appleCertificatePassword.isEmpty ||
@@ -100,42 +115,21 @@ Future<String> _installSigningIdentity(Map<String, String> env) async {
   await File('certificate.p12')
       .writeAsBytes(decodeBase64Secret(appleCertificate));
 
-  await _tryRun('security', ['delete-keychain', 'build.keychain']);
-  await runChecked('security', [
-    'create-keychain',
-    '-p',
-    'actions',
-    'build.keychain',
-  ]);
+  // `createTemp` is what makes the name unique, rather than a counter or a
+  // process id: two runner instances are two processes, and the operating
+  // system is the only thing that can hand out a name neither will reuse.
+  final keychainHome = await Directory.systemTemp.createTemp(
+    'shipworld-signing-',
+  );
+  final keychain = _keychainPath(keychainHome);
 
-  final listResult = await runChecked('security', ['list-keychains']);
-  final keychainList = listResult.stdout
-      .split('\n')
-      .map((keychain) => keychain.trim())
-      .where((keychain) => keychain.isNotEmpty)
-      .toList();
-
-  if (!keychainList.contains('build.keychain')) {
-    await runChecked('security', [
-      'list-keychains',
-      '-s',
-      ...keychainList,
-      'build.keychain',
-    ]);
-  }
-
-  await runChecked('security', ['default-keychain', '-s', 'build.keychain']);
-  await runChecked('security', [
-    'unlock-keychain',
-    '-p',
-    'actions',
-    'build.keychain',
-  ]);
+  await runChecked('security', ['create-keychain', '-p', 'actions', keychain]);
+  await runChecked('security', ['unlock-keychain', '-p', 'actions', keychain]);
   await runChecked('security', [
     'import',
     'certificate.p12',
     '-k',
-    'build.keychain',
+    keychain,
     '-P',
     appleCertificatePassword,
     '-T',
@@ -148,13 +142,34 @@ Future<String> _installSigningIdentity(Map<String, String> env) async {
     '-s',
     '-k',
     'actions',
-    'build.keychain',
+    keychain,
   ]);
-  return appleDeveloperId;
+  return (identity: appleDeveloperId, keychainHome: keychainHome);
 }
 
-/// Removes the decoded certificate written by [_installSigningIdentity].
-Future<void> _disposeSigningIdentity() => _deleteIfExists('certificate.p12');
+/// Absolute path of the keychain inside [keychainHome].
+String _keychainPath(Directory keychainHome) =>
+    p.join(keychainHome.path, 'signing.keychain-db');
+
+/// Names the keychain holding [signing], so `codesign` does not have to find
+/// it through the user-wide search list that concurrent jobs share.
+List<String> _keychainArguments(SigningIdentity signing) {
+  final keychainHome = signing.keychainHome;
+  return keychainHome == null
+      ? const <String>[]
+      : <String>['--keychain', _keychainPath(keychainHome)];
+}
+
+/// Removes the decoded certificate and keychain [_installSigningIdentity] made.
+Future<void> _disposeSigningIdentity(SigningIdentity signing) async {
+  await _deleteIfExists('certificate.p12');
+  final keychainHome = signing.keychainHome;
+  if (keychainHome == null) return;
+  await _tryRun('security', ['delete-keychain', _keychainPath(keychainHome)]);
+  if (keychainHome.existsSync()) {
+    await keychainHome.delete(recursive: true);
+  }
+}
 
 /// Submits [archivePath] to the notary service and waits for the verdict.
 Future<void> _notarize({
@@ -218,7 +233,8 @@ Future<void> signMacosExecutable({
   stdout.writeln('Removing extended attributes if any...');
   await _tryRun('xattr', ['-cr', resolvedExecutablePath]);
 
-  final identity = await _installSigningIdentity(env);
+  final signing = await _installSigningIdentity(env);
+  final identity = signing.identity;
   try {
     if (identity == '-') {
       await runChecked('codesign', ['--sign', '-', resolvedExecutablePath]);
@@ -232,6 +248,7 @@ Future<void> signMacosExecutable({
       'runtime',
       '--entitlements',
       entitlementsPath,
+      ..._keychainArguments(signing),
       '--sign',
       identity,
       resolvedExecutablePath,
@@ -243,7 +260,7 @@ Future<void> signMacosExecutable({
     }
     await _notarize(archivePath: zipPath, env: env, skipNotarize: skipNotarize);
   } finally {
-    await _disposeSigningIdentity();
+    await _disposeSigningIdentity(signing);
   }
 }
 
@@ -304,7 +321,8 @@ Future<void> signMacosPayload(MacosSignConfig config) async {
   }
 
   final env = config.environment ?? currentShipworldEnvironment;
-  final identity = await _installSigningIdentity(env);
+  final signing = await _installSigningIdentity(env);
+  final identity = signing.identity;
   try {
     final nested = <String>[];
 
@@ -331,6 +349,7 @@ Future<void> signMacosPayload(MacosSignConfig config) async {
         '--force',
         '--options',
         'runtime',
+        ..._keychainArguments(signing),
         '--sign',
         identity,
         path,
@@ -343,6 +362,7 @@ Future<void> signMacosPayload(MacosSignConfig config) async {
       'runtime',
       '--entitlements',
       config.entitlementsPath,
+      ..._keychainArguments(signing),
       '--sign',
       identity,
       config.inputPath,
@@ -379,7 +399,7 @@ Future<void> signMacosPayload(MacosSignConfig config) async {
       );
     }
   } finally {
-    await _disposeSigningIdentity();
+    await _disposeSigningIdentity(signing);
   }
 
   await runChecked('codesign', [
