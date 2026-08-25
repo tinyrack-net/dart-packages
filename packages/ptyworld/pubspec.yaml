@@ -3,7 +3,7 @@ description: >-
   Cross-platform pseudo-terminal processes for Dart: spawn a child in a real
   PTY on Linux, macOS, and Windows, stream its raw output, queue ordered
   non-blocking input, resize the window, and terminate the process tree.
-version: 0.1.0
+version: 0.1.1
 publish_to: none
 resolution: workspace
 repository: https://github.com/tinyrack-net/dart-packages

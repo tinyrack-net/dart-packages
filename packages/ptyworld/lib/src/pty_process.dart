@@ -144,13 +144,15 @@ final class PtyProcess implements Finalizable {
       return;
     }
     try {
-      _readAvailable();
+      final readOutput = _readAvailable();
       _checkExit();
       // A separate pipe EOF cannot be required because ConPTY keeps its output
-      // pipe open until ClosePseudoConsole during _finish. Give the terminal a
-      // short bounded window to publish bytes queued concurrently with exit.
+      // pipe open until ClosePseudoConsole during _finish. Wait for consecutive
+      // quiet polls so a large buffered render can keep extending the drain.
       if (_observedExitCode != null) {
-        if (_exitDrainPolls >= 5) {
+        if (readOutput) {
+          _exitDrainPolls = 0;
+        } else if (_exitDrainPolls >= 5) {
           _finish(_observedExitCode!);
         } else {
           _exitDrainPolls += 1;
@@ -162,20 +164,22 @@ final class PtyProcess implements Finalizable {
     }
   }
 
-  void _readAvailable() {
-    if (_outputEnded) return;
+  bool _readAvailable() {
+    if (_outputEnded) return false;
     const capacity = 64 * 1024;
     final buffer = calloc<Uint8>(capacity);
+    var readOutput = false;
     try {
       while (true) {
         final length = _bindings.read(_handle, buffer, capacity);
         if (length > 0) {
+          readOutput = true;
           _output.add(Uint8List.fromList(buffer.asTypedList(length)));
         } else if (length == 0) {
-          return;
+          return readOutput;
         } else if (length == -2) {
           _outputEnded = true;
-          return;
+          return readOutput;
         } else {
           throw _nativeException('read', _bindings.lastError(_handle));
         }

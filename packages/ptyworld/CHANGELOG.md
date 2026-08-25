@@ -1,3 +1,8 @@
+## 0.1.1
+
+- Keep draining Windows ConPTY output until it remains quiet after process
+  exit, preventing buffered terminal output from being truncated.
+
 ## 0.1.0
 
 - Initial release. Cross-platform pseudo-terminal processes built on `openpty`
