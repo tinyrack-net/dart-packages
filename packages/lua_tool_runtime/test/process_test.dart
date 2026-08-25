@@ -128,4 +128,28 @@ Future<void> main() async {
     await process.terminate();
     expect(await process.exitCode, isNotNull);
   });
+
+  test('terminate releases the image of a child that already exited', () async {
+    final directory = await Directory.systemTemp.createTemp('lua-process-');
+    addTearDown(() async {
+      if (directory.existsSync()) await directory.delete(recursive: true);
+    });
+    final executable = File(
+      '${directory.path}${Platform.pathSeparator}'
+      'child${Platform.isWindows ? '.exe' : ''}',
+    );
+    await File(Platform.resolvedExecutable).copy(executable.path);
+    final script = File('${directory.path}/child.dart')
+      ..writeAsStringSync('void main() {}');
+    final process = await const IoLuaHostProcessLauncher().start(
+      LuaHostCommand(executable: executable.path, arguments: [script.path]),
+      workingDirectory: directory.path,
+    );
+
+    await process.outputs.drain<void>();
+    await process.terminate();
+
+    // Windows refuses this delete until the process image handle is reaped.
+    await executable.delete();
+  });
 }

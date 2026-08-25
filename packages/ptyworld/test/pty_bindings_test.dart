@@ -198,4 +198,24 @@ void main() {
     bindings.reportExit(0);
     expect(await process.exitCode, 0);
   });
+
+  test('drains output bursts that arrive after exit is observed', () async {
+    var readCall = 0;
+    bindings
+      ..reportExit(0)
+      ..onRead = (buffer, _) {
+        readCall += 1;
+        if (readCall == 4 || readCall == 8) {
+          buffer[0] = readCall == 4 ? 1 : 2;
+          return 1;
+        }
+        return 0;
+      };
+    final process = PtyProcess.withBindings(bindings);
+
+    final output = await process.output.expand<int>((chunk) => chunk).toList();
+
+    expect(await process.exitCode, 0);
+    expect(output, <int>[1, 2]);
+  });
 }

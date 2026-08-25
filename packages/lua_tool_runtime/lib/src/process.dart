@@ -60,7 +60,10 @@ abstract interface class LuaHostProcess {
   /// Writes protocol input.
   Future<void> write(String value);
 
-  /// Terminates the process.
+  /// Terminates and reaps the process.
+  ///
+  /// Completes only after the operating system has released the child process
+  /// handle.
   Future<void> terminate();
 }
 
@@ -164,15 +167,18 @@ final class _IoLuaHostProcess implements LuaHostProcess {
       // The kill below is authoritative; a bound, broken, or wedged sink must
       // never leak the native process.
     }
-    if (_process.kill()) {
-      await _process.exitCode.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          if (!Platform.isWindows) _process.kill(ProcessSignal.sigkill);
-          return -1;
-        },
-      );
-    }
+    // `kill` returns false when the child exited between closing stdin and
+    // this call. Its exit future can still be pending, and Windows keeps the
+    // executable image locked until Dart reaps that process handle. Always
+    // wait for the exit instead of treating a rejected kill as already reaped.
+    _process.kill();
+    await _process.exitCode.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        if (!Platform.isWindows) _process.kill(ProcessSignal.sigkill);
+        return -1;
+      },
+    );
     await _stderr.cancel();
   }
 }

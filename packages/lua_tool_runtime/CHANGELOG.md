@@ -1,3 +1,11 @@
+## 0.4.2
+
+- Reap a native host that exits just before termination attempts to kill it.
+  `Process.kill` returns false for that race, but its exit future can still be
+  pending and Windows keeps the executable image locked until Dart releases the
+  process handle. `LuaHostProcess.terminate` now waits for that exit regardless
+  of whether the kill request found a live child.
+
 ## 0.4.1
 
 - Report a worker closed only once its host is actually gone. A host that died
