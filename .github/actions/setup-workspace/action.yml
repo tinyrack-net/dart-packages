@@ -32,7 +32,7 @@ runs:
     # would claim the key and leave every real job with an empty hit until the
     # pubspecs change.
     - if: inputs.pub-get == 'true'
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.PUB_CACHE }}
         key: pub-${{ runner.os }}-3.13.0-${{ hashFiles('**/pubspec.yaml') }}
