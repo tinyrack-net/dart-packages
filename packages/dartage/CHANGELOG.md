@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Upgrade `pqcrypto` to 0.4.1 and refresh the development and Node.js
+  interoperability dependencies. The interoperability harness now uses the
+  renamed Noble post-quantum hybrid KEM export.
+- Preserve the existing public API and age v1 wire compatibility.
+
 ## 0.2.0
 
 - Replaced the mutable string-based API with `AgeRecipient`, `AgeIdentity`,

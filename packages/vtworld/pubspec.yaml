@@ -23,5 +23,5 @@ dependencies:
 
 dev_dependencies:
   characters: ^1.4.1
-  lints: ^6.0.0
-  test: ^1.31.0
+  lints: ^6.1.0
+  test: ^1.32.0

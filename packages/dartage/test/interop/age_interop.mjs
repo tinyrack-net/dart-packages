@@ -28,7 +28,9 @@ const {
 } = await import(agePackageUrl.href);
 const { bech32, base64nopad } = await import("@scure/base");
 const { p256 } = await import("@noble/curves/nist.js");
-const { MLKEM768P256 } = await import("@noble/post-quantum/hybrid.js");
+const { ml_kem768_p256: MLKEM768P256 } = await import(
+  "@noble/post-quantum/hybrid.js"
+);
 const { sha256 } = await import("@noble/hashes/sha2.js");
 const { extract, expand } = await import("@noble/hashes/hkdf.js");
 const { randomBytes } = await import("@noble/hashes/utils.js");
