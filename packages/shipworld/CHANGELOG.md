@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- Refresh all runtime and development dependencies to their latest published
+  releases. There are no API or runtime behavior changes.
+
 ## 0.2.5
 
 - Generate a Homebrew Formula from the platforms a target actually builds. The

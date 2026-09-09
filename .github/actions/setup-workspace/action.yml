@@ -16,6 +16,10 @@ runs:
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: 3.13.0
+        # setup-dart resolves its matcher file against the outer composite
+        # action path when nested, so matcher registration fails before the SDK
+        # setup can complete. Analysis still runs as an explicit CI step.
+        problem-matcher: false
 
     # `pubspec.lock` is deliberately not committed, so this is a download
     # warm-up rather than a reproducible restore: a partial hit still leaves
@@ -28,7 +32,7 @@ runs:
     # would claim the key and leave every real job with an empty hit until the
     # pubspecs change.
     - if: inputs.pub-get == 'true'
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.PUB_CACHE }}
         key: pub-${{ runner.os }}-3.13.0-${{ hashFiles('**/pubspec.yaml') }}

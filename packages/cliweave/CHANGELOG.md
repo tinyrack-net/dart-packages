@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- Refresh development dependencies to their latest releases. There are no API
+  or runtime behavior changes.
+
 ## 0.2.3
 
 - Stop proposing hidden flags during shell completion. Help already filtered
