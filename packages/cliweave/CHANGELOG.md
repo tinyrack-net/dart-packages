@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1
+
+- Fix shell completion for partially typed long flags. Generated bash, zsh,
+  fish, and PowerShell scripts now pass the raw command line through
+  `COMP_LINE` instead of forwarding flag-like completion words as application
+  arguments, so prefixes such as `--wit` are completed rather than rejected as
+  unknown flags.
+
 ## 0.3.0
 
 - Refresh development dependencies to their latest releases. There are no API

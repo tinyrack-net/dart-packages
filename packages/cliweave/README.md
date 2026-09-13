@@ -167,11 +167,16 @@ final candidates = await proposeCompletions(
 context.process.stdout.write(scripts.zsh);
 ```
 
-`resolveCompletionInputs` normalizes what the shell passed: it prefers
-`COMP_LINE` when set (which preserves a trailing space, meaning "start a new
-word") and drops a leading executable token. Shell function names are derived
-from the executable with illegal characters replaced, so `my-cli` produces
-`__my_cli_complete` rather than an unparseable `__my-cli_complete`.
+The generated scripts invoke the hidden command without forwarding the
+flag-like completion words as arguments. They pass the raw command line in
+`COMP_LINE`, which preserves a trailing space (meaning "start a new word") and
+keeps prefixes such as `--wit` out of the application's argument scanner.
+`resolveCompletionInputs` still accepts positional tokens as a fallback for
+direct callers and drops a leading executable token either way.
+
+Shell function names are derived from the executable with illegal characters
+replaced, so `my-cli` produces `__my_cli_complete` rather than an unparseable
+`__my-cli_complete`.
 
 The package test suite compiles a standalone fixture CLI and loads the
 generated scripts in bash, zsh, fish, and PowerShell. To require locally

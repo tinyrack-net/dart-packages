@@ -16,11 +16,13 @@ String _defaultFunctionPrefix(String executableName) {
 
 /// Generates shell completion scripts for a command-line application.
 ///
-/// Each script collects the current command line and runs
-/// `<executableName> <completeSubcommand> <tokens...>`, which the application
-/// must answer with one `completion<TAB>description` line per candidate —
-/// exactly what the hidden completion command built around
-/// [proposeCompletions] emits.
+/// Each script passes the current raw command line to
+/// `<executableName> <completeSubcommand>` in `COMP_LINE`, which the
+/// application must answer with one `completion<TAB>description` line per
+/// candidate — exactly what the hidden completion command built around
+/// [proposeCompletions] emits. Passing the line through the environment keeps
+/// flag-like completion prefixes such as `--wit` out of the application's
+/// argument scanner.
 ///
 /// Wire it up by registering a hidden route for [completeSubcommand] and
 /// printing [bash], [zsh], [fish], or [powershell] from a user-facing command:
@@ -63,15 +65,8 @@ class CompletionScripts {
   String get bash =>
       '''
 $_completionFunctionName() {
-  local -a inputs
   local rawCompletions completion
-  inputs=("\${COMP_WORDS[@]}")
-  if [[ \${#inputs[@]} -eq 1 && \${COMP_CWORD:-0} -eq 0 && "\${inputs[0]}" == "$executableName" ]]; then
-    inputs+=("")
-  elif [[ \${COMP_CWORD:-0} -ge \${#inputs[@]} ]]; then
-    inputs+=("")
-  fi
-  if ! rawCompletions="\$(env -u COMP_LINE $_completeCommand "\${inputs[@]}")"; then
+  if ! rawCompletions="\$(env COMP_LINE="\${COMP_LINE-}" $_completeCommand)"; then
     return 1
   fi
 
@@ -134,10 +129,9 @@ Register-ArgumentCompleter -Native -CommandName $executableName -ScriptBlock {
   if (\$cursorPosition -gt \$commandLine.Length -or (\$cursorPosition -ge \$commandLine.Length -and \$commandLine.EndsWith(' '))) {
     \$commandLine += ' '
   }
-  # Windows PowerShell 5.1 drops empty string arguments on their way to a
-  # native command, so the trailing token that means "the cursor starts a new
-  # word" cannot be passed as one. COMP_LINE carries the raw line instead,
-  # trailing space and all, which is why bash and zsh unset it before calling.
+  # Every shell passes the raw line in COMP_LINE. PowerShell 5.1 additionally
+  # needs this because it drops empty native-command arguments, so the trailing
+  # token that means "the cursor starts a new word" cannot be passed as argv.
   \$previousCompletionLine = \$env:COMP_LINE
   \$env:COMP_LINE = \$commandLine
   try {
@@ -164,16 +158,9 @@ Register-ArgumentCompleter -Native -CommandName $executableName -ScriptBlock {
   String get fish =>
       '''
 function $_completionFunctionName
-    set -l tokens (commandline -opc)
-    set -l current (commandline -ct)
+    set -lx COMP_LINE (commandline -b)
 
-    if test -z "\$current"
-        set tokens \$tokens ""
-    else if test (count \$tokens) -eq 0; or test "\$tokens[-1]" != "\$current"
-        set tokens \$tokens \$current
-    end
-
-    command $_completeCommand \$tokens 2>/dev/null | while read -l line
+    command $_completeCommand 2>/dev/null | while read -l line
         set -l parts (string split -m 1 \\t -- \$line)
         if test (count \$parts) -gt 1
             printf '%s\\t%s\\n' \$parts[1] \$parts[2]
@@ -195,15 +182,9 @@ fi
 
 $_completionFunctionName() {
   emulate -L zsh
-  local -a directories inputs plainCompletions
+  local -a directories plainCompletions
   local rawCompletions
-  inputs=("\${words[@]}")
-  if (( CURRENT == 1 && \${#inputs[@]} == 1 )) && [[ "\${inputs[1]}" == "$executableName" ]]; then
-    inputs+=("")
-  elif (( CURRENT > \${#inputs[@]} )); then
-    inputs+=("")
-  fi
-  if ! rawCompletions="\$(env -u COMP_LINE $_completeCommand "\${inputs[@]}")"; then
+  if ! rawCompletions="\$(env COMP_LINE="\${BUFFER-}" $_completeCommand)"; then
     return 1
   fi
 
@@ -278,9 +259,11 @@ add-zsh-hook precmd $_ensureFunctionName
 
   /// Normalizes the tokens a shell handed to the completion subcommand.
   ///
-  /// Prefers `COMP_LINE` when the shell set it, since it preserves the raw
-  /// line including a trailing space (which means "start a new word"), and
-  /// drops a leading executable token so the remaining inputs line up with the
+  /// Generated scripts pass the raw line through `COMP_LINE`, which preserves
+  /// a trailing space (meaning "start a new word") and keeps flag-like
+  /// completion prefixes out of argument parsing. When `COMP_LINE` is absent,
+  /// [inputs] remains supported for direct callers. Either path drops a
+  /// leading executable token so the remaining inputs line up with the
   /// application's own argument list. Pass [readEnv] to read the environment
   /// from somewhere other than the process.
   List<String> resolveCompletionInputs(

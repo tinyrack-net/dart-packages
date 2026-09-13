@@ -17,6 +17,10 @@ final projectFlag = ParsedFlag.optional<String, ApplicationContext>(
   parse: stringParser,
   proposeCompletions: (context, partial) => ['alpha', 'beta'],
 );
+final withGitFlag = BooleanFlag.optional<ApplicationContext>(
+  name: 'withGit',
+  brief: 'Also commit and push to the git remote',
+);
 final targetArgument = Positional.required<String, ApplicationContext>(
   brief: 'Target directory',
   parse: stringParser,
@@ -29,7 +33,11 @@ final deployCommand = buildCommand(
   parameters: CommandParameters(
     flags: FlagSet.one(modeFlag)
         .and(projectFlag)
-        .map((values) => (mode: values.$1, project: values.$2)),
+        .and(withGitFlag)
+        .map(
+          (values) =>
+              (mode: values.$1.$1, project: values.$1.$2, withGit: values.$2),
+        ),
     positional: PositionalSet.one(targetArgument).map((target) => (target,)),
   ),
   func: (context, flags, args) {
@@ -126,7 +134,6 @@ void _buildApplication() {
       name: executableName,
       scanner: const ScannerConfiguration(
         caseStyle: ScannerCaseStyle.allowKebabForCamel,
-        allowArgumentEscapeSequence: true,
       ),
       documentation: const DocumentationConfiguration(disableAnsiColor: true),
     ),
@@ -135,17 +142,13 @@ void _buildApplication() {
 
 Future<void> main(List<String> arguments) async {
   _buildApplication();
-  final routedArguments =
-      arguments.isNotEmpty && arguments.first == '__complete'
-      ? ['__complete', '--', ...arguments.skip(1)]
-      : arguments;
   final process = RunProcess(
     stdout: StdioWriteStream(stdout),
     stderr: StdioWriteStream(stderr),
   );
   await run(
     application,
-    routedArguments,
+    arguments,
     RunContext.direct(ApplicationContext(process: process)),
   );
   exitCode = process.exitCode ?? 0;
