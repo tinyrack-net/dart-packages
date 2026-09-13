@@ -141,9 +141,7 @@ Future<List<String>> _complete(String shell, String line) async {
     'bash' =>
       r'''
 source "$E2E_SCRIPT"
-IFS=' ' read -r -a COMP_WORDS <<< "$E2E_LINE"
-if [[ "$E2E_LINE" == *" " ]]; then COMP_WORDS+=(""); fi
-COMP_CWORD=$((${#COMP_WORDS[@]} - 1))
+COMP_LINE="$E2E_LINE"
 __cliweave_fixture_complete
 printf '%s\n' "${COMPREPLY[@]}"
 ''',
@@ -168,9 +166,7 @@ function compadd() {
     print -rl -- "${displays[@]}"
   fi
 }
-words=(${=E2E_LINE})
-if [[ "$E2E_LINE" == *" " ]]; then words+=(""); fi
-CURRENT=${#words[@]}
+BUFFER="$E2E_LINE"
 __cliweave_fixture_complete
 ''',
     'fish' =>
@@ -312,6 +308,7 @@ void main() {
       final describedRoutes = await _complete(shell, 'cliweave-fixture ');
       final route = await _complete(shell, 'cliweave-fixture de');
       final flag = await _complete(shell, 'cliweave-fixture deploy --m');
+      final longFlag = await _complete(shell, 'cliweave-fixture deploy --wit');
       final dynamicValue = await _complete(
         shell,
         'cliweave-fixture deploy --project a',
@@ -321,6 +318,7 @@ void main() {
       expect(route.join('\n'), contains('deploy'));
       expect(describedRoutes.join('\n'), contains('Deploy a target'));
       expect(flag.join('\n'), contains('--mode'));
+      expect(longFlag.join('\n'), contains('--with-git'));
       expect(dynamicValue.join('\n'), contains('alpha'));
       expect(directory.join('\n'), contains('src/'));
     }, skip: skipReason);
@@ -376,9 +374,11 @@ print -r -- "restored=\${_comps[$executableName]}"
       final shell = _selected('powershell5') ? 'powershell5' : 'powershell';
       final directory = await _complete(shell, 'cliweave-fixture deploy s');
       final flag = await _complete(shell, 'cliweave-fixture deploy --m');
+      final longFlag = await _complete(shell, 'cliweave-fixture deploy --wit');
 
       expect(directory.join('\n'), contains('src/\tProviderContainer'));
       expect(flag.join('\n'), contains('--mode\tParameterValue'));
+      expect(longFlag.join('\n'), contains('--with-git\tParameterValue'));
     },
     skip: _selected('powershell') || _selected('powershell5')
         ? null
@@ -436,6 +436,10 @@ Remove-Item Env:COMP_LINE
         );
         final route = await _completeInPty(shell, 'cliweave-fixture de');
         final flag = await _completeInPty(shell, 'cliweave-fixture deploy --m');
+        final longFlag = await _completeInPty(
+          shell,
+          'cliweave-fixture deploy --wit',
+        );
         final dynamicValue = await _completeInPty(
           shell,
           'cliweave-fixture deploy --project a',
@@ -455,6 +459,7 @@ Remove-Item Env:COMP_LINE
         // A unique candidate is inserted with a trailing space, ...
         expect(route, contains('cliweave-fixture deploy '));
         expect(flag, contains('deploy --mode '));
+        expect(longFlag, contains('deploy --with-git '));
         expect(dynamicValue, contains('--project alpha '));
 
         // ... while a directory candidate keeps the cursor on the slash.

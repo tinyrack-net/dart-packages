@@ -56,18 +56,22 @@ void main() {
   });
 
   group('script invariants', () {
-    test('every script calls the executable and subcommand', () {
+    test('every script passes the raw line without forwarding tokens', () {
       final s = scripts(completeSubcommand: 'completions');
 
       expect(
         s.bash,
-        contains('env -u COMP_LINE example completions "\${inputs[@]}"'),
+        contains(r'env COMP_LINE="${COMP_LINE-}" example completions'),
       );
+      expect(s.bash, isNot(contains(r'"${inputs[@]}"')));
       expect(
         s.zsh,
-        contains('env -u COMP_LINE example completions "\${inputs[@]}"'),
+        contains(r'env COMP_LINE="${BUFFER-}" example completions'),
       );
-      expect(s.fish, contains('command example completions \$tokens'));
+      expect(s.zsh, isNot(contains(r'"${inputs[@]}"')));
+      expect(s.fish, contains('set -lx COMP_LINE (commandline -b)'));
+      expect(s.fish, contains('command example completions 2>/dev/null'));
+      expect(s.fish, isNot(contains(r'$tokens')));
       expect(s.powershell, contains(r'& example completions 2>$null'));
     });
 
