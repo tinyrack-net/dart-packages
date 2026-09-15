@@ -2,7 +2,7 @@
 # actual Tab keypress, going through the shell's own `complete`/`compdef`
 # registration rather than calling the completion function directly.
 #
-# Usage: zsh pty_driver.zsh <guest-name> <guest-executable> <script> <line>
+# Usage: zsh pty_driver.zsh <guest-name> <guest-executable> <script> <line> [setup]
 #
 # Writes the raw screen output the guest produced after the Tab to stdout.
 # Exit codes above 89 mean the harness itself failed, not the completion.
@@ -13,7 +13,7 @@ zmodload zsh/zpty || {
   exit 90
 }
 
-local guestName=$1 guestExecutable=$2 script=$3 line=$4
+local guestName=$1 guestExecutable=$2 script=$3 line=$4 setup=${5-}
 local sentinel='@@CLIWEAVE_READY@@'
 local buffer=''
 
@@ -56,6 +56,12 @@ _waitFor "$sentinel" 200 || _fail 'timed out configuring the guest terminal' 93
 buffer=''
 zpty -w g "source '$script'"
 _waitFor "$sentinel" 400 || _fail 'timed out sourcing the completion script' 94
+
+if [[ -n "$setup" ]]; then
+  buffer=''
+  zpty -w g "$setup"
+  _waitFor "$sentinel" 400 || _fail 'timed out running completion setup' 95
+fi
 
 buffer=''
 zpty -w -n g "$line"$'\t'

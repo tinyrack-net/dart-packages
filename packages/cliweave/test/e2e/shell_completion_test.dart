@@ -237,15 +237,25 @@ bool get _ptyHostAvailable {
 
 /// Types [line] followed by Tab into a real [shell] session and returns what
 /// the terminal showed.
-Future<String> _completeInPty(String shell, String line) async {
+Future<String> _completeInPty(
+  String shell,
+  String line, {
+  String? setup,
+}) async {
   final script = await _completionScript(shell);
-  final result = await Process.run(_ptyHost, [
+  final arguments = <String>[
     ptyDriver,
     shell,
     _shellExecutable(shell),
     script.path,
     line,
-  ], environment: _environment(line, script));
+    ?setup,
+  ];
+  final result = await Process.run(
+    _ptyHost,
+    arguments,
+    environment: _environment(line, script),
+  );
   expect(
     result.exitCode,
     0,
@@ -448,6 +458,13 @@ Remove-Item Env:COMP_LINE
           shell,
           'cliweave-fixture deploy s',
         );
+        final aliasedRoute = shell == 'zsh'
+            ? await _completeInPty(
+                shell,
+                'dw de',
+                setup: 'alias dw=cliweave-fixture',
+              )
+            : null;
 
         printOnFailure('routes screen:\n$describedRoutes');
 
@@ -465,6 +482,9 @@ Remove-Item Env:COMP_LINE
         // ... while a directory candidate keeps the cursor on the slash.
         expect(directory, contains('deploy src/'));
         expect(directory, isNot(contains('src/ ')));
+        if (aliasedRoute != null) {
+          expect(aliasedRoute, contains('deploy'));
+        }
       },
       skip: skipReason,
     );
