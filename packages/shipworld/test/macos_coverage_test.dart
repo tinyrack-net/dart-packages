@@ -66,8 +66,12 @@ void main() {
   tearDown(() async {
     for (final name in ['certificate.p12', 'AuthKey.p8']) {
       final file = File(name);
-      if (file.existsSync()) {
+      try {
         await file.delete();
+      } on FileSystemException {
+        // Another test file may have removed the shared relative fixture
+        // between the check and the delete.
+        if (await file.exists()) rethrow;
       }
     }
   });

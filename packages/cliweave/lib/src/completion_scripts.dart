@@ -261,11 +261,13 @@ add-zsh-hook precmd $_ensureFunctionName
   ///
   /// Generated scripts pass the raw line through `COMP_LINE`, which preserves
   /// a trailing space (meaning "start a new word") and keeps flag-like
-  /// completion prefixes out of argument parsing. When `COMP_LINE` is absent,
-  /// [inputs] remains supported for direct callers. Either path drops a
-  /// leading executable token so the remaining inputs line up with the
-  /// application's own argument list. Pass [readEnv] to read the environment
-  /// from somewhere other than the process.
+  /// completion prefixes out of argument parsing. The first token is the
+  /// invocation name as the user typed it, so it is always dropped: it may be
+  /// an alias, symlink, renamed executable, or path rather than
+  /// [executableName]. When `COMP_LINE` is absent, [inputs] remains supported
+  /// for direct callers and retains the stricter leading executable-name check.
+  /// Pass [readEnv] to read the environment from somewhere other than the
+  /// process.
   List<String> resolveCompletionInputs(
     List<String> inputs, {
     EnvLookup? readEnv,
@@ -282,6 +284,6 @@ add-zsh-hook precmd $_ensureFunctionName
       return [];
     }
 
-    return _dropLeadingExecutable(trimmedStart.split(RegExp(r'\s+')));
+    return trimmedStart.split(RegExp(r'\s+')).sublist(1);
   }
 }

@@ -171,8 +171,11 @@ The generated scripts invoke the hidden command without forwarding the
 flag-like completion words as arguments. They pass the raw command line in
 `COMP_LINE`, which preserves a trailing space (meaning "start a new word") and
 keeps prefixes such as `--wit` out of the application's argument scanner.
-`resolveCompletionInputs` still accepts positional tokens as a fallback for
-direct callers and drops a leading executable token either way.
+`resolveCompletionInputs` drops the first token from `COMP_LINE` as the
+invocation name, so aliases, symlinks, paths, and renamed executables complete
+the same as the configured executable. It still accepts positional tokens as a
+fallback for direct callers and applies the stricter executable-name check to
+that path.
 
 Shell function names are derived from the executable with illegal characters
 replaced, so `my-cli` produces `__my_cli_complete` rather than an unparseable

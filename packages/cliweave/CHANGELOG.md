@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2
+
+- Fix completion when the command is invoked through an alias, symlink, path,
+  or a different executable name. Generated scripts continue to pass the raw
+  line through `COMP_LINE`, but its first token is now treated as the
+  invocation name rather than being compared with the configured executable
+  name. Partial long flags such as `--wit` continue to complete correctly.
+
 ## 0.3.1
 
 - Fix shell completion for partially typed long flags. Generated bash, zsh,

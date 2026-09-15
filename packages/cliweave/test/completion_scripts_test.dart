@@ -202,6 +202,33 @@ void main() {
       );
     });
 
+    test('strips an aliased invocation token from COMP_LINE', () {
+      final s = scripts(executableName: 'dotweave');
+
+      expect(
+        s.resolveCompletionInputs(
+          const <String>[],
+          readEnv: (name) => name == 'COMP_LINE' ? 'dw ' : null,
+        ),
+        [''],
+      );
+      expect(
+        s.resolveCompletionInputs(
+          const <String>[],
+          readEnv: (name) => name == 'COMP_LINE' ? 'dw track fi' : null,
+        ),
+        ['track', 'fi'],
+      );
+      expect(
+        s.resolveCompletionInputs(
+          const <String>[],
+          readEnv: (name) =>
+              name == 'COMP_LINE' ? '/usr/local/bin/dotweave status' : null,
+        ),
+        ['status'],
+      );
+    });
+
     test('returns nothing for a blank completion line', () {
       final s = scripts(executableName: 'dotweave');
 
