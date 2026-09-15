@@ -39,15 +39,23 @@ class CompletionScripts {
   /// defaults to `__<executableName>` with any character that is illegal in a
   /// POSIX function name replaced by `_`, so an executable called `my-cli`
   /// yields `__my_cli_complete` rather than an unparseable `__my-cli_complete`.
+  /// [aliases] lists additional command names whose shell completion registrations
+  /// should invoke the same script. The canonical [executableName] is always
+  /// registered first, and duplicate aliases are ignored.
   CompletionScripts({
     required this.executableName,
+    List<String> aliases = const [],
     this.completeSubcommand = '__complete',
     String? functionPrefix,
-  }) : functionPrefix =
+  }) : aliases = List.unmodifiable(aliases),
+       functionPrefix =
            functionPrefix ?? _defaultFunctionPrefix(executableName);
 
   /// Name the application is invoked as, e.g. `git`.
   final String executableName;
+
+  /// Additional shell command names that use the same completion script.
+  final List<String> aliases;
 
   /// Hidden subcommand the scripts call to ask for candidates.
   final String completeSubcommand;
@@ -56,6 +64,26 @@ class CompletionScripts {
   final String functionPrefix;
 
   String get _completeCommand => '$executableName $completeSubcommand';
+
+  Iterable<String> get _commandNames sync* {
+    final seen = <String>{executableName};
+
+    yield executableName;
+    for (final alias in aliases) {
+      if (seen.add(alias)) {
+        yield alias;
+      }
+    }
+  }
+
+  String get _commandNameList => _commandNames.join(' ');
+
+  String get _powershellCommandNameList => _commandNames.join(',');
+
+  String get _fishAliasRegistrations => _commandNames
+      .skip(1)
+      .map((alias) => '\ncomplete -c $alias -w $executableName')
+      .join();
 
   String get _completionFunctionName => '${functionPrefix}_complete';
 
@@ -117,13 +145,13 @@ $_completionFunctionName() {
 
   return 0
 }
-complete -o default -o nospace -F $_completionFunctionName $executableName
+complete -o default -o nospace -F $_completionFunctionName $_commandNameList
 ''';
 
   /// Script for PowerShell, to be dot-sourced or added to `\$PROFILE`.
   String get powershell =>
       '''
-Register-ArgumentCompleter -Native -CommandName $executableName -ScriptBlock {
+Register-ArgumentCompleter -Native -CommandName $_powershellCommandNameList -ScriptBlock {
   param(\$wordToComplete, \$commandAst, \$cursorPosition)
   \$commandLine = \$commandAst.ToString()
   if (\$cursorPosition -gt \$commandLine.Length -or (\$cursorPosition -ge \$commandLine.Length -and \$commandLine.EndsWith(' '))) {
@@ -169,7 +197,7 @@ function $_completionFunctionName
         end
     end
 end
-complete -c $executableName -f -a '($_completionFunctionName)'
+complete -c $executableName -f -a '($_completionFunctionName)'$_fishAliasRegistrations
 ''';
 
   /// Script for zsh, to be sourced or `eval`'d.
@@ -229,12 +257,15 @@ $_completionFunctionName() {
     compadd -Q -S "" -l -d dirDisplays -- "\${directories[@]}"
   fi
 }
-compdef $_completionFunctionName $executableName
+compdef $_completionFunctionName $_commandNameList
 
 $_ensureFunctionName() {
-  if (( \$+functions[compdef] )) && [[ "\${_comps[$executableName]}" != $_completionFunctionName ]]; then
-    compdef $_completionFunctionName $executableName
-  fi
+  local commandName
+  for commandName in $_commandNameList; do
+    if (( \$+functions[compdef] )) && [[ "\${_comps[\$commandName]}" != $_completionFunctionName ]]; then
+      compdef $_completionFunctionName "\$commandName"
+    fi
+  done
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd $_ensureFunctionName

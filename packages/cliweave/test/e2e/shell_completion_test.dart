@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 const executableName = 'cliweave-fixture';
+const aliasName = 'cw';
 const functionPrefix = '__cliweave_fixture';
 
 late Directory temporaryDirectory;
@@ -176,6 +177,9 @@ complete -C "$E2E_LINE"
 ''',
     'powershell' || 'powershell5' =>
       r'''
+if (-not (Get-Alias cw -ErrorAction SilentlyContinue)) {
+  Set-Alias cw cliweave-fixture
+}
 . $env:E2E_SCRIPT
 $completion = [System.Management.Automation.CommandCompletion]::CompleteInput(
   $env:E2E_LINE,
@@ -319,6 +323,8 @@ void main() {
       final route = await _complete(shell, 'cliweave-fixture de');
       final flag = await _complete(shell, 'cliweave-fixture deploy --m');
       final longFlag = await _complete(shell, 'cliweave-fixture deploy --wit');
+      final aliasedRoute = await _complete(shell, 'cw de');
+      final aliasedLongFlag = await _complete(shell, 'cw deploy --wit');
       final dynamicValue = await _complete(
         shell,
         'cliweave-fixture deploy --project a',
@@ -329,6 +335,8 @@ void main() {
       expect(describedRoutes.join('\n'), contains('Deploy a target'));
       expect(flag.join('\n'), contains('--mode'));
       expect(longFlag.join('\n'), contains('--with-git'));
+      expect(aliasedRoute.join('\n'), contains('deploy'));
+      expect(aliasedLongFlag.join('\n'), contains('--with-git'));
       expect(dynamicValue.join('\n'), contains('alpha'));
       expect(directory.join('\n'), contains('src/'));
     }, skip: skipReason);
@@ -339,7 +347,7 @@ void main() {
     () async {
       final result = await _runShell(
         'bash',
-        r'source "$E2E_SCRIPT"; complete -p cliweave-fixture',
+        r'source "$E2E_SCRIPT"; complete -p cliweave-fixture; complete -p cw',
       );
 
       expect(result.exitCode, 0, reason: '${result.stderr}');
@@ -348,6 +356,13 @@ void main() {
         contains(
           'complete -o default -o nospace -F ${functionPrefix}_complete '
           '$executableName',
+        ),
+      );
+      expect(
+        result.stdout,
+        contains(
+          'complete -o default -o nospace -F ${functionPrefix}_complete '
+          '$aliasName',
         ),
       );
     },
@@ -362,16 +377,27 @@ void main() {
       final result = await _runShell('zsh', '''
 source "\$E2E_SCRIPT"
 print -r -- "registered=\${_comps[$executableName]}"
+print -r -- "alias-registered=\${_comps[$aliasName]}"
 _comps[$executableName]=_files
+_comps[$aliasName]=_files
 print -r -- "displaced=\${_comps[$executableName]}"
 ${functionPrefix}_ensure_completion
 print -r -- "restored=\${_comps[$executableName]}"
+print -r -- "alias-restored=\${_comps[$aliasName]}"
 ''');
 
       expect(result.exitCode, 0, reason: '${result.stderr}');
       expect(result.stdout, contains('registered=${functionPrefix}_complete'));
+      expect(
+        result.stdout,
+        contains('alias-registered=${functionPrefix}_complete'),
+      );
       expect(result.stdout, contains('displaced=_files'));
       expect(result.stdout, contains('restored=${functionPrefix}_complete'));
+      expect(
+        result.stdout,
+        contains('alias-restored=${functionPrefix}_complete'),
+      );
     },
     skip: _selected('zsh')
         ? null
@@ -458,13 +484,11 @@ Remove-Item Env:COMP_LINE
           shell,
           'cliweave-fixture deploy s',
         );
-        final aliasedRoute = shell == 'zsh'
-            ? await _completeInPty(
-                shell,
-                'dw de',
-                setup: 'alias dw=cliweave-fixture',
-              )
-            : null;
+        final aliasedRoute = await _completeInPty(
+          shell,
+          '$aliasName de',
+          setup: 'alias $aliasName=cliweave-fixture',
+        );
 
         printOnFailure('routes screen:\n$describedRoutes');
 
@@ -482,9 +506,7 @@ Remove-Item Env:COMP_LINE
         // ... while a directory candidate keeps the cursor on the slash.
         expect(directory, contains('deploy src/'));
         expect(directory, isNot(contains('src/ ')));
-        if (aliasedRoute != null) {
-          expect(aliasedRoute, contains('deploy'));
-        }
+        expect(aliasedRoute, contains('deploy'));
       },
       skip: skipReason,
     );

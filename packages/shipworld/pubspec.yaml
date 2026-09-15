@@ -2,7 +2,7 @@ name: shipworld
 description: >-
   Reusable release, signing, and desktop packaging tooling for Dart CLI,
   Flutter desktop, and independently versioned pub package workspaces.
-version: 0.3.0
+version: 0.3.1
 resolution: workspace
 repository: https://github.com/tinyrack-net/dart-packages
 issue_tracker: https://github.com/tinyrack-net/dart-packages/issues
@@ -20,7 +20,7 @@ executables:
 
 dependencies:
   archive: ^4.2.0
-  cliweave: '>=0.2.2 <0.4.0'
+  cliweave: '>=0.2.2 <0.5.0'
   crypto: ^3.0.7
   path: ^1.9.1
   pub_semver: ^2.2.1

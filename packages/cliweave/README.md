@@ -154,7 +154,10 @@ Register a hidden route that answers with one `completion<TAB>description`
 line per candidate, then print the matching script from a user-facing command:
 
 ```dart
-final scripts = CompletionScripts(executableName: 'example');
+final scripts = CompletionScripts(
+  executableName: 'example',
+  aliases: const ['ex'],
+);
 
 // Inside the hidden `__complete` command:
 final candidates = await proposeCompletions(
@@ -180,6 +183,10 @@ that path.
 Shell function names are derived from the executable with illegal characters
 replaced, so `my-cli` produces `__my_cli_complete` rather than an unparseable
 `__my-cli_complete`.
+
+`aliases` registers additional command names with the generated completion
+scripts without defining the aliases themselves. The canonical
+`executableName` is always registered first and duplicate aliases are ignored.
 
 The package test suite compiles a standalone fixture CLI and loads the
 generated scripts in bash, zsh, fish, and PowerShell. To require locally

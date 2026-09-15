@@ -7,11 +7,13 @@ import 'package:test/test.dart';
 
 CompletionScripts scripts({
   String executableName = 'example',
+  List<String> aliases = const [],
   String completeSubcommand = '__complete',
   String? functionPrefix,
 }) {
   return CompletionScripts(
     executableName: executableName,
+    aliases: aliases,
     completeSubcommand: completeSubcommand,
     functionPrefix: functionPrefix,
   );
@@ -86,6 +88,67 @@ void main() {
         contains('Register-ArgumentCompleter -Native -CommandName example'),
       );
     });
+
+    test('registers every configured alias for every shell', () {
+      final s = scripts(executableName: 'dotweave', aliases: const ['dw', 'd']);
+
+      expect(
+        s.bash,
+        contains(
+          'complete -o default -o nospace -F __dotweave_complete '
+          'dotweave dw d',
+        ),
+      );
+      expect(s.zsh, contains('compdef __dotweave_complete dotweave dw d'));
+      expect(s.fish, contains('complete -c dw -w dotweave'));
+      expect(s.fish, contains('complete -c d -w dotweave'));
+      expect(
+        s.powershell,
+        contains(
+          'Register-ArgumentCompleter -Native -CommandName dotweave,dw,d',
+        ),
+      );
+    });
+
+    test('ignores duplicate command names while preserving their order', () {
+      final s = scripts(
+        executableName: 'dotweave',
+        aliases: const ['dw', 'dotweave', 'dw', 'd'],
+      );
+
+      expect(s.bash, endsWith(' dotweave dw d\n'));
+      expect(s.zsh, contains('compdef __dotweave_complete dotweave dw d'));
+      expect(
+        s.fish,
+        isNot(contains('complete -c dw -w dotweave\ncomplete -c dw')),
+      );
+      expect(
+        s.powershell,
+        contains(
+          'Register-ArgumentCompleter -Native -CommandName dotweave,dw,d',
+        ),
+      );
+    });
+
+    test(
+      'keeps aliases independent from the completion command and prefix',
+      () {
+        final s = scripts(
+          executableName: 'dotweave',
+          aliases: const ['dw'],
+          completeSubcommand: 'completions',
+          functionPrefix: '_custom',
+        );
+
+        expect(
+          s.bash,
+          contains(r'env COMP_LINE="${COMP_LINE-}" dotweave completions'),
+        );
+        expect(s.bash, contains('-F _custom_complete dotweave dw'));
+        expect(s.fish, contains('command dotweave completions 2>/dev/null'));
+        expect(s.powershell, contains(r'& dotweave completions 2>$null'));
+      },
+    );
 
     test('zsh bootstraps compinit so the script works in a bare shell', () {
       expect(scripts().zsh, contains('autoload -Uz compinit'));
