@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- Allow `cliweave` 0.4.x in the workspace dependency range. There are no API or
+  runtime behavior changes.
+
 ## 0.3.0
 
 - Refresh all runtime and development dependencies to their latest published

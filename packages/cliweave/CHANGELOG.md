@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- Add the optional `CompletionScripts.aliases` list. Generated bash, zsh,
+  fish, and PowerShell scripts now register the same completion implementation
+  for alternate command names, so shell aliases complete without per-user
+  dispatcher configuration.
+
 ## 0.3.2
 
 - Fix completion when the command is invoked through an alias, symlink, path,

@@ -3,7 +3,11 @@ import 'dart:io';
 import 'package:cliweave/cliweave.dart';
 
 const executableName = 'cliweave-fixture';
-final scripts = CompletionScripts(executableName: executableName);
+const aliasName = 'cw';
+final scripts = CompletionScripts(
+  executableName: executableName,
+  aliases: const [aliasName],
+);
 late final Application<ApplicationContext> application;
 
 final modeFlag = EnumFlag.optional<String, ApplicationContext>(
